@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GST Invoice Checker
+
+A comprehensive Next.js application for validating GST invoices with 11 compliance checks.
+
+## Features
+
+✅ **11 Comprehensive Validation Rules:**
+1. GSTIN Format Validation (Supplier & Buyer)
+2. Tax Type Logic (CGST/SGST vs IGST based on state)
+3. GST Calculation Accuracy
+4. CGST/SGST Equal Split Verification
+5. HSN Code Validation
+6. Tax Rate Validation
+7. Invoice Number Validation
+8. Invoice Date Validation
+9. Taxable Amount Sum Verification
+10. Invoice Total Calculation Check
+
+✅ **Health Score System** - Get instant feedback on invoice quality
+✅ **Risk Level Assessment** - Low, Medium, or High risk classification
+✅ **Detailed Issue Reports** - Clear explanations with fix instructions
+✅ **Modern UI** - Beautiful, responsive interface built with Tailwind CSS
 
 ## Getting Started
 
-First, run the development server:
+### Installation
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+2. **Configure environment variables:**
+   
+   Update `.env.local` with your API keys (optional for basic testing):
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+   ```
+
+3. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
+
+4. **Open your browser:**
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+## Usage
+
+Click the "Validate Sample Invoice" button to see the validation system in action with a pre-configured test invoice.
+
+## Project Structure
+
+```
+gst-invoice-checker/
+├── app/
+│   ├── api/validate/route.ts    # Validation API endpoint
+│   └── page.tsx                 # Main application page
+├── components/ui/               # UI components
+├── lib/services/
+│   ├── validationRules.ts      # 11 validation rules
+│   └── validationService.ts    # Validation orchestrator
+├── types/index.ts              # TypeScript definitions
+└── .env.local                  # Environment variables
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Validation Rules
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **GSTIN Format:** 15-char pattern validation
+- **Tax Type Logic:** CGST/SGST for same state, IGST for interstate
+- **Calculations:** Verifies all GST calculations
+- **HSN Codes:** 4-8 digit validation
+- **Tax Rates:** Valid GST rates (0%, 0.25%, 3%, 5%, 12%, 18%, 28%)
+- **Totals:** Sum verification for line items and invoice total
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Tech Stack
 
-## Learn More
+- Next.js 15 with App Router
+- TypeScript
+- Tailwind CSS
+- Custom UI Components
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Built with ❤️ using Next.js and TypeScript**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
