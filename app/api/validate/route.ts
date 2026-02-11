@@ -5,31 +5,29 @@ import { ParsedInvoice } from '@/types';
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { invoiceData } = body as {
-            invoiceData?: ParsedInvoice;
-        };
+        const { invoiceData } = body as { invoiceData?: ParsedInvoice };
 
-        // Support both { invoiceData: {...} } and direct invoice object
         const invoice = invoiceData || body as ParsedInvoice;
 
         if (!invoice || !invoice.lineItems) {
             return NextResponse.json({ error: 'Invoice data required' }, { status: 400 });
         }
 
-        // Validate invoice
+        // Validate (normalizes, hashes, executes rules in parallel, scores)
         const validationResult = await validateInvoice(invoice);
 
-        // Try to store in database (optional, only if Supabase is configured)
+        // Try to persist to Supabase (optional)
         let dbCheckId: string | null = null;
         if (
             process.env.NEXT_PUBLIC_SUPABASE_URL &&
-            process.env.NEXT_PUBLIC_SUPABASE_URL !== 'your_supabase_url'
+            !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your_supabase')
         ) {
             try {
                 const { supabaseAdmin } = await import('@/lib/supabase');
                 const { data: checkRecord } = await supabaseAdmin
                     .from('checks')
                     .insert({
+                        invoice_hash: validationResult.invoiceHash,
                         invoice_file_name: invoice.invoiceNumber,
                         status: 'completed',
                         parsed_data: invoice,
@@ -37,17 +35,16 @@ export async function POST(request: NextRequest) {
                         risk_level: validationResult.riskLevel,
                         issues_found: validationResult.issuesFound,
                         checks_passed: validationResult.checksPassed,
+                        score_breakdown: validationResult.scoreBreakdown,
                         validation_result: validationResult,
                         processing_time_ms: validationResult.processingTimeMs,
                     })
                     .select()
                     .single();
 
-                if (checkRecord) {
-                    dbCheckId = checkRecord.id;
-                }
+                if (checkRecord) dbCheckId = checkRecord.id;
             } catch (dbError) {
-                console.warn('DB storage skipped (Supabase not configured):', dbError);
+                console.warn('DB storage skipped:', dbError);
             }
         }
 
@@ -56,7 +53,6 @@ export async function POST(request: NextRequest) {
             checkId: dbCheckId || validationResult.checkId,
             result: validationResult,
         });
-
     } catch (error) {
         console.error('Validation error:', error);
         return NextResponse.json({ error: 'Validation failed' }, { status: 500 });

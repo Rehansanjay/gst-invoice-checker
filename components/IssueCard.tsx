@@ -79,6 +79,13 @@ export default function IssueCard({ issue }: IssueCardProps) {
                         <p className="font-medium text-sm text-yellow-900">⚠️ Impact:</p>
                         <p className="text-sm text-yellow-800">{issue.impact}</p>
                     </div>
+
+                    {issue.gstLawContext && (
+                        <div className="bg-purple-50 p-3 rounded">
+                            <p className="font-medium text-sm text-purple-900">📖 GST Law Reference:</p>
+                            <p className="text-sm text-purple-800">{issue.gstLawContext}</p>
+                        </div>
+                    )}
                 </div>
             </div>
         </Card>

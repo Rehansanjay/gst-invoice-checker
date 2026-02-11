@@ -28,16 +28,19 @@ export interface LineItem {
 
 export interface ValidationResult {
   checkId: string;
+  invoiceHash: string;
   healthScore: number;
   riskLevel: 'low' | 'medium' | 'high';
   issuesFound: ValidationIssue[];
   checksPassed: ValidationCheck[];
+  scoreBreakdown: ScoreBreakdown;
   processingTimeMs: number;
   timestamp: string;
 }
 
 export interface ValidationIssue {
   id: string;
+  ruleId: string;
   severity: 'critical' | 'warning' | 'info';
   category: string;
   title: string;
@@ -48,6 +51,7 @@ export interface ValidationIssue {
   difference?: number;
   howToFix: string;
   impact: string;
+  gstLawContext?: string;
 }
 
 export interface ValidationCheck {
@@ -55,6 +59,26 @@ export interface ValidationCheck {
   category: string;
   title: string;
   description: string;
+}
+
+export interface ValidationRule {
+  id: string;
+  name: string;
+  category: string;
+  severityWeight: number;
+  gstLawRef?: string;
+  execute: (invoice: ParsedInvoice) => ValidationIssue[];
+}
+
+export interface ScoreBreakdown {
+  totalIssues: number;
+  criticalCount: number;
+  warningCount: number;
+  infoCount: number;
+  criticalDeduction: number;
+  warningDeduction: number;
+  infoDeduction: number;
+  totalDeduction: number;
 }
 
 export const VALID_GST_RATES = [0, 0.25, 3, 5, 12, 18, 28] as const;
