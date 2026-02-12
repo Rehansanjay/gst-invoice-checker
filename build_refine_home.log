@@ -31,14 +31,14 @@ eption
   CommandError
  
   Creating an optimized production build ...
-Γ£ô Compiled successfully in 57s
+Γ£ô Compiled successfully in 20.2s
   Running TypeScript ...
   Collecting page data using 3 workers ...
   Generating static pages using 3 workers (0/25) ...
   Generating static pages using 3 workers (6/25) 
   Generating static pages using 3 workers (12/25) 
   Generating static pages using 3 workers (18/25) 
-Γ£ô Generating static pages using 3 workers (25/25) in 2.3s
+Γ£ô Generating static pages using 3 workers (25/25) in 3.0s
   Finalizing page optimization ...
 
 Route (app)

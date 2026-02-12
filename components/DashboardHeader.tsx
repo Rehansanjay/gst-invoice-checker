@@ -26,6 +26,7 @@ export default function DashboardHeader() {
                         InvoiceCheck.in
                     </Link>
                     <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
+                        <Link href="/" className="hover:text-primary">Home</Link>
                         <Link href="/dashboard" className="text-primary font-semibold">Dashboard</Link>
                         <Link href="/dashboard/history" className="hover:text-primary">History</Link>
                         <Link href="/pricing" className="hover:text-primary">Pricing</Link>
