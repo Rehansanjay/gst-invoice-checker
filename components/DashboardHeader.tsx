@@ -6,20 +6,30 @@ import { LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth-context';
 import { useState } from 'react';
+import { LogoutDialog } from '@/components/LogoutDialog';
 
 export default function DashboardHeader() {
     const { user, signOut } = useAuth();
     const router = useRouter();
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-    const handleLogout = async () => {
+    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+
+    const confirmLogout = async () => {
         setIsLoggingOut(true);
+        setShowLogoutDialog(false);
         await signOut();
         router.replace('/');
     };
 
     return (
         <header className="bg-white border-b sticky top-0 z-10 w-full">
+            <LogoutDialog
+                open={showLogoutDialog}
+                onOpenChange={setShowLogoutDialog}
+                onConfirm={confirmLogout}
+            />
+
             <div className="container mx-auto px-4 h-16 flex items-center justify-between">
                 <div className="flex items-center gap-8">
                     <Link href="/" className="text-xl font-bold tracking-tight">
@@ -41,7 +51,7 @@ export default function DashboardHeader() {
                     <Button
                         variant="ghost"
                         size="sm"
-                        onClick={handleLogout}
+                        onClick={() => setShowLogoutDialog(true)}
                         disabled={isLoggingOut}
                         className="text-muted-foreground hover:text-red-600"
                     >

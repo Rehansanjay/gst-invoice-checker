@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { useAuth } from '@/lib/auth-context';
 import { Loader2, ArrowLeft, ShieldCheck, Zap, Star } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
 
 export default function LoginPage() {
@@ -165,9 +166,8 @@ export default function LoginPage() {
                                         Forgot?
                                     </Link>
                                 </div>
-                                <Input
+                                <PasswordInput
                                     id="password"
-                                    type="password"
                                     placeholder="••••••••"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/auth-context';
 import { Loader2 } from 'lucide-react';
@@ -53,8 +54,16 @@ export default function SignupPage() {
             return;
         }
 
-        if (password.length < 6) {
-            setError('Password must be at least 6 characters');
+        if (password.length < 8) {
+            setError('Password must be at least 8 characters long');
+            return;
+        }
+
+        const hasUpperCase = /[A-Z]/.test(password);
+        const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+        if (!hasUpperCase || !hasSpecialChar) {
+            setError('Password must contain at least one uppercase letter (A-Z) and one special character (e.g. !@#)');
             return;
         }
 
@@ -132,10 +141,9 @@ export default function SignupPage() {
 
                     <div className="space-y-2">
                         <Label htmlFor="password">Password</Label>
-                        <Input
+                        <PasswordInput
                             id="password"
-                            type="password"
-                            placeholder="At least 6 characters"
+                            placeholder="Min 8 chars, 1 CAPS, 1 Symbol"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
@@ -145,9 +153,8 @@ export default function SignupPage() {
 
                     <div className="space-y-2">
                         <Label htmlFor="confirmPassword">Confirm Password</Label>
-                        <Input
+                        <PasswordInput
                             id="confirmPassword"
-                            type="password"
                             placeholder="Re-enter password"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
