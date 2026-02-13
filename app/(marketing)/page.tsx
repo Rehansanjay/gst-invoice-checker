@@ -7,11 +7,27 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CheckCircle2, AlertCircle, Clock, DollarSign, ArrowRight, Zap, ShieldCheck, Star } from 'lucide-react';
 import GetStartedModal from '@/components/GetStartedModal';
+import LoggedInHome from '@/components/LoggedInHome';
 
 export default function Home() {
   const [showModal, setShowModal] = useState(false);
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="h-8 w-32 bg-slate-200 rounded mb-4"></div>
+          <div className="h-4 w-48 bg-slate-200 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (user) {
+    return <LoggedInHome />;
+  }
 
   return (
     <div className="min-h-screen flex flex-col">

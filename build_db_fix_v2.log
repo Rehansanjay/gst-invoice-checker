@@ -1,0 +1,74 @@
+﻿Γû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+node.exe : ΓÜá The 
+"middleware" file 
+convention is 
+deprecated. Please 
+use "proxy" instead. 
+Learn more: https://n
+extjs.org/docs/messag
+es/middleware-to-prox
+y
+At line:1 char:1
++ & "D:\/node.exe" "D
+:\/node_modules/npm/b
+in/npx-cli.js" next 
+build
++ ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (ΓÜá The   
+  "middle...lewar    
+e-to-proxy:Strin    
+g) [], RemoteExc    
+eption
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 32.2s
+  Running TypeScript ...
+  Collecting page data using 3 workers ...
+  Generating static pages using 3 workers (0/25) ...
+  Generating static pages using 3 workers (6/25) 
+  Generating static pages using 3 workers (12/25) 
+  Generating static pages using 3 workers (18/25) 
+Γ£ô Generating static pages using 3 workers (25/25) in 1882.6ms
+  Finalizing page optimization ...
+
+Route (app)
+Γöî Γùï /
+Γö£ Γùï /_not-found
+Γö£ Γùï /about
+Γö£ ╞Æ /api/auth/login
+Γö£ ╞Æ /api/auth/signup
+Γö£ ╞Æ /api/payment
+Γö£ ╞Æ /api/process-check
+Γö£ ╞Æ /api/purchase-package
+Γö£ ╞Æ /api/quick-check
+Γö£ ╞Æ /api/upload
+Γö£ ╞Æ /api/validate
+Γö£ ╞Æ /api/webhook
+Γö£ ╞Æ /auth/callback
+Γö£ Γùï /check
+Γö£ Γùï /contact
+Γö£ Γùï /dashboard
+Γö£ Γùï /faq
+Γö£ Γùï /login
+Γö£ Γùï /pricing
+Γö£ Γùï /privacy
+Γö£ Γùï /refund
+Γö£ Γùï /signup
+Γöö Γùï /terms
+
+
+╞Æ Proxy (Middleware)
+
+Γùï  (Static)   prerendered as static content
+╞Æ  (Dynamic)  server-rendered on demand
+
