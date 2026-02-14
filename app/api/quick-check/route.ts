@@ -1,22 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import Razorpay from 'razorpay';
+import { z } from 'zod';
+
+const quickCheckSchema = z.object({
+    guestEmail: z.string().email().optional().or(z.literal('')),
+    invoiceData: z.object({
+        invoiceNumber: z.string().min(1),
+        invoiceDate: z.string(), // Could add date validation
+        supplierGSTIN: z.string().length(15),
+        buyerGSTIN: z.string().length(15).optional().or(z.literal('')),
+        lineItems: z.array(z.any()), // basic check, could be more detailed
+        taxableTotalAmount: z.number(),
+        totalTaxAmount: z.number(),
+        invoiceTotalAmount: z.number(),
+    })
+});
 
 export async function POST(request: NextRequest) {
     try {
-        const { invoiceData, guestEmail } = await request.json();
+        const body = await request.json();
+
+        // Validation
+        const result = quickCheckSchema.safeParse(body);
+        if (!result.success) {
+            return NextResponse.json({ error: 'Invalid input', details: result.error.format() }, { status: 400 });
+        }
+
+        const { invoiceData, guestEmail } = result.data;
 
         // Step 1: Create Razorpay order
+        console.log('Init Razorpay with key:', process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ? 'Present' : 'Missing');
+
         const razorpay = new Razorpay({
             key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
             key_secret: process.env.RAZORPAY_KEY_SECRET!,
         });
 
+        console.log('Creating Razorpay order for amount: 9900');
         const order = await razorpay.orders.create({
             amount: 9900, // ₹99 in paisa
             currency: 'INR',
             receipt: `quick_${Date.now()}`,
         });
+        console.log('Razorpay order created:', order.id);
 
         // Step 2: Create payment record
         const { data: payment } = await supabaseAdmin
@@ -42,7 +69,7 @@ export async function POST(request: NextRequest) {
                 invoice_number: invoiceData.invoiceNumber,
                 invoice_date: invoiceData.invoiceDate,
                 supplier_gstin: invoiceData.supplierGSTIN,
-                buyer_gstin: invoiceData.buyerGSTIN,
+                buyer_gstin: invoiceData.buyerGSTIN || null,
                 line_items: invoiceData.lineItems,
                 taxable_total_amount: invoiceData.taxableTotalAmount,
                 total_tax_amount: invoiceData.totalTaxAmount,
@@ -57,6 +84,7 @@ export async function POST(request: NextRequest) {
             success: true,
             orderId: order.id,
             checkId: check.id,
+            paymentId: payment.id,
             razorpayKeyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         });
 

@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ParsedInvoice, LineItem, VALID_GST_RATES } from '@/types';
 
-export default function InvoiceForm({ onSubmit }: { onSubmit: (data: ParsedInvoice) => void }) {
+export default function InvoiceForm({ onSubmit, isAuthLoading = false }: { onSubmit: (data: ParsedInvoice) => void, isAuthLoading?: boolean }) {
     const [formData, setFormData] = useState({
         invoiceNumber: '',
         invoiceDate: '',
