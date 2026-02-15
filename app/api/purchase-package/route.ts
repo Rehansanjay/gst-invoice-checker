@@ -1,10 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import Razorpay from 'razorpay';
+import { z } from 'zod';
+
+const purchaseSchema = z.object({
+    userId: z.string().uuid(),
+    packageType: z.enum(['pack_10', 'pack_50', 'pack_100']),
+});
 
 export async function POST(request: NextRequest) {
     try {
-        const { userId, packageType } = await request.json();
+        const body = await request.json();
+
+        // Validation
+        const result = purchaseSchema.safeParse(body);
+        if (!result.success) {
+            return NextResponse.json({ error: 'Invalid input', details: result.error.format() }, { status: 400 });
+        }
+
+        const { userId, packageType } = result.data;
         // packageType: 'pack_10', 'pack_50', 'pack_100'
 
         const packages: Record<string, { price: number; credits: number }> = {
@@ -14,9 +28,8 @@ export async function POST(request: NextRequest) {
         };
 
         const pkg = packages[packageType];
-        if (!pkg) {
-            return NextResponse.json({ error: 'Invalid package type' }, { status: 400 });
-        }
+        // Schema enum handles validity check, but safe to keep or remove. 
+        // Logic below remains same as valid enum guarantees existence in object if keys match enum.
 
         // Create Razorpay order
         const razorpay = new Razorpay({

@@ -3,17 +3,33 @@ import { validateInvoice } from '@/lib/services/validationService';
 import { ParsedInvoice } from '@/types';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { z } from 'zod';
+
+const validateSchema = z.object({
+    invoiceData: z.object({
+        invoiceNumber: z.string().min(1),
+        invoiceDate: z.string(),
+        supplierGSTIN: z.string().length(15),
+        buyerGSTIN: z.string().length(15).optional().or(z.literal('')),
+        lineItems: z.array(z.any()),
+        taxableTotalAmount: z.number(),
+        totalTaxAmount: z.number(),
+        invoiceTotalAmount: z.number(),
+    })
+});
 
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { invoiceData } = body as { invoiceData?: ParsedInvoice };
 
-        const invoice = invoiceData || body as ParsedInvoice;
-
-        if (!invoice || !invoice.lineItems) {
-            return NextResponse.json({ error: 'Invoice data required' }, { status: 400 });
+        // Validation
+        const result = validateSchema.safeParse(body);
+        if (!result.success) {
+            return NextResponse.json({ error: 'Invalid input', details: result.error.format() }, { status: 400 });
         }
+
+        const { invoiceData } = result.data as { invoiceData: ParsedInvoice };
+        const invoice = invoiceData;
 
         // 1. Identify User
         const supabase = await createSupabaseServerClient();

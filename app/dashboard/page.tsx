@@ -64,6 +64,14 @@ export default function DashboardPage() {
         }
     };
 
+    // Expose refresh function to window for interactions
+    useEffect(() => {
+        (window as any).refreshDashboard = fetchUserData;
+        return () => {
+            delete (window as any).refreshDashboard;
+        };
+    }, [user]);
+
     // Show loading while checking auth or fetching data
     if (authLoading || loadingData) {
         return (
@@ -163,7 +171,7 @@ export default function DashboardPage() {
                 ) : (
                     checks.map((check) => (
                         <Card key={check.id} className={`p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:bg-slate-50 transition-colors cursor-pointer border-l-4 shadow-sm ${check.risk_level === 'high' ? 'border-l-red-500' :
-                                check.risk_level === 'medium' ? 'border-l-yellow-500' : 'border-l-green-500'
+                            check.risk_level === 'medium' ? 'border-l-yellow-500' : 'border-l-green-500'
                             }`}>
                             <div className="space-y-1">
                                 <div className="font-bold text-lg">Invoice: {check.invoice_number || 'Unknown'}</div>
@@ -173,7 +181,7 @@ export default function DashboardPage() {
                             </div>
 
                             <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${check.risk_level === 'high' ? 'bg-red-100 text-red-800' :
-                                    check.risk_level === 'medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
+                                check.risk_level === 'medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
                                 }`}>
                                 {check.risk_level === 'high' ? <AlertTriangle className="w-4 h-4" /> :
                                     check.risk_level === 'medium' ? <AlertTriangle className="w-4 h-4" /> :
