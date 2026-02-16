@@ -112,7 +112,23 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false }: { onSub
         setLineItems(updated);
     };
 
+    const validateForm = () => {
+        const errors: string[] = [];
+        if (!formData.invoiceNumber.trim()) errors.push('Invoice Number is required');
+        if (!formData.invoiceDate) errors.push('Invoice Date is required');
+        if (formData.supplierGSTIN.length !== 15) errors.push('Supplier GSTIN must be exactly 15 characters');
+        if (formData.buyerGSTIN && formData.buyerGSTIN.length !== 15) errors.push('Buyer GSTIN must be exactly 15 characters (or leave empty)');
+
+        if (errors.length > 0) {
+            alert(errors.join('\n'));
+            return false;
+        }
+        return true;
+    };
+
     const handleSubmit = async () => {
+        if (!validateForm()) return;
+
         setIsSubmitting(true);
 
         const invoiceData: ParsedInvoice = {
@@ -128,8 +144,13 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false }: { onSub
             invoiceTotalAmount,
         };
 
-        onSubmit(invoiceData);
-        setIsSubmitting(false);
+        try {
+            await onSubmit(invoiceData);
+        } catch (error) {
+            console.error('Submit error:', error);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { supabaseAdmin } from '@/lib/supabase';
+import { processInvoiceCheck } from '@/lib/services/checkProcessingService';
 
 export async function POST(request: NextRequest) {
     try {
@@ -122,24 +123,21 @@ async function handleQuickCheck(paymentRecord: any) {
 
     console.log(`✅ Triggering validation for check ${check.id}`);
 
-    // Trigger background processing
-    // In production, use queue like BullMQ or Supabase Edge Function
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/process-check`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                checkId: check.id,
-                paymentId: paymentRecord.id,
-            }),
-        });
+        // Call shared processing service directly
+        // This will run validation, send email, etc.
+        await processInvoiceCheck(
+            check.id,
+            paymentRecord.id,
+            paymentRecord.razorpay_payment_id,
+            // We don't have the signature here readily available in paymentRecord unless stored
+            // typically webhooks are trustable locally if signature verified at entry
+            // The service handles optional signature
+            undefined
+        );
+        console.log('✅ Check processed successfully via webhook');
 
-        if (!response.ok) {
-            console.error('❌ Processing failed:', await response.text());
-        } else {
-            console.log('✅ Check processed successfully');
-        }
     } catch (error) {
-        console.error('❌ Failed to trigger processing:', error);
+        console.error('❌ Failed to process check via webhook:', error);
     }
 }
