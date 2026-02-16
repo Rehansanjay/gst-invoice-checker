@@ -4,13 +4,13 @@ import Razorpay from 'razorpay';
 import { z } from 'zod';
 
 const quickCheckSchema = z.object({
-    guestEmail: z.string().email().optional().or(z.literal('')),
+    guestEmail: z.string().email().optional().or(z.literal('')).nullable(),
     invoiceData: z.object({
         invoiceNumber: z.string().min(1),
-        invoiceDate: z.string(), // Could add date validation
+        invoiceDate: z.string(),
         supplierGSTIN: z.string().length(15),
-        buyerGSTIN: z.string().length(15).optional().or(z.literal('')),
-        lineItems: z.array(z.any()), // basic check, could be more detailed
+        buyerGSTIN: z.string().length(15).optional().or(z.literal('')).nullable(),
+        lineItems: z.array(z.any()),
         taxableTotalAmount: z.number(),
         totalTaxAmount: z.number(),
         invoiceTotalAmount: z.number(),
