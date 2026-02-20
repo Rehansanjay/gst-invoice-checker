@@ -4,20 +4,20 @@ import { ValidationResult } from '@/types';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendEmailReport(
-    email: string,
-    validationResult: ValidationResult,
-    checkId: string
+  email: string,
+  validationResult: ValidationResult,
+  checkId: string
 ) {
-    try {
-        const { healthScore, riskLevel, issuesFound } = validationResult;
+  try {
+    const { healthScore, riskLevel, issuesFound } = validationResult;
 
-        const criticalIssues = issuesFound.filter(i => i.severity === 'critical');
-        const warningIssues = issuesFound.filter(i => i.severity === 'warning');
+    const criticalIssues = issuesFound.filter(i => i.severity === 'critical');
+    const warningIssues = issuesFound.filter(i => i.severity === 'warning');
 
-        const riskEmoji = riskLevel === 'low' ? '✅' : riskLevel === 'medium' ? '⚠️' : '🔴';
-        const riskColor = riskLevel === 'low' ? '#22c55e' : riskLevel === 'medium' ? '#f59e0b' : '#ef4444';
+    const riskEmoji = riskLevel === 'low' ? '✅' : riskLevel === 'medium' ? '⚠️' : '🔴';
+    const riskColor = riskLevel === 'low' ? '#22c55e' : riskLevel === 'medium' ? '#f59e0b' : '#ef4444';
 
-        const htmlContent = `
+    const htmlContent = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -92,16 +92,19 @@ export async function sendEmailReport(
 </html>
     `;
 
-        await resend.emails.send({
-            from: 'InvoiceCheck.in <reports@invoicecheck.in>',
-            to: email,
-            subject: `${riskEmoji} Invoice Validation Report - ${riskLevel.toUpperCase()} RISK`,
-            html: htmlContent,
-        });
+    await resend.emails.send({
+      // For local/testing: Resend's built-in sender works without domain verification
+      // For production: verify invoicecheck.in in Resend dashboard and switch to:
+      // from: 'InvoiceCheck.in <reports@invoicecheck.in>',
+      from: 'InvoiceCheck.in <onboarding@resend.dev>',
+      to: email,
+      subject: `${riskEmoji} Invoice Validation Report - ${riskLevel.toUpperCase()} RISK`,
+      html: htmlContent,
+    });
 
-        console.log(`✅ Email sent to ${email} for check ${checkId}`);
-    } catch (error) {
-        console.error('❌ Email sending failed:', error);
-        throw error;
-    }
+    console.log(`✅ Email sent to ${email} for check ${checkId}`);
+  } catch (error) {
+    console.error('❌ Email sending failed:', error);
+    throw error;
+  }
 }

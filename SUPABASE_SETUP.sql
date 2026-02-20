@@ -388,3 +388,33 @@ begin
   where id = user_id_param;
 end;
 $$;
+
+-- ═══════════════════════════════════════════════════════════
+-- STEP 16: Free Trial — Auto-create user profile on signup
+-- ═══════════════════════════════════════════════════════════
+-- This trigger fires when a new user signs up via Supabase Auth.
+-- It inserts a profile row in public.users with 1 free trial credit.
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.users (id, email, full_name, credits_remaining)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    NEW.raw_user_meta_data->>'full_name',
+    1  -- 1 free trial credit
+  )
+  ON CONFLICT (id) DO NOTHING;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- One-time patch: give 1 free trial to all existing 0-credit users
+-- UPDATE public.users
+-- SET credits_remaining = 1
+-- WHERE credits_remaining = 0 AND credits_used = 0 AND current_plan IS NULL;
