@@ -571,3 +571,189 @@ export const ALL_RULES: ValidationRule[] = [
     taxableSumRule,
     invoiceTotalRule,
 ];
+
+// ─── RULE 13: Place of Supply Validation ───────────────────────────
+export const placeOfSupplyRule: ValidationRule = {
+    id: 'RULE_PLACE_OF_SUPPLY',
+    name: 'Place of Supply Validation',
+    category: 'Place of Supply',
+    severityWeight: 8,
+    gstLawRef: 'Section 10-12 of IGST Act 2017 — Place of Supply',
+    execute: (invoice) => {
+        const issues: ValidationIssue[] = [];
+
+        if (!invoice.placeOfSupply) {
+            issues.push({
+                id: 'pos-missing',
+                ruleId: 'RULE_PLACE_OF_SUPPLY',
+                severity: 'warning',
+                category: 'Place of Supply',
+                title: 'Place of Supply Not Specified',
+                description: 'Place of Supply (PoS) is a mandatory field on GST invoices',
+                found: 'Not provided',
+                expected: '2-digit state code',
+                howToFix: 'Add Place of Supply. Usually it is the buyer\'s state code.',
+                impact: 'Tax type (CGST/SGST vs IGST) is legally determined by PoS, not the buyer GSTIN.',
+                gstLawContext: 'Section 10 of IGST Act determines PoS for goods; Section 12 for services. PoS must appear on invoice under Rule 46(n).',
+            });
+            return issues;
+        }
+
+        // Cross-check: if PoS == supplier state → should be intrastate (CGST+SGST)
+        // if PoS != supplier state → should be interstate (IGST)
+        const supplierState = invoice.supplierGSTIN.substring(0, 2);
+        const isIntrastate = invoice.placeOfSupply === supplierState;
+
+        invoice.lineItems.forEach((item, index) => {
+            if (isIntrastate && item.taxType === 'IGST') {
+                issues.push({
+                    id: `pos-igst-conflict-line-${index + 1}`,
+                    ruleId: 'RULE_PLACE_OF_SUPPLY',
+                    severity: 'critical',
+                    category: 'Place of Supply',
+                    title: `PoS Conflict: IGST on Intrastate Supply — Line ${index + 1}`,
+                    description: `Place of Supply (${invoice.placeOfSupply}) equals Supplier state (${supplierState}), but IGST is charged`,
+                    location: `Line ${index + 1}: ${item.description}`,
+                    found: 'IGST',
+                    expected: 'CGST + SGST (intrastate supply)',
+                    howToFix: 'Change tax type to CGST + SGST. IGST is only for interstate supplies.',
+                    impact: 'GSTR-1 will reject. Buyer cannot claim ITC correctly.',
+                    gstLawContext: 'Section 8 of IGST Act: supply is intrastate if PoS and supplier location are in the same state.',
+                });
+            }
+            if (!isIntrastate && item.taxType === 'CGST_SGST') {
+                issues.push({
+                    id: `pos-cgst-conflict-line-${index + 1}`,
+                    ruleId: 'RULE_PLACE_OF_SUPPLY',
+                    severity: 'critical',
+                    category: 'Place of Supply',
+                    title: `PoS Conflict: CGST+SGST on Interstate Supply — Line ${index + 1}`,
+                    description: `Place of Supply (${invoice.placeOfSupply}) differs from Supplier state (${supplierState}), but CGST+SGST is charged`,
+                    location: `Line ${index + 1}: ${item.description}`,
+                    found: 'CGST + SGST',
+                    expected: 'IGST (interstate supply)',
+                    howToFix: 'Change tax type to IGST for interstate supplies.',
+                    impact: 'Wrong tax type. Buyer ITC will fail in GSTR-2B reconciliation.',
+                    gstLawContext: 'Section 7 of IGST Act: supply is interstate if PoS and supplier location are in different states.',
+                });
+            }
+        });
+
+        return issues;
+    },
+};
+
+// ─── RULE 14: Invoice Type Validation ──────────────────────────────
+export const invoiceTypeRule: ValidationRule = {
+    id: 'RULE_INVOICE_TYPE',
+    name: 'Invoice Type Compliance',
+    category: 'Invoice Type',
+    severityWeight: 7,
+    gstLawRef: 'Section 31 of CGST Act — Type of Invoice',
+    execute: (invoice) => {
+        const issues: ValidationIssue[] = [];
+
+        if (!invoice.invoiceType || invoice.invoiceType === 'tax_invoice') {
+            return issues; // Default — no extra checks needed
+        }
+
+        const totalTax = invoice.lineItems.reduce(
+            (sum, item) => sum + item.cgst + item.sgst + item.igst, 0
+        );
+
+        // Bill of Supply: exempt/composition — must have 0 tax
+        if (invoice.invoiceType === 'bill_of_supply' && totalTax > 0) {
+            issues.push({
+                id: 'bos-has-tax',
+                ruleId: 'RULE_INVOICE_TYPE',
+                severity: 'critical',
+                category: 'Invoice Type',
+                title: 'Bill of Supply Cannot Have GST',
+                description: `Bill of Supply is for exempt goods/composition dealers — no GST should be charged. Found ₹${totalTax.toFixed(2)} in tax.`,
+                found: `₹${totalTax.toFixed(2)} GST charged`,
+                expected: 'Zero tax (₹0.00)',
+                howToFix: 'Either change to Tax Invoice, or remove all tax amounts. Bill of Supply is only for exempt supplies or composition dealers.',
+                impact: 'Composition dealers are prohibited from collecting GST. Charging GST on BoS is a serious violation.',
+                gstLawContext: 'Section 10(1) of CGST Act: Composition dealers cannot collect tax from recipients. Rule 49 permits Bill of Supply instead of Tax Invoice.',
+            });
+        }
+
+        // Export Invoice: should ideally have 0 tax (LUT/Bond) or IGST only
+        if (invoice.invoiceType === 'export_invoice') {
+            const hasCgstSgst = invoice.lineItems.some(
+                (item) => item.taxType === 'CGST_SGST' && (item.cgst > 0 || item.sgst > 0)
+            );
+            if (hasCgstSgst) {
+                issues.push({
+                    id: 'export-has-cgst-sgst',
+                    ruleId: 'RULE_INVOICE_TYPE',
+                    severity: 'critical',
+                    category: 'Invoice Type',
+                    title: 'Export Invoice Cannot Have CGST/SGST',
+                    description: 'Export invoices must charge either zero tax (under LUT/Bond) or IGST only',
+                    found: 'CGST + SGST',
+                    expected: 'IGST or Zero-rated (under LUT)',
+                    howToFix: 'Change tax type to IGST. For zero-rated exports under LUT, set all taxes to 0.',
+                    impact: 'GSTR-1 will not accept CGST/SGST on export invoices.',
+                    gstLawContext: 'Section 16 of IGST Act: Exports are zero-rated supplies. Tax can only be IGST (to be refunded) or nil (under LUT/Bond).',
+                });
+            }
+        }
+
+        return issues;
+    },
+};
+
+// ─── RULE 15: Reverse Charge Mechanism (RCM) ───────────────────────
+export const reverseChargeRule: ValidationRule = {
+    id: 'RULE_REVERSE_CHARGE',
+    name: 'Reverse Charge Mechanism (RCM)',
+    category: 'Reverse Charge',
+    severityWeight: 6,
+    gstLawRef: 'Section 9(3) & 9(4) of CGST Act — Reverse Charge',
+    execute: (invoice) => {
+        const issues: ValidationIssue[] = [];
+
+        if (invoice.reverseCharge === true) {
+            // RCM invoices: supplier charges 0 tax, buyer pays tax directly
+            const totalTax = invoice.lineItems.reduce(
+                (sum, item) => sum + item.cgst + item.sgst + item.igst, 0
+            );
+
+            if (totalTax > 1) {
+                issues.push({
+                    id: 'rcm-tax-charged',
+                    ruleId: 'RULE_REVERSE_CHARGE',
+                    severity: 'warning',
+                    category: 'Reverse Charge',
+                    title: 'RCM Invoice Should Have Zero Tax from Supplier',
+                    description: `Reverse Charge is enabled, but ₹${totalTax.toFixed(2)} in tax is charged. Under RCM, the buyer pays tax directly to the government.`,
+                    found: `Supplier charging ₹${totalTax.toFixed(2)} GST`,
+                    expected: '₹0.00 GST (buyer pays directly)',
+                    howToFix: 'For RCM supplies, set all tax amounts to ₹0. The buyer will self-assess and pay GST.',
+                    impact: 'Double taxation risk. Buyer will cannot claim ITC on supplier-charged tax in RCM.',
+                    gstLawContext: 'Under Section 9(3) of CGST Act, for notified RCM supplies, tax liability shifts to recipient. Supplier must not charge GST.',
+                });
+            } else {
+                // RCM is correctly set — add informational note
+                issues.push({
+                    id: 'rcm-note',
+                    ruleId: 'RULE_REVERSE_CHARGE',
+                    severity: 'info',
+                    category: 'Reverse Charge',
+                    title: 'Reverse Charge Applicable',
+                    description: 'This invoice is under Reverse Charge Mechanism. The buyer is liable to pay GST directly to the government.',
+                    howToFix: 'No action needed. Ensure buyer files GSTR-2 and pays RCM tax.',
+                    impact: 'Buyer must pay RCM GST and can then claim ITC in the same return period.',
+                    gstLawContext: 'Section 9(3) of CGST Act. Buyer files in GSTR-2 and claims ITC subject to conditions in Section 16.',
+                });
+            }
+        }
+
+        return issues;
+    },
+};
+
+// ─── APPEND NEW RULES TO REGISTRY ──────────────────────────────────
+// Done here (after declarations) to avoid "used before declaration" TS errors
+ALL_RULES.push(placeOfSupplyRule, invoiceTypeRule, reverseChargeRule);

@@ -13,7 +13,7 @@ export function normalizeInvoice(raw: ParsedInvoice): ParsedInvoice {
         buyerGSTIN: normalizeGSTIN(raw.buyerGSTIN),
         supplierName: raw.supplierName?.trim() || '',
         buyerName: raw.buyerName?.trim() || '',
-        lineItems: raw.lineItems.map(normalizeLineItem),
+        lineItems: (Array.isArray(raw.lineItems) ? raw.lineItems : []).filter(item => item !== null && item !== undefined).map(normalizeLineItem),
         taxableTotalAmount: roundMoney(raw.taxableTotalAmount),
         totalTaxAmount: roundMoney(raw.totalTaxAmount),
         invoiceTotalAmount: roundMoney(raw.invoiceTotalAmount),

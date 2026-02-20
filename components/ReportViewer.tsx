@@ -1,21 +1,168 @@
 'use client';
 
+import { useState } from 'react';
 import { ValidationResult } from '@/types';
 import HealthScore from './HealthScore';
 import IssueCard from './IssueCard';
 import { Card } from '@/components/ui/card';
-import { CheckCircle2, Download, Share2, Mail, RefreshCw } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
+import { CheckCircle2, Download, Share2, Mail, RefreshCw, Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
 
 interface ReportViewerProps {
     result: ValidationResult;
+    invoiceNumber?: string;
 }
 
-export default function ReportViewer({ result }: ReportViewerProps) {
+export default function ReportViewer({ result, invoiceNumber = 'Invoice' }: ReportViewerProps) {
     const criticalIssues = result.issuesFound.filter(i => i.severity === 'critical');
     const warningIssues = result.issuesFound.filter(i => i.severity === 'warning');
     const passedChecks = result.checksPassed;
+
+    const [isDownloading, setIsDownloading] = useState(false);
+    const [isSendingEmail, setIsSendingEmail] = useState(false);
+    const [showEmailModal, setShowEmailModal] = useState(false);
+    const [emailAddress, setEmailAddress] = useState('');
+
+    const handleDownloadPDF = async () => {
+        setIsDownloading(true);
+        try {
+            // Dynamically import jsPDF so it only loads client-side
+            const { jsPDF } = await import('jspdf');
+            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const margin = 15;
+            const contentWidth = pageWidth - margin * 2;
+            let y = 20;
+
+            const addLine = (text: string, size = 11, style: 'normal' | 'bold' = 'normal', color: [number, number, number] = [30, 30, 30]) => {
+                doc.setFontSize(size);
+                doc.setFont('helvetica', style);
+                doc.setTextColor(...color);
+                const lines = doc.splitTextToSize(text, contentWidth);
+                lines.forEach((line: string) => {
+                    if (y > 275) { doc.addPage(); y = 20; }
+                    doc.text(line, margin, y);
+                    y += size * 0.45;
+                });
+                y += 3;
+            };
+
+            const addDivider = () => {
+                if (y > 275) { doc.addPage(); y = 20; }
+                doc.setDrawColor(220, 220, 220);
+                doc.line(margin, y, pageWidth - margin, y);
+                y += 5;
+            };
+
+            // ── Header ──
+            doc.setFillColor(30, 64, 175);
+            doc.rect(0, 0, pageWidth, 30, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text('GST Invoice Validation Report', pageWidth / 2, 13, { align: 'center' });
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`InvoiceCheck.in  |  Check ID: ${result.checkId}`, pageWidth / 2, 22, { align: 'center' });
+            y = 40;
+
+            // ── Invoice Info ──
+            addLine(`Invoice: ${invoiceNumber}   |   Date: ${new Date().toLocaleDateString('en-IN')}`, 10, 'normal', [80, 80, 80]);
+            addDivider();
+
+            // ── Health Score ──
+            const scoreColor: [number, number, number] = result.healthScore >= 80 ? [34, 197, 94] : result.healthScore >= 50 ? [234, 179, 8] : [239, 68, 68];
+            addLine('Health Score', 13, 'bold');
+            addLine(`${result.healthScore} / 100  —  ${result.riskLevel.toUpperCase()} RISK`, 18, 'bold', scoreColor);
+            addDivider();
+
+            // ── Critical Issues ──
+            const criticals = result.issuesFound.filter(i => i.severity === 'critical');
+            const warnings = result.issuesFound.filter(i => i.severity === 'warning');
+
+            if (criticals.length > 0) {
+                addLine(`CRITICAL ISSUES (${criticals.length})`, 13, 'bold', [185, 28, 28]);
+                criticals.forEach((issue, idx) => {
+                    addLine(`${idx + 1}. ${issue.title}`, 11, 'bold', [185, 28, 28]);
+                    addLine(`   ${issue.description}`, 10, 'normal', [60, 60, 60]);
+                    if (issue.howToFix) addLine(`   Fix: ${issue.howToFix}`, 10, 'normal', [100, 100, 100]);
+                    y += 2;
+                });
+                addDivider();
+            }
+
+            if (warnings.length > 0) {
+                addLine(`WARNINGS (${warnings.length})`, 13, 'bold', [161, 98, 7]);
+                warnings.forEach((issue, idx) => {
+                    addLine(`${idx + 1}. ${issue.title}`, 11, 'bold', [161, 98, 7]);
+                    addLine(`   ${issue.description}`, 10, 'normal', [60, 60, 60]);
+                    y += 2;
+                });
+                addDivider();
+            }
+
+            // ── Checks Passed ──
+            addLine(`CHECKS PASSED (${result.checksPassed.length})`, 13, 'bold', [21, 128, 61]);
+            result.checksPassed.forEach(check => {
+                addLine(`• ${check.title}`, 10, 'normal', [60, 60, 60]);
+            });
+            addDivider();
+
+            // ── Footer ──
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(150, 150, 150);
+            doc.text('DISCLAIMER: Automated validation tool. Consult a CA before GST filing. Max liability ₹99.', pageWidth / 2, 285, { align: 'center' });
+
+            doc.save(`invoice-report-${invoiceNumber || result.checkId}.pdf`);
+            toast.success('PDF downloaded!');
+        } catch (error: any) {
+            console.error('PDF error:', error);
+            toast.error('PDF generation failed: ' + (error.message || 'Unknown error'));
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
+    const handleSendEmail = async () => {
+        if (!emailAddress.trim()) {
+            toast.error('Please enter an email address');
+            return;
+        }
+        setIsSendingEmail(true);
+        try {
+            const res = await fetch('/api/email-report', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: emailAddress, result, checkId: result.checkId }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to send email');
+
+            toast.success(`Report sent to ${emailAddress}`);
+            setShowEmailModal(false);
+            setEmailAddress('');
+        } catch (error: any) {
+            toast.error(error.message || 'Email sending failed');
+        } finally {
+            setIsSendingEmail(false);
+        }
+    };
+
+    const handleShareWhatsApp = () => {
+        const riskEmoji = result.riskLevel === 'low' ? '✅' : result.riskLevel === 'medium' ? '⚠️' : '🔴';
+        const text = encodeURIComponent(
+            `${riskEmoji} GST Invoice Validation Report\n` +
+            `Health Score: ${result.healthScore}/100 (${result.riskLevel.toUpperCase()} RISK)\n` +
+            `Issues Found: ${result.issuesFound.length}\n` +
+            `Checks Passed: ${result.checksPassed.length}\n` +
+            `Validated on InvoiceCheck.in`
+        );
+        window.open(`https://wa.me/?text=${text}`, '_blank');
+    };
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
@@ -27,10 +174,11 @@ export default function ReportViewer({ result }: ReportViewerProps) {
                     <p className="text-sm text-muted-foreground">Check ID: {result.checkId} • {new Date().toLocaleString()}</p>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
-                        <Download className="w-4 h-4 mr-2" /> PDF
+                    <Button variant="outline" size="sm" onClick={handleDownloadPDF} disabled={isDownloading}>
+                        {isDownloading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
+                        PDF
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => setShowEmailModal(true)}>
                         <Mail className="w-4 h-4 mr-2" /> Email
                     </Button>
                 </div>
@@ -129,13 +277,14 @@ export default function ReportViewer({ result }: ReportViewerProps) {
 
             {/* Footer Actions */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Button className="w-full" variant="outline">
-                    <Download className="w-4 h-4 mr-2" /> Download PDF
+                <Button className="w-full" variant="outline" onClick={handleDownloadPDF} disabled={isDownloading}>
+                    {isDownloading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
+                    Download PDF
                 </Button>
-                <Button className="w-full" variant="outline">
+                <Button className="w-full" variant="outline" onClick={handleShareWhatsApp}>
                     <Share2 className="w-4 h-4 mr-2" /> Share WhatsApp
                 </Button>
-                <Button className="w-full" variant="outline">
+                <Button className="w-full" variant="outline" onClick={() => setShowEmailModal(true)}>
                     <Mail className="w-4 h-4 mr-2" /> Email Report
                 </Button>
                 <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => window.location.reload()}>
@@ -151,6 +300,50 @@ export default function ReportViewer({ result }: ReportViewerProps) {
                     GST filing. Maximum liability: ₹99 (amount paid).
                 </p>
             </Card>
+
+            {/* Email Modal */}
+            {showEmailModal && (
+                <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm">
+                    <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md space-y-4">
+                        <div className="flex justify-between items-center">
+                            <h3 className="text-lg font-bold">Email Report</h3>
+                            <button onClick={() => setShowEmailModal(false)} className="text-muted-foreground hover:text-foreground">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                            We'll send the full validation report to your email using Resend.
+                        </p>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Email Address</label>
+                            <Input
+                                type="email"
+                                placeholder="you@example.com"
+                                value={emailAddress}
+                                onChange={(e) => setEmailAddress(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSendEmail()}
+                                autoFocus
+                            />
+                        </div>
+                        <div className="flex gap-3">
+                            <Button
+                                className="flex-1"
+                                onClick={handleSendEmail}
+                                disabled={isSendingEmail}
+                            >
+                                {isSendingEmail ? (
+                                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending...</>
+                                ) : (
+                                    <><Mail className="w-4 h-4 mr-2" /> Send Report</>
+                                )}
+                            </Button>
+                            <Button variant="outline" onClick={() => setShowEmailModal(false)}>
+                                Cancel
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

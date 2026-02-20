@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Plus, CreditCard, Clock, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
+import { Plus, CreditCard, Clock, AlertTriangle, CheckCircle2, Loader2, Lock } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 
@@ -86,9 +86,11 @@ export default function DashboardPage() {
         return null;
     }
 
-    const creditsRemaining = userData?.credits_remaining || 0;
-    const creditsUsed = userData?.credits_used || 0;
-    const totalCredits = creditsRemaining + creditsUsed || 0; // Fixed default
+    const creditsRemaining = userData?.credits_remaining ?? 0;
+    const creditsUsed = userData?.credits_used ?? 0;
+    const totalCredits = creditsRemaining + creditsUsed;
+    const hasPlan = !!userData?.current_plan;
+    const isOutOfCredits = creditsRemaining === 0;
 
     return (
         <div className="container mx-auto px-4 py-8 space-y-8">
@@ -102,16 +104,23 @@ export default function DashboardPage() {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="p-6 border-l-4 border-l-primary shadow-sm hover:shadow-md transition-shadow">
+                <Card className={`p-6 border-l-4 shadow-sm hover:shadow-md transition-shadow ${isOutOfCredits ? 'border-l-red-500 bg-red-50/50' : 'border-l-primary'}`}>
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="font-semibold text-muted-foreground">Checks Available</h3>
-                        <CreditCard className="w-5 h-5 text-primary" />
+                        {isOutOfCredits ? (
+                            <Lock className="w-5 h-5 text-red-500" />
+                        ) : (
+                            <CreditCard className="w-5 h-5 text-primary" />
+                        )}
                     </div>
                     <div className="text-4xl font-bold mb-1">
-                        {creditsRemaining} <span className="text-sm font-normal text-muted-foreground">/ {totalCredits || '∞'}</span>
+                        {creditsRemaining}
+                        <span className="text-sm font-normal text-muted-foreground ml-1">
+                            / {totalCredits} {!hasPlan && totalCredits > 0 && <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded ml-1 font-medium">Free Trial</span>}
+                        </span>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                        {creditsRemaining === 0 ? 'Buy more to continue' : 'Use anytime'}
+                    <p className={`text-xs ${isOutOfCredits ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>
+                        {isOutOfCredits ? '⚠️ No checks left — upgrade to continue' : 'Use anytime'}
                     </p>
                 </Card>
 
@@ -143,19 +152,32 @@ export default function DashboardPage() {
             </div>
 
             {/* Actions */}
-            <div className="flex gap-4">
-                <Link href="/pricing">
-                    <Button size="lg" className="w-full md:w-auto h-12 text-lg gap-2">
-                        <CreditCard className="w-5 h-5" /> Buy More Checks
-                    </Button>
-                </Link>
-                {/* Always allow access to check page, validation happens there if needed */}
-                <Link href="/check">
-                    <Button size="lg" variant="secondary" className="w-full md:w-auto h-12 text-lg gap-2 border shadow-sm hover:bg-slate-100">
-                        <Plus className="w-5 h-5" /> Check New Invoice
-                    </Button>
-                </Link>
-            </div>
+            {isOutOfCredits ? (
+                <div className="flex flex-col sm:flex-row gap-4 p-5 bg-red-50 border border-red-200 rounded-xl">
+                    <div className="flex-1">
+                        <p className="font-semibold text-red-800">You've used your free trial</p>
+                        <p className="text-sm text-red-600">Buy a credit pack to keep validating invoices.</p>
+                    </div>
+                    <Link href="/pricing">
+                        <Button size="lg" className="gap-2 bg-red-600 hover:bg-red-700 text-white h-12">
+                            <CreditCard className="w-5 h-5" /> Upgrade Now
+                        </Button>
+                    </Link>
+                </div>
+            ) : (
+                <div className="flex gap-4">
+                    <Link href="/pricing">
+                        <Button size="lg" variant="outline" className="w-full md:w-auto h-12 text-lg gap-2">
+                            <CreditCard className="w-5 h-5" /> Buy More Checks
+                        </Button>
+                    </Link>
+                    <Link href="/check">
+                        <Button size="lg" className="w-full md:w-auto h-12 text-lg gap-2">
+                            <Plus className="w-5 h-5" /> Check New Invoice
+                        </Button>
+                    </Link>
+                </div>
+            )}
 
             {/* Recent Checks */}
             <div className="space-y-4">

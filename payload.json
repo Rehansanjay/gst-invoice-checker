@@ -1,0 +1,12 @@
+{
+    "invoiceData": {
+        "invoiceNumber": "INV-001",
+        "invoiceDate": "2023-10-27",
+        "supplierGSTIN": "27AAAAA0000A1Z5",
+        "buyerGSTIN": "",
+        "lineItems": [],
+        "taxableTotalAmount": 100,
+        "totalTaxAmount": 18,
+        "invoiceTotalAmount": 118
+    }
+}

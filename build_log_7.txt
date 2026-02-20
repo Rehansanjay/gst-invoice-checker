@@ -1,0 +1,77 @@
+
+> gst-invoice-checker@0.1.0 build
+> next build
+
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+
+> Build error occurred
+Error: Turbopack build failed with 4 errors:
+./app/check/page.tsx:1:28
+Ecmascript file had an error
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m { useState[33m,[39m useRef[33m,[39m useEffect } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m   |[39m                            [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m { useRouter } [36mfrom[39m [32m'next/navigation'[39m[33m;[39m
+ [90m 3 |[39m [36mimport[39m { [33mArrowLeft[39m[33m,[39m [33mUpload[39m[33m,[39m [33mX[39m[33m,[39m [33mZoomIn[39m[33m,[39m [33mFileImage[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mInvoiceForm[39m [36mfrom[39m [32m'@/components/InvoiceForm'[39m[33m;[39m[0m
+
+You're importing a component that needs `useEffect`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+
+ Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+
+
+
+
+./app/check/page.tsx:1:20
+Ecmascript file had an error
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m { useState[33m,[39m useRef[33m,[39m useEffect } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m   |[39m                    [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m { useRouter } [36mfrom[39m [32m'next/navigation'[39m[33m;[39m
+ [90m 3 |[39m [36mimport[39m { [33mArrowLeft[39m[33m,[39m [33mUpload[39m[33m,[39m [33mX[39m[33m,[39m [33mZoomIn[39m[33m,[39m [33mFileImage[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mInvoiceForm[39m [36mfrom[39m [32m'@/components/InvoiceForm'[39m[33m;[39m[0m
+
+You're importing a component that needs `useRef`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+
+ Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+
+
+
+
+./app/check/page.tsx:2:10
+Ecmascript file had an error
+[0m [90m 1 |[39m [36mimport[39m { useState[33m,[39m useRef[33m,[39m useEffect } [36mfrom[39m [32m'react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 2 |[39m [36mimport[39m { useRouter } [36mfrom[39m [32m'next/navigation'[39m[33m;[39m
+ [90m   |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m [36mimport[39m { [33mArrowLeft[39m[33m,[39m [33mUpload[39m[33m,[39m [33mX[39m[33m,[39m [33mZoomIn[39m[33m,[39m [33mFileImage[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mInvoiceForm[39m [36mfrom[39m [32m'@/components/InvoiceForm'[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m [33mReportViewer[39m [36mfrom[39m [32m'@/components/ReportViewer'[39m[33m;[39m[0m
+
+You're importing a component that needs `useRouter`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+
+ Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+
+
+
+
+./app/check/page.tsx:1:10
+Ecmascript file had an error
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m { useState[33m,[39m useRef[33m,[39m useEffect } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m   |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m { useRouter } [36mfrom[39m [32m'next/navigation'[39m[33m;[39m
+ [90m 3 |[39m [36mimport[39m { [33mArrowLeft[39m[33m,[39m [33mUpload[39m[33m,[39m [33mX[39m[33m,[39m [33mZoomIn[39m[33m,[39m [33mFileImage[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m [33mInvoiceForm[39m [36mfrom[39m [32m'@/components/InvoiceForm'[39m[33m;[39m[0m
+
+You're importing a component that needs `useState`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+
+ Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+
+
+
+
+    at <unknown> (./app/check/page.tsx:1:28)
+    at <unknown> (./app/check/page.tsx:1:20)
+    at <unknown> (./app/check/page.tsx:2:10)
+    at <unknown> (./app/check/page.tsx:1:10)

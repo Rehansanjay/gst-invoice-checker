@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,9 +8,14 @@ import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ParsedInvoice, LineItem, VALID_GST_RATES } from '@/types';
+import { ParsedInvoice, LineItem, VALID_GST_RATES, InvoiceType, INVOICE_TYPE_LABELS, STATE_CODE_NAMES, VALID_STATE_CODES } from '@/types';
 
-export default function InvoiceForm({ onSubmit, isAuthLoading = false }: { onSubmit: (data: ParsedInvoice) => void, isAuthLoading?: boolean }) {
+export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLabel, initialData }: {
+    onSubmit: (data: ParsedInvoice) => void;
+    isAuthLoading?: boolean;
+    submitLabel?: string;
+    initialData?: Partial<ParsedInvoice>;
+}) {
     const [formData, setFormData] = useState({
         invoiceNumber: '',
         invoiceDate: '',
@@ -18,6 +23,9 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false }: { onSub
         buyerGSTIN: '',
         supplierName: '',
         buyerName: '',
+        invoiceType: 'tax_invoice' as InvoiceType,
+        placeOfSupply: '',
+        reverseCharge: false,
     });
 
     const [lineItems, setLineItems] = useState<LineItem[]>([
@@ -39,10 +47,41 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false }: { onSub
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Apply auto-filled data from OCR whenever it changes
+    useEffect(() => {
+        if (!initialData) return;
+        setFormData(prev => ({
+            ...prev,
+            invoiceNumber: initialData.invoiceNumber || prev.invoiceNumber,
+            invoiceDate: initialData.invoiceDate || prev.invoiceDate,
+            supplierGSTIN: initialData.supplierGSTIN || prev.supplierGSTIN,
+            buyerGSTIN: initialData.buyerGSTIN || prev.buyerGSTIN,
+            supplierName: initialData.supplierName || prev.supplierName,
+            buyerName: initialData.buyerName || prev.buyerName,
+        }));
+        if (initialData.lineItems && initialData.lineItems.length > 0) {
+            setLineItems(initialData.lineItems);
+        }
+    }, [initialData]);
+
     // Auto-detect states from GSTIN
     const supplierState = formData.supplierGSTIN.substring(0, 2);
     const buyerState = formData.buyerGSTIN.substring(0, 2);
     const isSameState = supplierState === buyerState && supplierState !== '';
+
+    // Auto-fill Place of Supply from buyer GSTIN when it changes
+    const handleBuyerGSTINChange = (value: string) => {
+        const upper = value.toUpperCase();
+        const newBuyerState = upper.substring(0, 2);
+        setFormData(prev => ({
+            ...prev,
+            buyerGSTIN: upper,
+            // Auto-fill PoS from buyer state if user hasn't manually overridden it
+            placeOfSupply: prev.placeOfSupply === prev.buyerGSTIN.substring(0, 2) || prev.placeOfSupply === ''
+                ? newBuyerState
+                : prev.placeOfSupply,
+        }));
+    };
 
     // Calculate totals
     const taxableTotalAmount = lineItems.reduce((sum, item) => sum + item.taxableAmount, 0);
@@ -142,6 +181,9 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false }: { onSub
             taxableTotalAmount,
             totalTaxAmount,
             invoiceTotalAmount,
+            invoiceType: formData.invoiceType,
+            placeOfSupply: formData.placeOfSupply,
+            reverseCharge: formData.reverseCharge,
         };
 
         try {
@@ -168,7 +210,7 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false }: { onSub
                             maxLength={15}
                             className="font-mono"
                         />
-                        {supplierState && <p className="text-sm text-muted-foreground mt-1">State Code: {supplierState}</p>}
+                        {supplierState && <p className="text-sm text-muted-foreground mt-1">State: {STATE_CODE_NAMES[supplierState] || supplierState}</p>}
                     </div>
                     <div>
                         <Label htmlFor="supplierName">Supplier Name (Optional)</Label>
@@ -190,12 +232,12 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false }: { onSub
                         <Input
                             id="buyerGSTIN"
                             value={formData.buyerGSTIN}
-                            onChange={(e) => setFormData({ ...formData, buyerGSTIN: e.target.value.toUpperCase() })}
+                            onChange={(e) => handleBuyerGSTINChange(e.target.value)}
                             placeholder="27BBDCT5678B1Z3"
                             maxLength={15}
                             className="font-mono"
                         />
-                        {buyerState && <p className="text-sm text-muted-foreground mt-1">State Code: {buyerState}</p>}
+                        {buyerState && <p className="text-sm text-muted-foreground mt-1">State: {STATE_CODE_NAMES[buyerState] || buyerState}</p>}
                     </div>
                     <div>
                         <Label htmlFor="buyerName">Buyer Name (Optional)</Label>
@@ -228,6 +270,28 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false }: { onSub
             <Card className="p-6">
                 <h3 className="text-lg font-semibold mb-4">Invoice Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Invoice Type */}
+                    <div>
+                        <Label htmlFor="invoiceType">Invoice Type *</Label>
+                        <select
+                            id="invoiceType"
+                            value={formData.invoiceType}
+                            onChange={(e) => setFormData({ ...formData, invoiceType: e.target.value as InvoiceType })}
+                            className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                        >
+                            {(Object.keys(INVOICE_TYPE_LABELS) as InvoiceType[]).map((key) => (
+                                <option key={key} value={key}>{INVOICE_TYPE_LABELS[key]}</option>
+                            ))}
+                        </select>
+                        {formData.invoiceType === 'bill_of_supply' && (
+                            <p className="text-xs text-amber-600 mt-1">⚠️ Bill of Supply: no GST applicable</p>
+                        )}
+                        {formData.invoiceType === 'export_invoice' && (
+                            <p className="text-xs text-blue-600 mt-1">🌐 Export: use IGST or zero-rated (LUT)</p>
+                        )}
+                    </div>
+
+                    {/* Invoice Number */}
                     <div>
                         <Label htmlFor="invoiceNumber">Invoice Number *</Label>
                         <Input
@@ -237,6 +301,8 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false }: { onSub
                             placeholder="INV/2025/001"
                         />
                     </div>
+
+                    {/* Invoice Date */}
                     <div>
                         <Label htmlFor="invoiceDate">Invoice Date *</Label>
                         <Input
@@ -245,6 +311,62 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false }: { onSub
                             value={formData.invoiceDate}
                             onChange={(e) => setFormData({ ...formData, invoiceDate: e.target.value })}
                         />
+                    </div>
+
+                    {/* Place of Supply */}
+                    <div>
+                        <Label htmlFor="placeOfSupply">
+                            Place of Supply *
+                            {formData.placeOfSupply && formData.placeOfSupply === buyerState && (
+                                <span className="ml-2 text-xs text-green-600 font-normal">✓ Auto-filled from buyer</span>
+                            )}
+                        </Label>
+                        <select
+                            id="placeOfSupply"
+                            value={formData.placeOfSupply}
+                            onChange={(e) => setFormData({ ...formData, placeOfSupply: e.target.value })}
+                            className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                        >
+                            <option value="">Select state...</option>
+                            {VALID_STATE_CODES.map((code) => (
+                                <option key={code} value={code}>
+                                    {STATE_CODE_NAMES[code] || code}
+                                </option>
+                            ))}
+                        </select>
+                        {formData.placeOfSupply && supplierState && (
+                            formData.placeOfSupply === supplierState
+                                ? <p className="text-xs text-green-600 mt-1">✓ Intrastate — use CGST + SGST</p>
+                                : <p className="text-xs text-blue-600 mt-1">↔ Interstate — use IGST</p>
+                        )}
+                    </div>
+
+                    {/* Reverse Charge */}
+                    <div className="md:col-span-2">
+                        <div className={`flex items-start gap-3 p-3 rounded-lg border-2 transition-colors ${formData.reverseCharge ? 'border-amber-400 bg-amber-50' : 'border-transparent bg-muted/40'
+                            }`}>
+                            <input
+                                type="checkbox"
+                                id="reverseCharge"
+                                checked={formData.reverseCharge}
+                                onChange={(e) => setFormData({ ...formData, reverseCharge: e.target.checked })}
+                                className="mt-1 h-4 w-4 accent-amber-500"
+                            />
+                            <div>
+                                <label htmlFor="reverseCharge" className="font-medium cursor-pointer text-sm">
+                                    Reverse Charge (RCM) Applicable
+                                </label>
+                                {formData.reverseCharge ? (
+                                    <p className="text-xs text-amber-700 mt-0.5">
+                                        ⚠️ Under RCM: supplier charges ₹0 tax — buyer pays GST directly to the government.
+                                    </p>
+                                ) : (
+                                    <p className="text-xs text-muted-foreground mt-0.5">
+                                        Enable if this supply is under Reverse Charge Mechanism (Section 9(3) of CGST Act)
+                                    </p>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </Card>
@@ -441,7 +563,7 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false }: { onSub
                         Validating...
                     </>
                 ) : (
-                    'Validate Invoice - ₹99'
+                    submitLabel || 'Validate Invoice - ₹99'
                 )}
             </Button>
 

@@ -44,12 +44,12 @@ export default function UpgradePrompt() {
                         <Sparkles className="w-6 h-6 text-primary" />
                     </div>
                     <div>
-                        <h3 className="font-bold text-lg text-slate-900">Save ₹191 Instantly!</h3>
+                        <h3 className="font-bold text-lg text-slate-900">Save ₹591 Instantly!</h3>
                         <p className="text-sm text-muted-foreground mt-1">
                             You've used Quick Check {usageCount} times (₹{usageCount * 99}).
                         </p>
                         <p className="text-sm font-medium text-green-600 mt-1">
-                            Get 10 checks for only ₹799 (₹79/check).
+                            Get 10 checks for only ₹399 (₹39/check).
                         </p>
 
                         <div className="mt-3 flex gap-2">

@@ -2,21 +2,17 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Upload, X, ZoomIn, FileImage } from 'lucide-react';
+import { ArrowLeft, Upload, X, ZoomIn, FileImage, Lock, CreditCard, Loader2, Sparkles } from 'lucide-react';
 import InvoiceForm from '@/components/InvoiceForm';
 import ReportViewer from '@/components/ReportViewer';
 import ProcessingView from '@/components/ProcessingView';
+import BlurredReportPreview from '@/components/BlurredReportPreview';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ParsedInvoice, ValidationResult } from '@/types';
 import { useAuth } from '@/lib/auth-context';
 import { toast } from 'sonner';
 
-// ── FIX 1: declare global, NOT interface Window ──────────────────────
-// Your original code had:
-//   interface Window { Razorpay: any }
-// This does NOTHING because it's inside the module, not the global scope.
-// Replace it with this:
 declare global {
     interface Window {
         Razorpay: any;
@@ -57,12 +53,17 @@ export default function CheckPage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
+    const [previewResult, setPreviewResult] = useState<ValidationResult | null>(null);
+    const [invoiceDataForPayment, setInvoiceDataForPayment] = useState<ParsedInvoice | null>(null);
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const [imageName, setImageName] = useState<string>('');
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [processingStep, setProcessingStep] = useState<string>('');
+    const [outOfCredits, setOutOfCredits] = useState(false);
+    const [isOcrLoading, setIsOcrLoading] = useState(false);
+    const [extractedData, setExtractedData] = useState<Partial<ParsedInvoice> | null>(null);
+    const uploadedFileRef = useRef<File | null>(null);
 
-    // Pre-load Razorpay script on page mount
     useEffect(() => {
         loadRazorpayScript();
     }, []);
@@ -82,6 +83,8 @@ export default function CheckPage() {
         }
 
         setImageName(file.name);
+        uploadedFileRef.current = file;
+        setExtractedData(null);
 
         if (file.type === 'application/pdf') {
             setUploadedImage('pdf');
@@ -94,34 +97,72 @@ export default function CheckPage() {
         }
 
         if (fileInputRef.current) fileInputRef.current.value = '';
+
+        // Kick off OCR extraction
+        runOcr(file);
+    };
+
+    const runOcr = async (file: File) => {
+        setIsOcrLoading(true);
+        try {
+            const fd = new FormData();
+            fd.append('file', file);
+            const res = await fetch('/api/ocr-extract', { method: 'POST', body: fd });
+            const data = await res.json();
+            if (res.ok && data.success && data.extracted) {
+                const e = data.extracted;
+                // Only apply fields that were actually found
+                const partial: Partial<ParsedInvoice> = {};
+                if (e.supplierGSTIN) partial.supplierGSTIN = e.supplierGSTIN;
+                if (e.buyerGSTIN) partial.buyerGSTIN = e.buyerGSTIN;
+                if (e.supplierName) partial.supplierName = e.supplierName;
+                if (e.buyerName) partial.buyerName = e.buyerName;
+                if (e.invoiceNumber) partial.invoiceNumber = e.invoiceNumber;
+                if (e.invoiceDate) partial.invoiceDate = e.invoiceDate;
+                if (e.hsnCode || e.taxableAmount) {
+                    partial.lineItems = [{
+                        lineNumber: 1,
+                        description: '',
+                        hsnCode: e.hsnCode || '',
+                        quantity: 1,
+                        rate: e.taxableAmount || 0,
+                        taxableAmount: e.taxableAmount || 0,
+                        taxRate: 18,
+                        taxType: e.taxType as 'CGST_SGST' | 'IGST',
+                        cgst: e.cgst || 0,
+                        sgst: e.sgst || 0,
+                        igst: e.igst || 0,
+                        totalAmount: e.totalAmount || 0,
+                    }];
+                }
+                const filledCount = Object.keys(partial).length;
+                if (filledCount > 0) {
+                    setExtractedData(partial);
+                    toast.success(`✓ Auto-filled ${filledCount} field${filledCount > 1 ? 's' : ''} from your document`);
+                } else {
+                    toast.info('OCR complete — no fields detected. Please fill manually.');
+                }
+            } else {
+                toast.warning(data.error || 'Could not extract data — please fill manually.');
+            }
+        } catch {
+            toast.warning('OCR failed — please fill in the form manually.');
+        } finally {
+            setIsOcrLoading(false);
+        }
     };
 
     const removeImage = () => {
         setUploadedImage(null);
         setImageName('');
         setIsFullscreen(false);
+        setExtractedData(null);
+        uploadedFileRef.current = null;
     };
 
-    // ── FIX 2: handleSubmit was NOT passed to InvoiceForm ────────────
-    // Your original code had:
-    //   <InvoiceForm onSubmit={handleSubmit} isAuthLoading={loading} />
-    // But loading=true during auth check makes isAuthLoading=true
-    // which DISABLES the submit button inside InvoiceForm.
-    // The button click never reaches handleSubmit at all.
-    //
-    // The fix: only block when loading=true AND user check isn't done.
-    // Once loading=false (auth resolved), the button must work normally.
-    //
-    // We also add a console.log at the very top so you can confirm
-    // handleSubmit is actually being called.
-
     const handleSubmit = async (invoiceData: ParsedInvoice) => {
-        // ── THIS LOG TELLS YOU IF THE BUTTON IS WORKING ──────────────
         console.log('handleSubmit called, user:', user?.email ?? 'guest', 'loading:', loading);
 
-        // Don't block if auth is still loading
-        // InvoiceForm already disables submit while loading=true
-        // But if somehow called while loading, just wait
         if (loading) {
             console.log('Auth still loading, ignoring submit');
             return;
@@ -132,7 +173,6 @@ export default function CheckPage() {
 
         try {
             if (user) {
-                // ── LOGGED IN USER: Use credits ───────────────────────
                 console.log('Logged-in user flow starting...');
                 setProcessingStep('Validating invoice...');
 
@@ -146,6 +186,12 @@ export default function CheckPage() {
                 console.log('Validate response:', data);
 
                 if (!response.ok) {
+                    if (data.code === 'insufficient_credits') {
+                        setOutOfCredits(true);
+                        setIsProcessing(false);
+                        setProcessingStep('');
+                        return;
+                    }
                     throw new Error(data.error || 'Validation failed');
                 }
 
@@ -158,118 +204,27 @@ export default function CheckPage() {
                 setIsProcessing(false);
 
             } else {
-                // ── GUEST USER: Payment required ──────────────────────
-                console.log('Guest flow starting...');
-                setProcessingStep('Initializing payment...');
+                console.log('Guest flow starting (Preview)...');
+                setProcessingStep('Analyzing invoice...');
 
-                // Step 1: Create order
-                console.log('Calling /api/quick-check...');
-                const requestBody = {
-                    invoiceData,
-                    guestEmail: '',
-                };
-                console.log('Request Body:', JSON.stringify(requestBody, null, 2));
+                setInvoiceDataForPayment(invoiceData);
 
-                const orderResponse = await fetch('/api/quick-check', {
+                const response = await fetch('/api/preview-check', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(requestBody),
+                    body: JSON.stringify({ invoiceData }),
                 });
 
-                console.log('Order response status:', orderResponse.status);
-                const orderData = await orderResponse.json();
-                console.log('Order data:', orderData);
+                const data = await response.json();
 
-                if (!orderResponse.ok || !orderData.orderId) {
-                    throw new Error(orderData.error || 'Failed to create payment order');
+                if (!response.ok) {
+                    throw new Error(data.error || 'Preview failed');
                 }
 
-                // Step 2: Load Razorpay script
-                setProcessingStep('Loading payment gateway...');
-                const scriptLoaded = await loadRazorpayScript();
-
-                if (!scriptLoaded || !window.Razorpay) {
-                    throw new Error('Payment gateway failed to load. Please check your internet and try again.');
-                }
-
-                // Step 3: Open Razorpay checkout
-                console.log('Opening Razorpay with orderId:', orderData.orderId);
-                setProcessingStep('Opening payment...');
-
-                const options = {
-                    key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-                    amount: orderData.amount,
-                    currency: 'INR',
-                    name: 'InvoiceCheck.in',
-                    description: 'GST Invoice Validation — ₹99',
-                    order_id: orderData.orderId,
-
-                    handler: async function (response: any) {
-                        console.log('Payment success response:', response);
-                        setProcessingStep('Verifying payment...');
-
-                        try {
-                            const resultResponse = await fetch('/api/process-check', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    checkId: orderData.checkId,
-                                    paymentId: orderData.paymentId,
-                                    razorpayPaymentId: response.razorpay_payment_id,
-                                    razorpayOrderId: response.razorpay_order_id,
-                                    razorpaySignature: response.razorpay_signature,
-                                }),
-                            });
-
-                            const data = await resultResponse.json();
-                            console.log('Process-check response:', data);
-
-                            if (!resultResponse.ok || !data.success) {
-                                throw new Error(data.error || 'Processing failed');
-                            }
-
-                            toast.success('Payment verified! Showing your report.');
-                            setValidationResult(data.result);
-                            setIsProcessing(false);
-
-                        } catch (err: any) {
-                            console.error('Process-check error:', err);
-                            toast.error('Payment received but processing failed.');
-                            alert(
-                                `Payment received but processing failed.\n` +
-                                `Your Check ID: ${orderData.checkId}\n` +
-                                `Email support@invoicecheck.in with this ID for help.`
-                            );
-                            setIsProcessing(false);
-                        }
-                    },
-
-                    modal: {
-                        ondismiss: () => {
-                            console.log('Razorpay modal dismissed');
-                            setIsProcessing(false);
-                            setProcessingStep('');
-                            toast('Payment cancelled');
-                        },
-                    },
-
-                    theme: {
-                        color: '#2563EB',
-                    },
-                };
-
-                const rzp = new window.Razorpay(options);
-
-                rzp.on('payment.failed', (response: any) => {
-                    console.error('Payment failed:', response.error);
-                    toast.error(`Payment failed: ${response.error.description}`);
-                    setIsProcessing(false);
-                    setProcessingStep('');
-                });
-
-                rzp.open();
-                // Note: don't setIsProcessing(false) here
-                // It stays true until handler() or ondismiss() fires
+                setPreviewResult(data.result);
+                setIsProcessing(false);
+                setProcessingStep('');
+                toast.success('Analysis complete! Issues found.');
             }
 
         } catch (error: any) {
@@ -280,9 +235,117 @@ export default function CheckPage() {
         }
     };
 
+    const handleUnlockReport = async () => {
+        if (!invoiceDataForPayment) {
+            toast.error('Session expired. Please re-enter details.');
+            return;
+        }
+
+        setIsProcessing(true);
+        setProcessingStep('Initializing payment...');
+
+        try {
+            console.log('Calling /api/quick-check...');
+            const requestBody = {
+                invoiceData: invoiceDataForPayment,
+                guestEmail: '',
+            };
+
+            const orderResponse = await fetch('/api/quick-check', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody),
+            });
+
+            const orderData = await orderResponse.json();
+
+            if (!orderResponse.ok || !orderData.orderId) {
+                throw new Error(orderData.error || 'Failed to create payment order');
+            }
+
+            if (!window.Razorpay) {
+                await loadRazorpayScript();
+            }
+
+            if (!window.Razorpay) {
+                throw new Error('Payment gateway failed to load.');
+            }
+
+            setProcessingStep('Opening payment...');
+
+            const options = {
+                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+                amount: orderData.amount,
+                currency: 'INR',
+                name: 'InvoiceCheck.in',
+                description: 'GST Invoice Validation — ₹99',
+                order_id: orderData.orderId,
+
+                handler: async function (response: any) {
+                    console.log('Payment success response:', response);
+                    setProcessingStep('Verifying payment...');
+
+                    try {
+                        const resultResponse = await fetch('/api/process-check', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                checkId: orderData.checkId,
+                                paymentId: orderData.paymentId,
+                                razorpayPaymentId: response.razorpay_payment_id,
+                                razorpayOrderId: response.razorpay_order_id,
+                                razorpaySignature: response.razorpay_signature,
+                            }),
+                        });
+
+                        const data = await resultResponse.json();
+
+                        if (!resultResponse.ok || !data.success) {
+                            throw new Error(data.error || 'Processing failed');
+                        }
+
+                        toast.success('Payment verified! Showing your report.');
+                        setValidationResult(data.result);
+                        setPreviewResult(null);
+                        setIsProcessing(false);
+
+                    } catch (err: any) {
+                        console.error('Process-check error:', err);
+                        toast.error('Payment processing failed. Contact support.');
+                        setIsProcessing(false);
+                    }
+                },
+
+                modal: {
+                    ondismiss: () => {
+                        setIsProcessing(false);
+                        setProcessingStep('');
+                        toast('Payment cancelled');
+                    },
+                },
+
+                theme: {
+                    color: '#2563EB',
+                },
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.on('payment.failed', (response: any) => {
+                toast.error(`Payment failed: ${response.error.description}`);
+                setIsProcessing(false);
+            });
+
+            rzp.open();
+
+        } catch (error: any) {
+            console.error('Payment error:', error);
+            toast.error(error.message || 'Payment initiation failed.');
+            setIsProcessing(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-slate-50">
-            {/* ─── Header ─── */}
             <header className="bg-white border-b sticky top-0 z-10">
                 <div className="container mx-auto px-4 py-4 flex justify-between items-center">
                     <div className="flex items-center gap-4">
@@ -297,8 +360,16 @@ export default function CheckPage() {
                         </h1>
                     </div>
                     <div className="flex items-center gap-4">
-                        {validationResult && (
-                            <Button variant="ghost" size="sm" onClick={() => setValidationResult(null)}>
+                        {(validationResult || previewResult) && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                    setValidationResult(null);
+                                    setPreviewResult(null);
+                                    setInvoiceDataForPayment(null);
+                                }}
+                            >
                                 Check Another Invoice
                             </Button>
                         )}
@@ -311,15 +382,38 @@ export default function CheckPage() {
                 </div>
             </header>
 
-            {/* ─── Main Content ─── */}
             <main className="container mx-auto px-4 py-8">
                 {isProcessing ? (
                     <div className="flex flex-col items-center justify-center min-h-[60vh]">
                         <ProcessingView />
                         <p className="mt-4 text-muted-foreground animate-pulse">{processingStep}</p>
                     </div>
+                ) : outOfCredits ? (
+                    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+                        <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-6">
+                            <Lock className="w-10 h-10 text-red-500" />
+                        </div>
+                        <h2 className="text-2xl font-bold mb-2">Free Trial Used</h2>
+                        <p className="text-muted-foreground max-w-md mb-6">
+                            You've used your 1 free invoice check. Purchase a credit pack to keep validating GST invoices.
+                        </p>
+                        <div className="flex gap-3">
+                            <Button size="lg" className="gap-2" onClick={() => router.push('/pricing')}>
+                                <CreditCard className="w-5 h-5" /> View Pricing Plans
+                            </Button>
+                            <Button size="lg" variant="outline" onClick={() => setOutOfCredits(false)}>
+                                Go Back
+                            </Button>
+                        </div>
+                    </div>
                 ) : validationResult ? (
                     <ReportViewer result={validationResult} />
+                ) : previewResult ? (
+                    <BlurredReportPreview
+                        result={previewResult}
+                        onUnlock={handleUnlockReport}
+                        isProcessing={isProcessing}
+                    />
                 ) : (
                     <>
                         <div className="mb-8 text-center max-w-2xl mx-auto">
@@ -330,7 +424,6 @@ export default function CheckPage() {
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                            {/* LEFT: Reference Image */}
                             <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-4">
                                 <Card className="p-4 border-2 border-dashed border-slate-200 bg-white shadow-sm">
                                     <div className="flex items-center justify-between mb-4">
@@ -344,7 +437,13 @@ export default function CheckPage() {
                                         )}
                                     </div>
 
-                                    {!uploadedImage ? (
+                                    {isOcrLoading ? (
+                                        <div className="bg-slate-50 rounded-lg aspect-[3/4] flex flex-col items-center justify-center gap-3">
+                                            <Loader2 className="w-10 h-10 text-primary animate-spin" />
+                                            <p className="font-semibold text-sm">Reading document...</p>
+                                            <p className="text-xs text-muted-foreground">Extracting invoice fields</p>
+                                        </div>
+                                    ) : !uploadedImage ? (
                                         <div
                                             onClick={() => fileInputRef.current?.click()}
                                             className="bg-slate-50 rounded-lg p-12 text-center cursor-pointer hover:bg-slate-100 transition-all border border-transparent hover:border-primary/20 aspect-[3/4] flex flex-col items-center justify-center"
@@ -354,7 +453,7 @@ export default function CheckPage() {
                                             </div>
                                             <p className="font-semibold mb-1">Upload PDF/Image</p>
                                             <p className="text-xs text-muted-foreground max-w-[200px]">
-                                                Optional reference. Max 10MB.
+                                                Auto-fills form fields. Max 10MB.
                                             </p>
                                         </div>
                                     ) : uploadedImage === 'pdf' ? (
@@ -398,16 +497,25 @@ export default function CheckPage() {
                                 </Card>
                             </div>
 
-                            {/* RIGHT: Form */}
                             <div className="lg:col-span-7">
-                                <InvoiceForm onSubmit={handleSubmit} isAuthLoading={loading} />
+                                {extractedData && (
+                                    <div className="flex items-center gap-2 mb-4 px-4 py-2.5 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800">
+                                        <Sparkles className="w-4 h-4 shrink-0" />
+                                        <span><strong>Fields auto-filled from your document</strong> — please verify and correct if needed.</span>
+                                    </div>
+                                )}
+                                <InvoiceForm
+                                    onSubmit={handleSubmit}
+                                    isAuthLoading={loading}
+                                    submitLabel={user ? 'Validate Invoice' : 'Analyze Invoice Free'}
+                                    initialData={extractedData ?? undefined}
+                                />
                             </div>
                         </div>
                     </>
                 )}
             </main>
 
-            {/* Fullscreen overlay */}
             {isFullscreen && uploadedImage && uploadedImage !== 'pdf' && (
                 <div
                     className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4 backdrop-blur-sm"

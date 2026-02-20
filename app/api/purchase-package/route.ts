@@ -6,6 +6,7 @@ import { z } from 'zod';
 const purchaseSchema = z.object({
     userId: z.string().uuid(),
     packageType: z.enum(['pack_10', 'pack_50', 'pack_100']),
+    couponCode: z.string().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -18,18 +19,25 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Invalid input', details: result.error.format() }, { status: 400 });
         }
 
-        const { userId, packageType } = result.data;
+        const { userId, packageType, couponCode } = result.data;
         // packageType: 'pack_10', 'pack_50', 'pack_100'
 
         const packages: Record<string, { price: number; credits: number }> = {
-            pack_10: { price: 799, credits: 10 },
-            pack_50: { price: 2999, credits: 50 },
-            pack_100: { price: 4999, credits: 100 },
+            pack_10: { price: 399, credits: 10 },
+            pack_50: { price: 1499, credits: 50 },
+            pack_100: { price: 2499, credits: 100 },
         };
 
         const pkg = packages[packageType];
-        // Schema enum handles validity check, but safe to keep or remove. 
-        // Logic below remains same as valid enum guarantees existence in object if keys match enum.
+
+        let finalPrice = pkg.price;
+        let discountApplied = false;
+
+        // Apply coupon logic
+        if (couponCode && couponCode.toUpperCase() === 'SAVE50') {
+            finalPrice = Math.floor(pkg.price * 0.5);
+            discountApplied = true;
+        }
 
         // Create Razorpay order
         const razorpay = new Razorpay({
@@ -38,7 +46,7 @@ export async function POST(request: NextRequest) {
         });
 
         const order = await razorpay.orders.create({
-            amount: pkg.price * 100,
+            amount: finalPrice * 100,
             currency: 'INR',
             receipt: `package_${userId}_${Date.now()}`,
         });
@@ -49,7 +57,7 @@ export async function POST(request: NextRequest) {
             .insert({
                 user_id: userId,
                 razorpay_order_id: order.id,
-                amount: pkg.price,
+                amount: finalPrice,
                 payment_type: 'package_purchase',
                 package_type: packageType,
                 credits_included: pkg.credits,
@@ -59,7 +67,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             success: true,
             orderId: order.id,
-            amount: pkg.price,
+            amount: finalPrice,
             credits: pkg.credits,
             razorpayKeyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         });
