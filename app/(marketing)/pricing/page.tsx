@@ -1,16 +1,40 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Check, ArrowRight } from 'lucide-react';
+import { Check, AlertTriangle, ShieldCheck } from 'lucide-react';
 import PackagePurchaseButton from '@/components/PackagePurchaseButton';
+
+export const metadata = {
+    title: 'Pricing — GST Invoice Checker',
+    description: 'Validate GST invoices from ₹99. One prevented penalty pays for your entire subscription.',
+};
 
 export default function PricingPage() {
     return (
         <div className="container mx-auto px-4 py-16">
+
+            {/* Loss-aversion penalty banner */}
+            <div className="max-w-4xl mx-auto mb-10 bg-amber-50 border border-amber-300 rounded-xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                        <p className="font-bold text-amber-900 text-base">One GST penalty = ₹10,000+</p>
+                        <p className="text-amber-800 text-sm mt-0.5">A single wrong tax type, invalid HSN, or calculation error can trigger Section 73 penalties plus 18% interest. <span className="font-semibold">One prevented penalty pays for your entire subscription.</span></p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2 bg-green-100 border border-green-300 rounded-lg px-4 py-2 whitespace-nowrap">
+                    <ShieldCheck className="w-5 h-5 text-green-700" />
+                    <span className="text-green-800 font-semibold text-sm">Protect your filing now</span>
+                </div>
+            </div>
+
             <div className="text-center max-w-3xl mx-auto mb-16">
                 <h1 className="text-4xl font-bold mb-4">Choose Your Plan</h1>
                 <p className="text-xl text-muted-foreground">
                     Pay-as-you-go or save big with bulk credits.
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                    CA firm? Ask about our bulk plan — <span className="font-semibold text-primary">₹4,999/mo for 100+ checks</span> with multi-client dashboard.
                 </p>
             </div>
 
@@ -111,6 +135,16 @@ export default function PricingPage() {
                 <Link href="/contact">
                     <Button variant="link" className="text-primary">Have questions? Contact Sales</Button>
                 </Link>
+            </div>
+
+            {/* Penalty calculator CTA */}
+            <div className="mt-8 text-center">
+                <p className="text-sm text-muted-foreground">
+                    Not sure what a mistake costs you?{' '}
+                    <Link href="/gst-penalty-calculator" className="text-primary underline font-medium hover:text-primary/80">
+                        Use our free GST Penalty Calculator →
+                    </Link>
+                </p>
             </div>
         </div>
     );
