@@ -14,20 +14,24 @@ const quickCheckSchema = z.object({
         taxableTotalAmount: z.number(),
         totalTaxAmount: z.number(),
         invoiceTotalAmount: z.number(),
-    })
+    }),
+    // ── UTM & Referral Tracking ──────────────────────────────────────
+    utm_source: z.string().max(64).optional().nullable(),
+    utm_medium: z.string().max(64).optional().nullable(),
+    utm_campaign: z.string().max(64).optional().nullable(),
+    ref_code: z.string().max(32).optional().nullable(),
 });
 
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
 
-        // Validation
         const result = quickCheckSchema.safeParse(body);
         if (!result.success) {
             return NextResponse.json({ error: 'Invalid input', details: result.error.format() }, { status: 400 });
         }
 
-        const { invoiceData, guestEmail } = result.data;
+        const { invoiceData, guestEmail, utm_source, utm_medium, utm_campaign, ref_code } = result.data;
 
         // Step 1: Create Razorpay order
         console.log('Init Razorpay with key:', process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ? 'Present' : 'Missing');
@@ -37,7 +41,6 @@ export async function POST(request: NextRequest) {
             key_secret: process.env.RAZORPAY_KEY_SECRET!,
         });
 
-        console.log('Creating Razorpay order for amount: 9900');
         const order = await razorpay.orders.create({
             amount: 9900, // ₹99 in paisa
             currency: 'INR',
@@ -59,7 +62,7 @@ export async function POST(request: NextRequest) {
             .select()
             .single();
 
-        // Step 3: Create check record (pending)
+        // Step 3: Create check record (pending) — with attribution
         const { data: check } = await supabaseAdmin
             .from('checks')
             .insert({
@@ -76,6 +79,11 @@ export async function POST(request: NextRequest) {
                 invoice_total_amount: invoiceData.invoiceTotalAmount,
                 payment_id: payment.id,
                 status: 'pending',
+                // Attribution fields
+                utm_source: utm_source || null,
+                utm_medium: utm_medium || null,
+                utm_campaign: utm_campaign || null,
+                ref_code: ref_code || null,
             })
             .select()
             .single();

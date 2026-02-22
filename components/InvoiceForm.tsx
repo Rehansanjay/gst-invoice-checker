@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Loader2, Gift, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import Link from 'next/link';
 import { ParsedInvoice, LineItem, VALID_GST_RATES, InvoiceType, INVOICE_TYPE_LABELS, STATE_CODE_NAMES, VALID_STATE_CODES } from '@/types';
 
 export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLabel, initialData }: {
@@ -46,6 +47,25 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
     ]);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // ── Freemium 3-check model (guest users only) ──
+    const FREE_CHECKS_KEY = 'gst_free_checks_used';
+    const MAX_FREE_CHECKS = 3;
+    const [freeChecksUsed, setFreeChecksUsed] = useState(0);
+    const [isGuest, setIsGuest] = useState(false);
+
+    useEffect(() => {
+        // Only show freemium UI if the parent hasn't provided a custom submit label
+        // (custom label = logged-in user with credits)
+        if (!submitLabel) {
+            setIsGuest(true);
+            const stored = parseInt(localStorage.getItem(FREE_CHECKS_KEY) || '0', 10);
+            setFreeChecksUsed(stored);
+        }
+    }, [submitLabel]);
+
+    const freeChecksRemaining = Math.max(0, MAX_FREE_CHECKS - freeChecksUsed);
+    const hasUsedAllFreeChecks = isGuest && freeChecksUsed >= MAX_FREE_CHECKS;
 
     // Apply auto-filled data from OCR whenever it changes
     useEffect(() => {
@@ -188,6 +208,12 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
 
         try {
             await onSubmit(invoiceData);
+            // Increment free check counter for guest users
+            if (isGuest) {
+                const newCount = freeChecksUsed + 1;
+                localStorage.setItem(FREE_CHECKS_KEY, String(newCount));
+                setFreeChecksUsed(newCount);
+            }
         } catch (error) {
             console.error('Submit error:', error);
         } finally {
@@ -551,6 +577,18 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
                 </div>
             </Card>
 
+            {/* Freemium: free checks badge (guest only) */}
+            {isGuest && !hasUsedAllFreeChecks && (
+                <div className="flex items-center justify-center gap-2 text-sm bg-green-50 border border-green-200 rounded-lg px-4 py-2">
+                    <Gift className="w-4 h-4 text-green-600" />
+                    <span className="text-green-800 font-medium">
+                        {freeChecksRemaining === MAX_FREE_CHECKS
+                            ? `${MAX_FREE_CHECKS} free checks — no signup needed`
+                            : `${freeChecksRemaining} free check${freeChecksRemaining !== 1 ? 's' : ''} remaining`}
+                    </span>
+                </div>
+            )}
+
             <Button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
@@ -563,9 +601,41 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
                         Validating...
                     </>
                 ) : (
-                    submitLabel || 'Validate Invoice - ₹99'
+                    submitLabel || (freeChecksRemaining > 0 ? 'Validate Invoice — Free' : 'Validate Invoice — ₹99')
                 )}
             </Button>
+
+            {/* Soft signup prompt after 3 checks used */}
+            {isGuest && hasUsedAllFreeChecks && (
+                <Card className="p-5 border-blue-200 bg-blue-50/40">
+                    <div className="flex items-start gap-3">
+                        <UserPlus className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                            <p className="font-semibold text-blue-900 mb-1">You&apos;ve used your 3 free checks</p>
+                            <p className="text-sm text-blue-800 mb-3">
+                                Create a free account to save your reports and get dashboard access. Or continue with ₹99/check.
+                            </p>
+                            <div className="flex flex-col sm:flex-row gap-2">
+                                <Link href="/auth/signup" className="flex-1">
+                                    <Button className="w-full bg-blue-700 hover:bg-blue-800 text-white" size="sm">
+                                        <UserPlus className="w-4 h-4 mr-2" />
+                                        Create Free Account
+                                    </Button>
+                                </Link>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="border-blue-300 text-blue-800"
+                                    onClick={handleSubmit}
+                                    disabled={isSubmitting}
+                                >
+                                    Continue — ₹99
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </Card>
+            )}
 
             <Alert>
                 <AlertDescription>

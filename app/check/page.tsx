@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useRef, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Upload, X, ZoomIn, FileImage, Lock, CreditCard, Loader2, Sparkles } from 'lucide-react';
 import InvoiceForm from '@/components/InvoiceForm';
 import ReportViewer from '@/components/ReportViewer';
@@ -47,7 +47,7 @@ const loadRazorpayScript = (): Promise<boolean> => {
     });
 };
 
-export default function CheckPage() {
+function CheckPageInner() {
     const router = useRouter();
     const { user, loading } = useAuth();
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -63,6 +63,13 @@ export default function CheckPage() {
     const [isOcrLoading, setIsOcrLoading] = useState(false);
     const [extractedData, setExtractedData] = useState<Partial<ParsedInvoice> | null>(null);
     const uploadedFileRef = useRef<File | null>(null);
+
+    // ── Read UTM & referral params from URL ──────────────────────────
+    const searchParams = useSearchParams();
+    const utmSource = searchParams.get('utm_source');
+    const utmMedium = searchParams.get('utm_medium');
+    const utmCampaign = searchParams.get('utm_campaign');
+    const refCode = searchParams.get('ref');
 
     useEffect(() => {
         loadRazorpayScript();
@@ -249,6 +256,11 @@ export default function CheckPage() {
             const requestBody = {
                 invoiceData: invoiceDataForPayment,
                 guestEmail: '',
+                // Attribution — pass through from URL params
+                utm_source: utmSource || undefined,
+                utm_medium: utmMedium || undefined,
+                utm_campaign: utmCampaign || undefined,
+                ref_code: refCode || undefined,
             };
 
             const orderResponse = await fetch('/api/quick-check', {
@@ -536,5 +548,13 @@ export default function CheckPage() {
                 </div>
             )}
         </div>
+    );
+}
+
+export default function CheckPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}>
+            <CheckPageInner />
+        </Suspense>
     );
 }

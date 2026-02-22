@@ -18,6 +18,7 @@ interface ReportViewerProps {
 export default function ReportViewer({ result, invoiceNumber = 'Invoice' }: ReportViewerProps) {
     const criticalIssues = result.issuesFound.filter(i => i.severity === 'critical');
     const warningIssues = result.issuesFound.filter(i => i.severity === 'warning');
+    const infoIssues = result.issuesFound.filter(i => i.severity === 'info');
     const passedChecks = result.checksPassed;
 
     const [isDownloading, setIsDownloading] = useState(false);
@@ -212,6 +213,29 @@ export default function ReportViewer({ result, invoiceNumber = 'Invoice' }: Repo
                             <IssueCard key={issue.id} issue={issue} />
                         ))}
                     </div>
+                </div>
+            )}
+
+            {/* Informational Notes */}
+            {infoIssues.length > 0 && (
+                <div>
+                    <h3 className="text-xl font-bold mb-4 text-blue-600 flex items-center gap-2">
+                        ℹ️ INFORMATIONAL NOTES ({infoIssues.length})
+                    </h3>
+                    <Card className="p-5 border-blue-200 bg-blue-50/40 space-y-4">
+                        {infoIssues.map((issue) => (
+                            <div key={issue.id} className="border-b border-blue-100 last:border-0 pb-3 last:pb-0">
+                                <p className="font-semibold text-blue-900 text-sm">{issue.title}</p>
+                                <p className="text-blue-800 text-sm mt-1">{issue.description}</p>
+                                {issue.howToFix && (
+                                    <p className="text-blue-700 text-xs mt-1 italic">Note: {issue.howToFix}</p>
+                                )}
+                                {issue.gstLawContext && (
+                                    <p className="text-blue-600 text-xs mt-1">📖 {issue.gstLawContext}</p>
+                                )}
+                            </div>
+                        ))}
+                    </Card>
                 </div>
             )}
 
