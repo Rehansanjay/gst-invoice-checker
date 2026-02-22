@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { AlertTriangle, Calculator, Share2, ShieldCheck, ArrowRight, XCircle, CheckCircle2 } from 'lucide-react';
+import { AlertTriangle, Calculator, Share2, ShieldCheck, ArrowRight, XCircle, CheckCircle2, Info, Lightbulb, BookOpen } from 'lucide-react';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 type CalcResult = {
@@ -135,6 +135,60 @@ export default function GstPenaltyCalculator() {
                 </p>
             </div>
 
+            {/* ── HOW TO USE + WHY ────────────────────────────────────────── */}
+            <div className="mb-8 rounded-xl border border-blue-200 bg-blue-50/60 p-5">
+                <div className="flex items-center gap-2 mb-4">
+                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
+                        <Info className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <h2 className="font-bold text-blue-900 text-base">How to use this calculator — and why it matters</h2>
+                </div>
+
+                {/* Why you need it */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+                    <div className="bg-white rounded-lg p-3 border border-blue-100">
+                        <div className="flex items-center gap-1.5 mb-1">
+                            <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                            <p className="text-xs font-bold text-slate-800">Know your risk first</p>
+                        </div>
+                        <p className="text-xs text-muted-foreground">A single wrong tax type or missed HSN code can silently expose you to ₹10,000+ in penalties — <strong>before</strong> you even know something is wrong.</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-3 border border-blue-100">
+                        <div className="flex items-center gap-1.5 mb-1">
+                            <Lightbulb className="w-3.5 h-3.5 text-yellow-500 shrink-0" />
+                            <p className="text-xs font-bold text-slate-800">Use before filing</p>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Run this calculator <strong>before you submit your GSTR-1 or GSTR-3B</strong>. If the penalty is significant, validate your invoices first using our checker.</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-3 border border-blue-100">
+                        <div className="flex items-center gap-1.5 mb-1">
+                            <BookOpen className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                            <p className="text-xs font-bold text-slate-800">Based on real law</p>
+                        </div>
+                        <p className="text-xs text-muted-foreground">All calculations follow <strong>Sections 47, 50, 73 &amp; 122</strong> of the CGST Act 2017. Results include the exact law reference so you understand what applies.</p>
+                    </div>
+                </div>
+
+                {/* 3-step how to use */}
+                <div className="border-t border-blue-100 pt-4">
+                    <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-3">How to use — 3 steps</p>
+                    <ol className="space-y-2">
+                        <li className="flex items-start gap-2 text-xs text-slate-700">
+                            <span className="w-5 h-5 bg-blue-200 text-blue-800 rounded-full flex items-center justify-center font-bold shrink-0 mt-0.5">1</span>
+                            <span><strong>Pick the violation type</strong> that best matches your situation — late filing, wrong tax type, missing HSN, or incorrect ITC claim.</span>
+                        </li>
+                        <li className="flex items-start gap-2 text-xs text-slate-700">
+                            <span className="w-5 h-5 bg-blue-200 text-blue-800 rounded-full flex items-center justify-center font-bold shrink-0 mt-0.5">2</span>
+                            <span><strong>Enter your tax liability</strong> (the GST amount on the invoice or return) and how many days delayed.</span>
+                        </li>
+                        <li className="flex items-start gap-2 text-xs text-slate-700">
+                            <span className="w-5 h-5 bg-blue-200 text-blue-800 rounded-full flex items-center justify-center font-bold shrink-0 mt-0.5">3</span>
+                            <span><strong>Click Calculate</strong> — you'll see interest, penalty, total exposure, and the exact section of law that applies.</span>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+
             {/* ── TWO EXAMPLE SCENARIOS ───────────────────────────────────────── */}
             <div className="mb-8">
                 <p className="text-sm font-semibold text-center text-muted-foreground mb-4 uppercase tracking-wide">
@@ -146,8 +200,8 @@ export default function GstPenaltyCalculator() {
                     <div
                         onClick={() => loadScenario(WRONG_SCENARIO, 'wrong')}
                         className={`cursor-pointer rounded-xl border-2 p-5 transition-all hover:shadow-md ${activeScenario === 'wrong'
-                                ? 'border-red-400 bg-red-50 shadow-md'
-                                : 'border-red-200 bg-red-50/40 hover:border-red-400'
+                            ? 'border-red-400 bg-red-50 shadow-md'
+                            : 'border-red-200 bg-red-50/40 hover:border-red-400'
                             }`}
                     >
                         <div className="flex items-center gap-2 mb-3">
@@ -190,8 +244,8 @@ export default function GstPenaltyCalculator() {
                     <div
                         onClick={() => loadScenario(RIGHT_SCENARIO, 'right')}
                         className={`cursor-pointer rounded-xl border-2 p-5 transition-all hover:shadow-md ${activeScenario === 'right'
-                                ? 'border-green-400 bg-green-50 shadow-md'
-                                : 'border-green-200 bg-green-50/40 hover:border-green-400'
+                            ? 'border-green-400 bg-green-50 shadow-md'
+                            : 'border-green-200 bg-green-50/40 hover:border-green-400'
                             }`}
                     >
                         <div className="flex items-center gap-2 mb-3">
@@ -250,8 +304,8 @@ export default function GstPenaltyCalculator() {
                                     key={v.value}
                                     onClick={() => { setViolationType(v.value); setResult(null); setActiveScenario(null); }}
                                     className={`text-left text-sm px-4 py-2.5 rounded-lg border transition-colors ${violationType === v.value
-                                            ? 'border-primary bg-primary/10 text-primary font-medium'
-                                            : 'border-input hover:border-primary/50 text-muted-foreground'
+                                        ? 'border-primary bg-primary/10 text-primary font-medium'
+                                        : 'border-input hover:border-primary/50 text-muted-foreground'
                                         }`}
                                 >
                                     {v.label}
@@ -300,8 +354,8 @@ export default function GstPenaltyCalculator() {
                 <Card
                     id="calc-result"
                     className={`p-6 mb-6 animate-in fade-in duration-300 ${result.total === 0
-                            ? 'border-green-200 bg-green-50/40'
-                            : 'border-red-200 bg-red-50/40'
+                        ? 'border-green-200 bg-green-50/40'
+                        : 'border-red-200 bg-red-50/40'
                         }`}
                 >
                     {result.total === 0 ? (
