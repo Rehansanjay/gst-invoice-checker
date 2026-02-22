@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth-context';
-import { ArrowRight, Plus, UploadCloud, Zap, FileJson } from 'lucide-react';
+import { ArrowRight, Plus, UploadCloud, Zap, FileJson, Calculator } from 'lucide-react';
 
 export default function LoggedInHome() {
     const { user } = useAuth();
@@ -30,6 +30,11 @@ export default function LoggedInHome() {
                         <Link href="/dashboard">
                             <Button size="lg" variant="outline" className="h-16 px-8 text-lg gap-3 border-2 hover:bg-slate-50">
                                 Go to Dashboard <ArrowRight className="w-5 h-5" />
+                            </Button>
+                        </Link>
+                        <Link href="/gst-penalty-calculator">
+                            <Button size="lg" variant="ghost" className="h-16 px-6 text-base gap-2 border border-amber-300 text-amber-700 hover:bg-amber-50">
+                                <Calculator className="w-5 h-5" /> Penalty Calculator
                             </Button>
                         </Link>
                     </div>
