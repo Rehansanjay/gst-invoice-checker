@@ -3,13 +3,14 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
-import { Menu, X, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { Menu, X, User, LogOut, LayoutDashboard, Calculator } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth-context';
 
 const navLinks = [
     { href: '/', label: 'Home' },
     { href: '/pricing', label: 'Pricing' },
+    { href: '/gst-penalty-calculator', label: 'Penalty Calc', highlight: true },
     { href: '/about', label: 'About' },
     { href: '/faq', label: 'FAQ' },
     { href: '/contact', label: 'Contact' },
@@ -72,12 +73,13 @@ export default function Navbar() {
                         <Link
                             key={link.href}
                             href={link.href}
-                            className={`text-sm transition-colors hover:text-foreground ${pathname === link.href
-                                ? 'text-foreground font-medium'
-                                : 'text-muted-foreground'
+                            className={`text-sm transition-colors hover:text-foreground flex items-center gap-1 ${pathname === link.href ? 'text-foreground font-medium' : 'text-muted-foreground'
                                 }`}
                         >
-                            {link.label}
+                            {link.highlight && <Calculator className="w-3.5 h-3.5 text-amber-500" />}
+                            {link.highlight
+                                ? <span className="text-amber-600 font-medium">{link.label}</span>
+                                : link.label}
                         </Link>
                     ))}
 

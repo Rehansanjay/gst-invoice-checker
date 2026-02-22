@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { CheckCircle2, AlertCircle, Clock, DollarSign, ArrowRight, Zap, ShieldCheck, Star } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Clock, DollarSign, ArrowRight, Zap, ShieldCheck, Star, Calculator } from 'lucide-react';
+import Link from 'next/link';
 import GetStartedModal from '@/components/GetStartedModal';
 import LoggedInHome from '@/components/LoggedInHome';
 
@@ -80,6 +81,16 @@ export default function Home() {
               >
                 See How It Works
               </Button>
+              <Link href="/gst-penalty-calculator">
+                <Button
+                  size="lg"
+                  variant="ghost"
+                  className="border border-amber-400/40 text-amber-300 hover:bg-amber-400/10 hover:text-amber-200 text-base px-6 py-6 h-auto gap-2"
+                >
+                  <Calculator className="w-4 h-4" />
+                  Free Penalty Calculator
+                </Button>
+              </Link>
             </div>
 
             {/* Trust Indicators */}
@@ -113,6 +124,28 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* PENALTY CALCULATOR PROMO STRIP */}
+      <div className="bg-amber-50 border-y border-amber-200 py-5">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 max-w-4xl mx-auto">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center shrink-0">
+                <Calculator className="w-5 h-5 text-amber-600" />
+              </div>
+              <div>
+                <p className="font-bold text-amber-900 text-sm">Free GST Penalty Calculator</p>
+                <p className="text-amber-700 text-xs">Estimate interest &amp; penalties under Sections 47, 50, 73 &amp; 122 instantly</p>
+              </div>
+            </div>
+            <Link href="/gst-penalty-calculator">
+              <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-white shrink-0 gap-1.5 shadow-sm">
+                Calculate Now <ArrowRight className="w-3.5 h-3.5" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
 
       {/* PROBLEM SECTION - Redesigned */}
       <section className="py-20 bg-gradient-to-b from-red-50 to-white">
