@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Check, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Check, AlertTriangle, ShieldCheck, Zap, CreditCard, Star } from 'lucide-react';
 import PackagePurchaseButton from '@/components/PackagePurchaseButton';
 
 export const metadata = {
@@ -121,6 +121,90 @@ export default function PricingPage() {
                     <ul className="space-y-2 text-sm text-muted-foreground mt-auto">
                         <li className="flex items-center gap-2"><Check className="w-4 h-4" /> Dedicated Manager</li>
                         <li className="flex items-center gap-2"><Check className="w-4 h-4" /> API Access</li>
+                    </ul>
+                </Card>
+
+            </div>
+
+            {/* Annual Plan + CA Bulk — full-width section */}
+            <div className="max-w-7xl mx-auto mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                {/* Annual Plan */}
+                <Card className="p-8 border-2 border-indigo-300 bg-gradient-to-br from-indigo-50 to-purple-50/40 relative overflow-hidden flex flex-col">
+                    <div className="absolute top-0 right-0 bg-indigo-600 text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl uppercase tracking-wide flex items-center gap-1.5">
+                        <Star className="w-3 h-3 fill-white" /> Best for Full Year
+                    </div>
+                    <div className="flex items-center gap-2 mb-4">
+                        <div className="w-9 h-9 bg-indigo-100 rounded-lg flex items-center justify-center">
+                            <Zap className="w-5 h-5 text-indigo-600" />
+                        </div>
+                        <h3 className="text-xl font-bold text-indigo-900">Annual Plan</h3>
+                    </div>
+
+                    <div className="flex items-end gap-2 mb-1">
+                        <span className="text-4xl font-black text-indigo-900">₹4,166</span>
+                        <span className="text-muted-foreground text-sm mb-1.5">/month</span>
+                    </div>
+                    <p className="text-sm text-indigo-700 font-semibold mb-1">
+                        Billed annually at <span className="line-through text-slate-400 font-normal">₹59,988</span>{' '}
+                        <span className="text-green-700">₹49,999/yr — Save ₹9,989</span>
+                    </p>
+                    <p className="text-sm text-muted-foreground mb-5">
+                        600 credits/year · Auto-refill monthly · Never expire
+                    </p>
+
+                    {/* EMI pill */}
+                    <div className="flex items-center gap-2 bg-white border border-indigo-200 rounded-lg px-4 py-2.5 mb-6 w-fit">
+                        <CreditCard className="w-4 h-4 text-indigo-500" />
+                        <span className="text-sm font-medium text-indigo-800">EMI available via Razorpay — No Cost EMI on select cards</span>
+                    </div>
+
+                    <Link href="/contact" className="mt-auto">
+                        <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white h-11">
+                            Get Annual Plan — Contact Sales
+                        </Button>
+                    </Link>
+
+                    <ul className="space-y-2 text-sm text-muted-foreground mt-5">
+                        <li className="flex items-center gap-2"><Check className="w-4 h-4 text-indigo-500" /> 600 checks/year (50/mo)</li>
+                        <li className="flex items-center gap-2"><Check className="w-4 h-4 text-indigo-500" /> Dashboard history + PDF exports</li>
+                        <li className="flex items-center gap-2"><Check className="w-4 h-4 text-indigo-500" /> Priority email support</li>
+                        <li className="flex items-center gap-2"><Check className="w-4 h-4 text-indigo-500" /> Razorpay No Cost EMI</li>
+                    </ul>
+                </Card>
+
+                {/* CA Bulk Plan */}
+                <Card className="p-8 border-2 border-slate-200 bg-slate-50/40 relative overflow-hidden flex flex-col">
+                    <div className="absolute top-0 right-0 bg-slate-700 text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl uppercase tracking-wide">
+                        CA / Firm
+                    </div>
+                    <div className="flex items-center gap-2 mb-4">
+                        <div className="w-9 h-9 bg-slate-100 rounded-lg flex items-center justify-center">
+                            <ShieldCheck className="w-5 h-5 text-slate-600" />
+                        </div>
+                        <h3 className="text-xl font-bold text-slate-900">CA Bulk Plan</h3>
+                    </div>
+
+                    <div className="flex items-end gap-2 mb-1">
+                        <span className="text-4xl font-black text-slate-900">₹4,999</span>
+                        <span className="text-muted-foreground text-sm mb-1.5">/month</span>
+                    </div>
+                    <p className="text-sm text-green-700 font-semibold mb-1">100+ checks/month · ₹50/check</p>
+                    <p className="text-sm text-muted-foreground mb-6">
+                        Multi-client dashboard · Branded reports · Referral dashboard
+                    </p>
+
+                    <Link href="/contact" className="mt-auto">
+                        <Button variant="outline" className="w-full border-slate-300 h-11 font-semibold">
+                            Contact Us for CA Pricing
+                        </Button>
+                    </Link>
+
+                    <ul className="space-y-2 text-sm text-muted-foreground mt-5">
+                        <li className="flex items-center gap-2"><Check className="w-4 h-4" /> Multi-GSTIN dashboard</li>
+                        <li className="flex items-center gap-2"><Check className="w-4 h-4" /> Referral partner tracking</li>
+                        <li className="flex items-center gap-2"><Check className="w-4 h-4" /> Bulk CSV upload (coming Week 3)</li>
+                        <li className="flex items-center gap-2"><Check className="w-4 h-4" /> Dedicated account manager</li>
                     </ul>
                 </Card>
 

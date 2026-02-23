@@ -17,6 +17,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "GST Invoice Checker - Validate Invoices in 60 Seconds",
   description: "Check GST invoice errors before Amazon/Flipkart rejects your payment. ₹99 per check or bulk packages.",
+  icons: {
+    icon: "/invoicecheck-logo.svg",
+  },
 };
 
 export default function RootLayout({

@@ -6,8 +6,35 @@ import { Input } from '@/components/ui/input';
 import { ShieldCheck, Clock, ArrowRight, Star } from 'lucide-react';
 
 export const metadata: Metadata = {
-    title: 'CA Case Studies — GST Invoice Checker',
-    description: 'See how CAs and business owners prevented GST penalties using InvoiceCheck.in. Real results from real clients.',
+    title: 'CA Partner Success Stories — InvoiceCheck.in',
+    description:
+        'See how CAs and business owners prevented GST penalties using InvoiceCheck.in. Real results from real clients — March 2026 filing season.',
+    keywords: ['CA GST tool', 'GST invoice validation for CA', 'chartered accountant GST software', 'bulk GST invoice checker India'],
+    openGraph: {
+        title: 'CA Partner Success Stories — InvoiceCheck.in',
+        description: 'How CAs prevented GST penalties before the March 20 GSTR-3B deadline. 15+ violations caught, ₹0 penalties paid.',
+        url: 'https://invoicecheck.in/ca-case-studies',
+        siteName: 'InvoiceCheck.in',
+        images: [
+            {
+                url: 'https://invoicecheck.in/ca-case-studies/opengraph-image',
+                width: 1200,
+                height: 630,
+                alt: 'CA Partner Success Stories — InvoiceCheck.in',
+            },
+        ],
+        locale: 'en_IN',
+        type: 'website',
+    },
+    twitter: {
+        card: 'summary_large_image',
+        title: 'CA Partner Success Stories — InvoiceCheck.in',
+        description: 'How CAs prevented GST penalties. 15+ violations caught, ₹0 paid.',
+        images: ['https://invoicecheck.in/ca-case-studies/opengraph-image'],
+    },
+    alternates: {
+        canonical: 'https://invoicecheck.in/ca-case-studies',
+    },
 };
 
 export default function CaCaseStudiesPage() {

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@/lib/supabase-server';
 import Razorpay from 'razorpay';
 import { z } from 'zod';
 
 const purchaseSchema = z.object({
-    userId: z.string().uuid(),
+    userId: z.string().uuid(), // Still validate format if needed, but we'll use session ID
     packageType: z.enum(['pack_10', 'pack_50', 'pack_100']),
     couponCode: z.string().optional(),
 });
@@ -13,13 +14,23 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
 
-        // Validation
-        const result = purchaseSchema.safeParse(body);
+        // 1. Authenticate user server-side
+        const supabase = await createSupabaseServerClient();
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (!session?.user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const userId = session.user.id;
+
+        // 2. Validation (only packageType and coupon from body, userId is enforced from session)
+        const result = purchaseSchema.safeParse({ ...body, userId });
         if (!result.success) {
             return NextResponse.json({ error: 'Invalid input', details: result.error.format() }, { status: 400 });
         }
 
-        const { userId, packageType, couponCode } = result.data;
+        const { packageType, couponCode } = result.data;
         // packageType: 'pack_10', 'pack_50', 'pack_100'
 
         const packages: Record<string, { price: number; credits: number }> = {
@@ -45,10 +56,15 @@ export async function POST(request: NextRequest) {
             key_secret: process.env.RAZORPAY_KEY_SECRET!,
         });
 
+        // Razorpay receipt: max 40 chars, alphanumeric only (no dashes/spaces)
+        const shortUserId = userId.replace(/-/g, '').slice(-8);
+        const shortTs = String(Date.now()).slice(-7);
+        const receipt = `pkg_${shortUserId}_${shortTs}`; // max ~20 chars
+
         const order = await razorpay.orders.create({
             amount: finalPrice * 100,
             currency: 'INR',
-            receipt: `package_${userId}_${Date.now()}`,
+            receipt,
         });
 
         // Create payment record
