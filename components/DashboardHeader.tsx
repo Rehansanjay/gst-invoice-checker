@@ -32,8 +32,13 @@ export default function DashboardHeader() {
 
             <div className="container mx-auto px-4 h-16 flex items-center justify-between">
                 <div className="flex items-center gap-8">
-                    <Link href="/" className="text-xl font-bold tracking-tight">
-                        InvoiceCheck.in
+                    <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                        <img
+                            src="/invoicecheck-logo.svg"
+                            alt="InvoiceCheck Logo"
+                            className="w-6 h-6"
+                        />
+                        <span className="text-xl font-bold tracking-tight">InvoiceCheck.in</span>
                     </Link>
                     <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
                         <Link href="/" className="hover:text-primary">Home</Link>

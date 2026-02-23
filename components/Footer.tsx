@@ -7,7 +7,14 @@ export default function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     {/* Brand */}
                     <div className="space-y-3">
-                        <h3 className="text-lg font-bold">InvoiceCheck.in</h3>
+                        <div className="flex items-center gap-2">
+                            <img
+                                src="/invoicecheck-logo.svg"
+                                alt="InvoiceCheck Logo"
+                                className="w-6 h-6"
+                            />
+                            <h3 className="text-lg font-bold">InvoiceCheck.in</h3>
+                        </div>
                         <p className="text-sm text-muted-foreground">
                             India&apos;s fastest GST invoice validator. Catch errors before the portal rejects your filing.
                         </p>
