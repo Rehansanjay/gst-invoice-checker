@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Plus, Trash2, Loader2, Gift, UserPlus } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Plus, Trash2, Loader2, Gift, UserPlus, Building2, ShoppingCart, FileText, Package, ChevronDown, ChevronUp, CheckCircle2, XCircle, Sparkles, IndianRupee } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +10,105 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
 import { ParsedInvoice, LineItem, VALID_GST_RATES, InvoiceType, INVOICE_TYPE_LABELS, STATE_CODE_NAMES, VALID_STATE_CODES } from '@/types';
+
+// ── GSTIN validation regex ──────────────────────────────────────────────────
+const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+
+function GSTINBadge({ value }: { value: string }) {
+    if (!value) return null;
+    if (value.length < 15) return (
+        <span className="inline-flex items-center gap-1 text-xs text-amber-600 mt-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />
+            {value.length}/15 characters
+        </span>
+    );
+    const valid = GSTIN_REGEX.test(value);
+    return valid ? (
+        <span className="inline-flex items-center gap-1 text-xs text-green-600 mt-1 font-medium">
+            <CheckCircle2 className="w-3.5 h-3.5" /> Valid format
+        </span>
+    ) : (
+        <span className="inline-flex items-center gap-1 text-xs text-red-500 mt-1 font-medium">
+            <XCircle className="w-3.5 h-3.5" /> Invalid GSTIN format
+        </span>
+    );
+}
+
+// ── Step Progress Bar ────────────────────────────────────────────────────────
+const STEPS = [
+    { label: 'Supplier', icon: Building2 },
+    { label: 'Buyer', icon: ShoppingCart },
+    { label: 'Invoice Info', icon: FileText },
+    { label: 'Line Items', icon: Package },
+];
+
+function StepBar({ activeStep }: { activeStep: number }) {
+    return (
+        <div className="flex items-center justify-between mb-6 px-1">
+            {STEPS.map((step, i) => {
+                const Icon = step.icon;
+                const done = i < activeStep;
+                const current = i === activeStep;
+                return (
+                    <div key={i} className="flex-1 flex flex-col items-center relative">
+                        {/* connector line */}
+                        {i < STEPS.length - 1 && (
+                            <div className={`absolute top-4 left-1/2 w-full h-0.5 transition-colors duration-500 ${done ? 'bg-primary' : 'bg-muted-foreground/20'}`} />
+                        )}
+                        <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${done ? 'bg-primary text-primary-foreground shadow-md' :
+                                current ? 'bg-primary/10 border-2 border-primary text-primary' :
+                                    'bg-muted border-2 border-muted-foreground/20 text-muted-foreground'
+                            }`}>
+                            {done ? <CheckCircle2 className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
+                        </div>
+                        <span className={`text-xs mt-1 font-medium transition-colors ${current ? 'text-primary' : done ? 'text-foreground' : 'text-muted-foreground'
+                            }`}>{step.label}</span>
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
+// ── Tax Type Pill Toggle ─────────────────────────────────────────────────────
+function TaxTypePill({ value, onChange, suggestedType }: {
+    value: 'CGST_SGST' | 'IGST';
+    onChange: (v: 'CGST_SGST' | 'IGST') => void;
+    suggestedType?: 'CGST_SGST' | 'IGST';
+}) {
+    return (
+        <div className="flex gap-2 mt-1">
+            <button
+                type="button"
+                onClick={() => onChange('CGST_SGST')}
+                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border-2 transition-all duration-200 ${value === 'CGST_SGST'
+                        ? 'bg-green-50 border-green-500 text-green-800 shadow-sm'
+                        : 'bg-muted/50 border-transparent text-muted-foreground hover:border-muted-foreground/30'
+                    }`}
+            >
+                CGST + SGST
+                <div className="text-xs font-normal opacity-70">Same State</div>
+                {suggestedType === 'CGST_SGST' && value !== 'CGST_SGST' && (
+                    <div className="text-xs text-amber-600 font-normal">↑ Suggested</div>
+                )}
+            </button>
+            <button
+                type="button"
+                onClick={() => onChange('IGST')}
+                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border-2 transition-all duration-200 ${value === 'IGST'
+                        ? 'bg-blue-50 border-blue-500 text-blue-800 shadow-sm'
+                        : 'bg-muted/50 border-transparent text-muted-foreground hover:border-muted-foreground/30'
+                    }`}
+            >
+                IGST
+                <div className="text-xs font-normal opacity-70">Interstate</div>
+                {suggestedType === 'IGST' && value !== 'IGST' && (
+                    <div className="text-xs text-amber-600 font-normal">↑ Suggested</div>
+                )}
+            </button>
+        </div>
+    );
+}
 
 export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLabel, initialData }: {
     onSubmit: (data: ParsedInvoice) => void;
@@ -46,7 +145,9 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
         },
     ]);
 
+    const [collapsedItems, setCollapsedItems] = useState<Set<number>>(new Set());
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [formReady, setFormReady] = useState(false);
 
     // ── Freemium 3-check model (guest users only) ──
     const FREE_CHECKS_KEY = 'gst_free_checks_used';
@@ -55,8 +156,6 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
     const [isGuest, setIsGuest] = useState(false);
 
     useEffect(() => {
-        // Only show freemium UI if the parent hasn't provided a custom submit label
-        // (custom label = logged-in user with credits)
         if (!submitLabel) {
             setIsGuest(true);
             const stored = parseInt(localStorage.getItem(FREE_CHECKS_KEY) || '0', 10);
@@ -88,6 +187,28 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
     const supplierState = formData.supplierGSTIN.substring(0, 2);
     const buyerState = formData.buyerGSTIN.substring(0, 2);
     const isSameState = supplierState === buyerState && supplierState !== '';
+    const suggestedTaxType: 'CGST_SGST' | 'IGST' | undefined =
+        supplierState && buyerState ? (isSameState ? 'CGST_SGST' : 'IGST') : undefined;
+
+    // Compute active step for progress bar
+    const activeStep = useMemo(() => {
+        const supplierOk = formData.supplierGSTIN.length === 15;
+        const buyerOk = formData.buyerGSTIN.length === 15;
+        const invoiceInfoOk = !!formData.invoiceNumber && !!formData.invoiceDate;
+        const lineItemsOk = lineItems.some(i => i.description && i.taxableAmount > 0);
+        if (lineItemsOk) return 4;
+        if (invoiceInfoOk) return 3;
+        if (buyerOk) return 2;
+        if (supplierOk) return 1;
+        return 0;
+    }, [formData, lineItems]);
+
+    // Track form readiness for glow effect
+    useEffect(() => {
+        const supplierOk = formData.supplierGSTIN.length === 15;
+        const invoiceOk = !!formData.invoiceNumber && !!formData.invoiceDate;
+        setFormReady(supplierOk && invoiceOk);
+    }, [formData]);
 
     // Auto-fill Place of Supply from buyer GSTIN when it changes
     const handleBuyerGSTINChange = (value: string) => {
@@ -96,7 +217,6 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
         setFormData(prev => ({
             ...prev,
             buyerGSTIN: upper,
-            // Auto-fill PoS from buyer state if user hasn't manually overridden it
             placeOfSupply: prev.placeOfSupply === prev.buyerGSTIN.substring(0, 2) || prev.placeOfSupply === ''
                 ? newBuyerState
                 : prev.placeOfSupply,
@@ -133,12 +253,25 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
             const updated = lineItems.filter((_, i) => i !== index);
             updated.forEach((item, i) => item.lineNumber = i + 1);
             setLineItems(updated);
+            setCollapsedItems(prev => {
+                const next = new Set(prev);
+                next.delete(index);
+                return next;
+            });
         }
+    };
+
+    const toggleCollapse = (index: number) => {
+        setCollapsedItems(prev => {
+            const next = new Set(prev);
+            if (next.has(index)) next.delete(index);
+            else next.add(index);
+            return next;
+        });
     };
 
     const recalculateTax = (item: LineItem): LineItem => {
         const taxAmount = (item.taxableAmount * item.taxRate) / 100;
-
         if (item.taxType === 'CGST_SGST') {
             item.cgst = taxAmount / 2;
             item.sgst = taxAmount / 2;
@@ -148,7 +281,6 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
             item.sgst = 0;
             item.igst = taxAmount;
         }
-
         item.totalAmount = item.taxableAmount + taxAmount;
         return item;
     };
@@ -156,18 +288,13 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
     const updateLineItem = (index: number, field: keyof LineItem, value: string | number) => {
         const updated = [...lineItems];
         updated[index] = { ...updated[index], [field]: value };
-
-        // Auto-calculate when quantity or rate changes
         if (field === 'quantity' || field === 'rate') {
             updated[index].taxableAmount = updated[index].quantity * updated[index].rate;
             updated[index] = recalculateTax(updated[index]);
         }
-
-        // Recalculate when taxable amount, tax rate, or tax type changes
         if (field === 'taxableAmount' || field === 'taxRate' || field === 'taxType') {
             updated[index] = recalculateTax(updated[index]);
         }
-
         setLineItems(updated);
     };
 
@@ -177,7 +304,6 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
         if (!formData.invoiceDate) errors.push('Invoice Date is required');
         if (formData.supplierGSTIN.length !== 15) errors.push('Supplier GSTIN must be exactly 15 characters');
         if (formData.buyerGSTIN && formData.buyerGSTIN.length !== 15) errors.push('Buyer GSTIN must be exactly 15 characters (or leave empty)');
-
         if (errors.length > 0) {
             alert(errors.join('\n'));
             return false;
@@ -187,9 +313,7 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
 
     const handleSubmit = async () => {
         if (!validateForm()) return;
-
         setIsSubmitting(true);
-
         const invoiceData: ParsedInvoice = {
             invoiceNumber: formData.invoiceNumber,
             invoiceDate: formData.invoiceDate,
@@ -205,10 +329,8 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
             placeOfSupply: formData.placeOfSupply,
             reverseCharge: formData.reverseCharge,
         };
-
         try {
             await onSubmit(invoiceData);
-            // Increment free check counter for guest users
             if (isGuest) {
                 const newCount = freeChecksUsed + 1;
                 localStorage.setItem(FREE_CHECKS_KEY, String(newCount));
@@ -222,9 +344,21 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
     };
 
     return (
-        <div className="space-y-6">
-            <Card className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Supplier Details</h3>
+        <div className="space-y-5">
+            {/* ── Step Progress Bar ── */}
+            <StepBar activeStep={activeStep} />
+
+            {/* ── Supplier Details ── */}
+            <Card className="p-6 border border-border/60 shadow-sm hover:shadow-md transition-shadow duration-200">
+                <div className="flex items-center gap-2 mb-5">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Building2 className="w-4 h-4 text-primary" />
+                    </div>
+                    <h3 className="text-base font-semibold">Supplier Details</h3>
+                    {formData.supplierGSTIN.length === 15 && GSTIN_REGEX.test(formData.supplierGSTIN) && (
+                        <span className="ml-auto text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">✓ Complete</span>
+                    )}
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <Label htmlFor="supplierGSTIN">Supplier GSTIN *</Label>
@@ -234,24 +368,35 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
                             onChange={(e) => setFormData({ ...formData, supplierGSTIN: e.target.value.toUpperCase() })}
                             placeholder="27AABCP1234A1Z5"
                             maxLength={15}
-                            className="font-mono"
+                            className="font-mono mt-1"
                         />
-                        {supplierState && <p className="text-sm text-muted-foreground mt-1">State: {STATE_CODE_NAMES[supplierState] || supplierState}</p>}
+                        <GSTINBadge value={formData.supplierGSTIN} />
+                        {supplierState && <p className="text-sm text-muted-foreground mt-1">📍 {STATE_CODE_NAMES[supplierState] || supplierState}</p>}
                     </div>
                     <div>
-                        <Label htmlFor="supplierName">Supplier Name (Optional)</Label>
+                        <Label htmlFor="supplierName">Supplier Name <span className="text-muted-foreground font-normal">(Optional)</span></Label>
                         <Input
                             id="supplierName"
                             value={formData.supplierName}
                             onChange={(e) => setFormData({ ...formData, supplierName: e.target.value })}
                             placeholder="Company Name"
+                            className="mt-1"
                         />
                     </div>
                 </div>
             </Card>
 
-            <Card className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Buyer Details</h3>
+            {/* ── Buyer Details ── */}
+            <Card className="p-6 border border-border/60 shadow-sm hover:shadow-md transition-shadow duration-200">
+                <div className="flex items-center gap-2 mb-5">
+                    <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                        <ShoppingCart className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <h3 className="text-base font-semibold">Buyer Details</h3>
+                    {formData.buyerGSTIN.length === 15 && GSTIN_REGEX.test(formData.buyerGSTIN) && (
+                        <span className="ml-auto text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">✓ Complete</span>
+                    )}
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <Label htmlFor="buyerGSTIN">Buyer GSTIN *</Label>
@@ -261,40 +406,48 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
                             onChange={(e) => handleBuyerGSTINChange(e.target.value)}
                             placeholder="27BBDCT5678B1Z3"
                             maxLength={15}
-                            className="font-mono"
+                            className="font-mono mt-1"
                         />
-                        {buyerState && <p className="text-sm text-muted-foreground mt-1">State: {STATE_CODE_NAMES[buyerState] || buyerState}</p>}
+                        <GSTINBadge value={formData.buyerGSTIN} />
+                        {buyerState && <p className="text-sm text-muted-foreground mt-1">📍 {STATE_CODE_NAMES[buyerState] || buyerState}</p>}
                     </div>
                     <div>
-                        <Label htmlFor="buyerName">Buyer Name (Optional)</Label>
+                        <Label htmlFor="buyerName">Buyer Name <span className="text-muted-foreground font-normal">(Optional)</span></Label>
                         <Input
                             id="buyerName"
                             value={formData.buyerName}
                             onChange={(e) => setFormData({ ...formData, buyerName: e.target.value })}
                             placeholder="Customer Name"
+                            className="mt-1"
                         />
                     </div>
                 </div>
 
                 {isSameState && supplierState && (
-                    <Alert className="mt-4">
-                        <AlertDescription>
-                            Same state transaction detected. Use CGST + SGST (not IGST)
-                        </AlertDescription>
-                    </Alert>
+                    <div className="mt-4 flex items-center gap-2 px-3 py-2.5 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800">
+                        <span className="text-lg">🏠</span>
+                        <span><strong>Same state</strong> — use CGST + SGST (not IGST)</span>
+                    </div>
                 )}
-
                 {!isSameState && supplierState && buyerState && (
-                    <Alert className="mt-4">
-                        <AlertDescription>
-                            Interstate transaction detected. Use IGST (not CGST + SGST)
-                        </AlertDescription>
-                    </Alert>
+                    <div className="mt-4 flex items-center gap-2 px-3 py-2.5 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+                        <span className="text-lg">↔️</span>
+                        <span><strong>Interstate</strong> — use IGST (not CGST + SGST)</span>
+                    </div>
                 )}
             </Card>
 
-            <Card className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Invoice Information</h3>
+            {/* ── Invoice Information ── */}
+            <Card className="p-6 border border-border/60 shadow-sm hover:shadow-md transition-shadow duration-200">
+                <div className="flex items-center gap-2 mb-5">
+                    <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center">
+                        <FileText className="w-4 h-4 text-violet-600" />
+                    </div>
+                    <h3 className="text-base font-semibold">Invoice Information</h3>
+                    {formData.invoiceNumber && formData.invoiceDate && (
+                        <span className="ml-auto text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">✓ Complete</span>
+                    )}
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Invoice Type */}
                     <div>
@@ -303,7 +456,7 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
                             id="invoiceType"
                             value={formData.invoiceType}
                             onChange={(e) => setFormData({ ...formData, invoiceType: e.target.value as InvoiceType })}
-                            className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                            className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm mt-1"
                         >
                             {(Object.keys(INVOICE_TYPE_LABELS) as InvoiceType[]).map((key) => (
                                 <option key={key} value={key}>{INVOICE_TYPE_LABELS[key]}</option>
@@ -324,8 +477,10 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
                             id="invoiceNumber"
                             value={formData.invoiceNumber}
                             onChange={(e) => setFormData({ ...formData, invoiceNumber: e.target.value })}
-                            placeholder="INV/2025/001"
+                            placeholder="INV/2025-26/001"
+                            className="mt-1"
                         />
+                        <p className="text-xs text-muted-foreground mt-1">Max 16 chars recommended per GST rules</p>
                     </div>
 
                     {/* Invoice Date */}
@@ -336,6 +491,7 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
                             type="date"
                             value={formData.invoiceDate}
                             onChange={(e) => setFormData({ ...formData, invoiceDate: e.target.value })}
+                            className="mt-1"
                         />
                     </div>
 
@@ -351,7 +507,7 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
                             id="placeOfSupply"
                             value={formData.placeOfSupply}
                             onChange={(e) => setFormData({ ...formData, placeOfSupply: e.target.value })}
-                            className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                            className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm mt-1"
                         >
                             <option value="">Select state...</option>
                             {VALID_STATE_CODES.map((code) => (
@@ -369,8 +525,7 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
 
                     {/* Reverse Charge */}
                     <div className="md:col-span-2">
-                        <div className={`flex items-start gap-3 p-3 rounded-lg border-2 transition-colors ${formData.reverseCharge ? 'border-amber-400 bg-amber-50' : 'border-transparent bg-muted/40'
-                            }`}>
+                        <div className={`flex items-start gap-3 p-3 rounded-lg border-2 transition-colors ${formData.reverseCharge ? 'border-amber-400 bg-amber-50' : 'border-transparent bg-muted/40'}`}>
                             <input
                                 type="checkbox"
                                 id="reverseCharge"
@@ -397,189 +552,244 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
                 </div>
             </Card>
 
-            <Card className="p-6">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold">Line Items</h3>
-                    <Button onClick={addLineItem} size="sm" variant="outline">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Item
-                    </Button>
+            {/* ── Line Items ── */}
+            <Card className="p-6 border border-border/60 shadow-sm hover:shadow-md transition-shadow duration-200">
+                <div className="flex items-center gap-2 mb-5">
+                    <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                        <Package className="w-4 h-4 text-orange-600" />
+                    </div>
+                    <h3 className="text-base font-semibold">Line Items</h3>
+                    <span className="ml-auto text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                        {lineItems.length} item{lineItems.length !== 1 ? 's' : ''}
+                    </span>
                 </div>
 
-                <div className="space-y-4">
-                    {lineItems.map((item, index) => (
-                        <Card key={index} className="p-4 bg-muted/50">
-                            <div className="flex justify-between items-center mb-3">
-                                <h4 className="font-medium">Item {index + 1}</h4>
-                                {lineItems.length > 1 && (
-                                    <Button
-                                        onClick={() => removeLineItem(index)}
-                                        size="sm"
-                                        variant="ghost"
-                                        className="text-destructive"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </Button>
-                                )}
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="md:col-span-2">
-                                    <Label>Description *</Label>
-                                    <Input
-                                        value={item.description}
-                                        onChange={(e) => updateLineItem(index, 'description', e.target.value)}
-                                        placeholder="Product/Service name"
-                                    />
-                                </div>
-
-                                <div>
-                                    <Label>HSN Code *</Label>
-                                    <Input
-                                        value={item.hsnCode}
-                                        onChange={(e) => updateLineItem(index, 'hsnCode', e.target.value)}
-                                        placeholder="8518"
-                                        maxLength={8}
-                                    />
-                                </div>
-
-                                <div>
-                                    <Label>Quantity</Label>
-                                    <Input
-                                        type="number"
-                                        value={item.quantity}
-                                        onChange={(e) => updateLineItem(index, 'quantity', Number(e.target.value))}
-                                        min="1"
-                                    />
-                                </div>
-
-                                <div>
-                                    <Label>Rate (per unit)</Label>
-                                    <Input
-                                        type="number"
-                                        value={item.rate}
-                                        onChange={(e) => updateLineItem(index, 'rate', Number(e.target.value))}
-                                        min="0"
-                                        step="0.01"
-                                    />
-                                </div>
-
-                                <div>
-                                    <Label>Taxable Amount</Label>
-                                    <Input
-                                        type="number"
-                                        value={item.taxableAmount}
-                                        onChange={(e) => updateLineItem(index, 'taxableAmount', Number(e.target.value))}
-                                        min="0"
-                                        step="0.01"
-                                    />
-                                </div>
-
-                                <div>
-                                    <Label>GST Rate</Label>
-                                    <select
-                                        value={item.taxRate}
-                                        onChange={(e) => updateLineItem(index, 'taxRate', Number(e.target.value))}
-                                        className="w-full h-10 px-3 rounded-md border border-input bg-background"
-                                    >
-                                        {VALID_GST_RATES.map((rate) => (
-                                            <option key={rate} value={rate}>{rate}%</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div className="md:col-span-2">
-                                    <Label>Tax Type</Label>
-                                    <div className="flex gap-4 mt-2">
-                                        <label className="flex items-center gap-2">
-                                            <input
-                                                type="radio"
-                                                checked={item.taxType === 'CGST_SGST'}
-                                                onChange={() => updateLineItem(index, 'taxType', 'CGST_SGST')}
-                                            />
-                                            CGST + SGST (Same State)
-                                        </label>
-                                        <label className="flex items-center gap-2">
-                                            <input
-                                                type="radio"
-                                                checked={item.taxType === 'IGST'}
-                                                onChange={() => updateLineItem(index, 'taxType', 'IGST')}
-                                            />
-                                            IGST (Interstate)
-                                        </label>
+                <div className="space-y-3">
+                    {lineItems.map((item, index) => {
+                        const isCollapsed = collapsedItems.has(index);
+                        const isFilled = item.description && item.taxableAmount > 0;
+                        return (
+                            <Card key={index} className={`border transition-all duration-200 ${isFilled ? 'border-green-200 bg-green-50/30' : 'border-border/40 bg-muted/30'}`}>
+                                {/* Item header — always visible */}
+                                <div
+                                    className="flex items-center gap-3 p-4 cursor-pointer select-none"
+                                    onClick={() => isFilled && toggleCollapse(index)}
+                                >
+                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${isFilled ? 'bg-green-500 text-white' : 'bg-primary/15 text-primary'}`}>
+                                        {isFilled ? '✓' : index + 1}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        {isCollapsed && item.description ? (
+                                            <div className="flex items-center gap-3">
+                                                <span className="font-medium text-sm truncate">{item.description}</span>
+                                                <span className="text-xs text-muted-foreground shrink-0">HSN: {item.hsnCode || '—'}</span>
+                                                <span className="text-xs font-semibold text-foreground shrink-0">₹{item.totalAmount.toFixed(2)}</span>
+                                            </div>
+                                        ) : (
+                                            <span className="text-sm font-medium text-muted-foreground">
+                                                {item.description || `Item ${index + 1}`}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        {lineItems.length > 1 && (
+                                            <Button
+                                                onClick={(e) => { e.stopPropagation(); removeLineItem(index); }}
+                                                size="sm"
+                                                variant="ghost"
+                                                className="text-destructive h-7 w-7 p-0"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </Button>
+                                        )}
+                                        {isFilled && (
+                                            <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
+                                                {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
 
-                                {item.taxType === 'CGST_SGST' ? (
-                                    <>
-                                        <div>
-                                            <Label>CGST ({item.taxRate / 2}%)</Label>
-                                            <Input
-                                                type="number"
-                                                value={item.cgst}
-                                                onChange={(e) => updateLineItem(index, 'cgst', Number(e.target.value))}
-                                                step="0.01"
-                                            />
+                                {/* Item fields — collapsible */}
+                                {!isCollapsed && (
+                                    <div className="px-4 pb-4 border-t border-border/30 pt-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="md:col-span-2">
+                                                <Label>Description *</Label>
+                                                <Input
+                                                    value={item.description}
+                                                    onChange={(e) => updateLineItem(index, 'description', e.target.value)}
+                                                    placeholder="Product/Service name"
+                                                    className="mt-1"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <Label>HSN Code *</Label>
+                                                <Input
+                                                    value={item.hsnCode}
+                                                    onChange={(e) => updateLineItem(index, 'hsnCode', e.target.value)}
+                                                    placeholder="8518"
+                                                    maxLength={8}
+                                                    className="mt-1"
+                                                />
+                                                <p className="text-xs text-muted-foreground mt-1">4–8 digit code from schedule</p>
+                                            </div>
+
+                                            <div>
+                                                <Label>GST Rate</Label>
+                                                <select
+                                                    value={item.taxRate}
+                                                    onChange={(e) => updateLineItem(index, 'taxRate', Number(e.target.value))}
+                                                    className="w-full h-10 px-3 rounded-md border border-input bg-background mt-1 text-sm"
+                                                >
+                                                    {VALID_GST_RATES.map((rate) => (
+                                                        <option key={rate} value={rate}>{rate}%</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+
+                                            <div>
+                                                <Label>Quantity</Label>
+                                                <Input
+                                                    type="number"
+                                                    value={item.quantity}
+                                                    onChange={(e) => updateLineItem(index, 'quantity', Number(e.target.value))}
+                                                    min="1"
+                                                    className="mt-1"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <Label>Rate (per unit) ₹</Label>
+                                                <Input
+                                                    type="number"
+                                                    value={item.rate}
+                                                    onChange={(e) => updateLineItem(index, 'rate', Number(e.target.value))}
+                                                    min="0"
+                                                    step="0.01"
+                                                    className="mt-1"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <Label>Taxable Amount ₹</Label>
+                                                <Input
+                                                    type="number"
+                                                    value={item.taxableAmount}
+                                                    onChange={(e) => updateLineItem(index, 'taxableAmount', Number(e.target.value))}
+                                                    min="0"
+                                                    step="0.01"
+                                                    className="mt-1"
+                                                />
+                                                <p className="text-xs text-muted-foreground mt-1">Auto-calculated from Qty × Rate</p>
+                                            </div>
+
+                                            <div>
+                                                <Label>Total Amount ₹</Label>
+                                                <Input
+                                                    type="number"
+                                                    value={item.totalAmount.toFixed(2)}
+                                                    readOnly
+                                                    className="mt-1 bg-muted text-muted-foreground cursor-not-allowed"
+                                                />
+                                            </div>
+
+                                            {/* Tax Type Pill */}
+                                            <div className="md:col-span-2">
+                                                <Label>Tax Type</Label>
+                                                <TaxTypePill
+                                                    value={item.taxType as 'CGST_SGST' | 'IGST'}
+                                                    onChange={(v) => updateLineItem(index, 'taxType', v)}
+                                                    suggestedType={suggestedTaxType}
+                                                />
+                                            </div>
+
+                                            {/* Tax breakdown */}
+                                            {item.taxType === 'CGST_SGST' ? (
+                                                <>
+                                                    <div>
+                                                        <Label>CGST ({item.taxRate / 2}%) ₹</Label>
+                                                        <Input
+                                                            type="number"
+                                                            value={item.cgst}
+                                                            onChange={(e) => updateLineItem(index, 'cgst', Number(e.target.value))}
+                                                            step="0.01"
+                                                            className="mt-1"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <Label>SGST ({item.taxRate / 2}%) ₹</Label>
+                                                        <Input
+                                                            type="number"
+                                                            value={item.sgst}
+                                                            onChange={(e) => updateLineItem(index, 'sgst', Number(e.target.value))}
+                                                            step="0.01"
+                                                            className="mt-1"
+                                                        />
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <div>
+                                                    <Label>IGST ({item.taxRate}%) ₹</Label>
+                                                    <Input
+                                                        type="number"
+                                                        value={item.igst}
+                                                        onChange={(e) => updateLineItem(index, 'igst', Number(e.target.value))}
+                                                        step="0.01"
+                                                        className="mt-1"
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
-                                        <div>
-                                            <Label>SGST ({item.taxRate / 2}%)</Label>
-                                            <Input
-                                                type="number"
-                                                value={item.sgst}
-                                                onChange={(e) => updateLineItem(index, 'sgst', Number(e.target.value))}
-                                                step="0.01"
-                                            />
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div>
-                                        <Label>IGST ({item.taxRate}%)</Label>
-                                        <Input
-                                            type="number"
-                                            value={item.igst}
-                                            onChange={(e) => updateLineItem(index, 'igst', Number(e.target.value))}
-                                            step="0.01"
-                                        />
                                     </div>
                                 )}
-
-                                <div>
-                                    <Label>Total Amount</Label>
-                                    <Input
-                                        type="number"
-                                        value={item.totalAmount.toFixed(2)}
-                                        readOnly
-                                        className="bg-muted"
-                                    />
-                                </div>
-                            </div>
-                        </Card>
-                    ))}
+                            </Card>
+                        );
+                    })}
                 </div>
+
+                {/* Dashed Add Item Button */}
+                <button
+                    type="button"
+                    onClick={addLineItem}
+                    className="mt-4 w-full py-3 border-2 border-dashed border-primary/30 rounded-lg text-sm text-primary/70 font-medium hover:border-primary hover:text-primary hover:bg-primary/5 transition-all duration-200 flex items-center justify-center gap-2 group"
+                >
+                    <span className="w-5 h-5 rounded-full border-2 border-primary/40 group-hover:border-primary flex items-center justify-center transition-colors">
+                        <Plus className="w-3 h-3" />
+                    </span>
+                    Add Another Item
+                </button>
             </Card>
 
-            <Card className="p-6 bg-primary/5">
-                <h3 className="text-lg font-semibold mb-4">Invoice Totals</h3>
-                <div className="space-y-2">
-                    <div className="flex justify-between text-lg">
-                        <span>Taxable Total:</span>
-                        <span className="font-semibold">₹{taxableTotalAmount.toFixed(2)}</span>
+            {/* ── Invoice Totals ── */}
+            <Card className="p-6 bg-gradient-to-br from-primary/5 via-primary/3 to-transparent border border-primary/20 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                    <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center">
+                        <IndianRupee className="w-4 h-4 text-primary" />
                     </div>
-                    <div className="flex justify-between text-lg">
-                        <span>Tax Total:</span>
-                        <span className="font-semibold">₹{totalTaxAmount.toFixed(2)}</span>
+                    <h3 className="text-base font-semibold">Invoice Totals</h3>
+                </div>
+                <div className="space-y-2">
+                    <div className="flex justify-between items-center py-1">
+                        <span className="text-muted-foreground text-sm">Taxable Total</span>
+                        <span className="font-semibold tabular-nums">₹{taxableTotalAmount.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-1">
+                        <span className="text-muted-foreground text-sm">Tax Total</span>
+                        <span className="font-semibold tabular-nums text-blue-600">₹{totalTaxAmount.toFixed(2)}</span>
                     </div>
                     <Separator className="my-2" />
-                    <div className="flex justify-between text-xl font-bold">
-                        <span>Invoice Total:</span>
-                        <span>₹{invoiceTotalAmount.toFixed(2)}</span>
+                    <div className="flex justify-between items-center py-1">
+                        <span className="text-lg font-bold">Invoice Total</span>
+                        <span className="text-2xl font-bold text-primary tabular-nums">₹{invoiceTotalAmount.toFixed(2)}</span>
                     </div>
                 </div>
             </Card>
 
-            {/* Freemium: free checks badge (guest only) */}
+            {/* ── Free checks badge ── */}
             {isGuest && !hasUsedAllFreeChecks && (
-                <div className="flex items-center justify-center gap-2 text-sm bg-green-50 border border-green-200 rounded-lg px-4 py-2">
+                <div className="flex items-center justify-center gap-2 text-sm bg-green-50 border border-green-200 rounded-lg px-4 py-2.5">
                     <Gift className="w-4 h-4 text-green-600" />
                     <span className="text-green-800 font-medium">
                         {freeChecksRemaining === MAX_FREE_CHECKS
@@ -589,23 +799,32 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
                 </div>
             )}
 
-            <Button
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                size="lg"
-                className="w-full"
-            >
-                {isSubmitting ? (
-                    <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Validating...
-                    </>
-                ) : (
-                    submitLabel || (freeChecksRemaining > 0 ? 'Validate Invoice — Free' : 'Validate Invoice — ₹99')
+            {/* ── Submit Button with glow ── */}
+            <div className="relative">
+                {formReady && !isSubmitting && (
+                    <div className="absolute inset-0 rounded-lg bg-primary/20 blur-md animate-pulse pointer-events-none" />
                 )}
-            </Button>
+                <Button
+                    onClick={handleSubmit}
+                    disabled={isSubmitting || isAuthLoading}
+                    size="lg"
+                    className="relative w-full text-base h-12 shadow-sm transition-all duration-200 hover:shadow-lg hover:scale-[1.01] active:scale-[0.99]"
+                >
+                    {isSubmitting || isAuthLoading ? (
+                        <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            {isSubmitting ? 'Validating...' : 'Loading...'}
+                        </>
+                    ) : (
+                        <>
+                            <Sparkles className="w-4 h-4 mr-2" />
+                            {submitLabel || (freeChecksRemaining > 0 ? 'Validate Invoice — Free' : 'Validate Invoice — ₹99')}
+                        </>
+                    )}
+                </Button>
+            </div>
 
-            {/* Soft signup prompt after 3 checks used */}
+            {/* ── Soft signup prompt after 3 checks used ── */}
             {isGuest && hasUsedAllFreeChecks && (
                 <Card className="p-5 border-blue-200 bg-blue-50/40">
                     <div className="flex items-start gap-3">
@@ -637,9 +856,9 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
                 </Card>
             )}
 
-            <Alert>
-                <AlertDescription>
-                    ⚠️ We validate YOUR entered data - not OCR. This ensures 100% accuracy.
+            <Alert className="border-amber-200 bg-amber-50/50">
+                <AlertDescription className="text-amber-800 text-xs">
+                    ⚠️ We validate YOUR entered data — not OCR. This ensures 100% accuracy.
                 </AlertDescription>
             </Alert>
         </div>
