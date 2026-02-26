@@ -339,7 +339,7 @@ export default function DashboardPage() {
                 {checks.length > 0 && (
                     <div className="text-center pt-2">
                         <Button variant="link" className="text-primary gap-1" asChild>
-                            <Link href="/history">
+                            <Link href="/dashboard/history">
                                 View All Checks <ArrowRight className="w-3.5 h-3.5" />
                             </Link>
                         </Button>

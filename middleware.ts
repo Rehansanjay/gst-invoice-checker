@@ -28,7 +28,7 @@ export async function middleware(request: NextRequest) {
     // Refresh session if expired
     const { data: { session } } = await supabase.auth.getSession()
 
-    const protectedPaths = ['/dashboard', '/history', '/settings']
+    const protectedPaths = ['/dashboard', '/history', '/settings', '/report']
     const isProtected = protectedPaths.some(
         path => request.nextUrl.pathname.startsWith(path)
     )
@@ -52,5 +52,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/dashboard/:path*', '/history/:path*', '/settings/:path*', '/login', '/signup']
+    matcher: ['/dashboard/:path*', '/history/:path*', '/settings/:path*', '/report/:path*', '/login', '/signup']
 }

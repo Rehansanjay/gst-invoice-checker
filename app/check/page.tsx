@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Upload, X, ZoomIn, FileImage, Lock, CreditCard, Loader2, Sparkles } from 'lucide-react';
+import { ArrowLeft, Upload, X, ZoomIn, FileImage, Lock, CreditCard, Loader2, Sparkles, Zap } from 'lucide-react';
 import InvoiceForm from '@/components/InvoiceForm';
 import ReportViewer from '@/components/ReportViewer';
 import ProcessingView from '@/components/ProcessingView';
@@ -62,6 +62,7 @@ function CheckPageInner() {
     const [outOfCredits, setOutOfCredits] = useState(false);
     const [isOcrLoading, setIsOcrLoading] = useState(false);
     const [extractedData, setExtractedData] = useState<Partial<ParsedInvoice> | null>(null);
+    const [isDragging, setIsDragging] = useState(false);
     const uploadedFileRef = useRef<File | null>(null);
 
     // ── Read UTM & referral params from URL ──────────────────────────
@@ -108,6 +109,22 @@ function CheckPageInner() {
         // Kick off OCR extraction
         runOcr(file);
     };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        setIsDragging(false);
+        const file = e.dataTransfer.files?.[0];
+        if (!file) return;
+        const syntheticEvent = { target: { files: e.dataTransfer.files, value: '' } } as unknown as React.ChangeEvent<HTMLInputElement>;
+        handleFileSelect(syntheticEvent);
+    };
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = () => setIsDragging(false);
 
     const runOcr = async (file: File) => {
         setIsOcrLoading(true);
@@ -359,35 +376,38 @@ function CheckPageInner() {
     return (
         <div className="min-h-screen bg-slate-50">
             <header className="bg-white border-b sticky top-0 z-10">
-                <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                        <button onClick={() => router.push('/')} className="md:hidden">
-                            <ArrowLeft className="w-5 h-5 text-muted-foreground" />
+                <div className="container mx-auto px-4 h-14 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
+                        <button onClick={() => router.push('/')} className="text-muted-foreground hover:text-foreground transition-colors">
+                            <ArrowLeft className="w-5 h-5" />
                         </button>
                         <h1
-                            className="text-xl font-bold tracking-tight cursor-pointer"
+                            className="text-base sm:text-xl font-bold tracking-tight cursor-pointer"
                             onClick={() => router.push('/')}
                         >
                             InvoiceCheck.in
                         </h1>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 shrink-0">
                         {(validationResult || previewResult) && (
                             <Button
                                 variant="ghost"
                                 size="sm"
+                                className="text-xs sm:text-sm px-2 sm:px-3"
                                 onClick={() => {
                                     setValidationResult(null);
                                     setPreviewResult(null);
                                     setInvoiceDataForPayment(null);
                                 }}
                             >
-                                Check Another Invoice
+                                <span className="hidden sm:inline">Check Another Invoice</span>
+                                <span className="sm:hidden">Retry</span>
                             </Button>
                         )}
                         {!loading && !user && (
-                            <Button variant="outline" size="sm" onClick={() => router.push('/')}>
-                                Sign In / Sign Up
+                            <Button variant="outline" size="sm" className="text-xs sm:text-sm px-2 sm:px-3" onClick={() => router.push('/')}>
+                                <span className="hidden sm:inline">Sign In / Sign Up</span>
+                                <span className="sm:hidden">Sign In</span>
                             </Button>
                         )}
                     </div>
@@ -429,22 +449,35 @@ function CheckPageInner() {
                 ) : (
                     <>
                         <div className="mb-8 text-center max-w-2xl mx-auto">
-                            <h2 className="text-3xl font-bold mb-2">Enter Invoice Details</h2>
+                            <div className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-semibold px-3 py-1 rounded-full mb-3">
+                                <Zap className="w-3 h-3" />
+                                AI-Powered Validation
+                            </div>
+                            <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-foreground via-foreground to-primary/70 bg-clip-text text-transparent">
+                                Enter Invoice Details
+                            </h2>
                             <p className="text-muted-foreground">
-                                Fill in your invoice information for instant validation.
+                                Fill in your invoice information for instant GST compliance validation.
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                            <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-4">
-                                <Card className="p-4 border-2 border-dashed border-slate-200 bg-white shadow-sm">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                            {/* Upload panel — compact on mobile, sticky sidebar on desktop */}
+                            <div className="lg:col-span-5 lg:sticky lg:top-20 space-y-4">
+                                <Card
+                                    className={`p-4 border-2 border-dashed bg-white shadow-sm transition-all duration-200 ${isDragging ? 'border-primary bg-primary/5 scale-[1.01]' : 'border-slate-200'
+                                        }`}
+                                    onDrop={handleDrop}
+                                    onDragOver={handleDragOver}
+                                    onDragLeave={handleDragLeave}
+                                >
                                     <div className="flex items-center justify-between mb-4">
                                         <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
                                             Invoice Preview
                                         </h3>
                                         {uploadedImage && (
                                             <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded font-medium">
-                                                Loaded
+                                                ✓ Loaded
                                             </span>
                                         )}
                                     </div>
@@ -458,15 +491,25 @@ function CheckPageInner() {
                                     ) : !uploadedImage ? (
                                         <div
                                             onClick={() => fileInputRef.current?.click()}
-                                            className="bg-slate-50 rounded-lg p-12 text-center cursor-pointer hover:bg-slate-100 transition-all border border-transparent hover:border-primary/20 aspect-[3/4] flex flex-col items-center justify-center"
+                                            className={`rounded-lg text-center cursor-pointer transition-all border
+                                                /* Mobile: compact horizontal strip; Desktop: tall card */
+                                                p-6 lg:aspect-[3/4] lg:p-12
+                                                flex flex-col items-center justify-center gap-3
+                                                ${isDragging
+                                                    ? 'bg-primary/5 border-primary border-solid'
+                                                    : 'bg-slate-50 hover:bg-slate-100 border-transparent hover:border-primary/20'
+                                                }`}
                                         >
-                                            <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center mb-4">
-                                                <Upload className="w-8 h-8 text-primary" />
+                                            <div className={`w-12 h-12 lg:w-16 lg:h-16 rounded-full shadow-sm flex items-center justify-center transition-colors ${isDragging ? 'bg-primary/10' : 'bg-white'
+                                                }`}>
+                                                <Upload className={`w-6 h-6 lg:w-8 lg:h-8 transition-colors ${isDragging ? 'text-primary scale-110' : 'text-primary'}`} />
                                             </div>
-                                            <p className="font-semibold mb-1">Upload PDF/Image</p>
-                                            <p className="text-xs text-muted-foreground max-w-[200px]">
-                                                Auto-fills form fields. Max 10MB.
-                                            </p>
+                                            <div>
+                                                <p className="font-semibold mb-1 text-sm">{isDragging ? 'Drop to upload!' : 'Upload PDF/Image'}</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {isDragging ? 'Release to auto-fill fields' : 'Drag & drop or tap. Max 10MB. Auto-fills form.'}
+                                                </p>
+                                            </div>
                                         </div>
                                     ) : uploadedImage === 'pdf' ? (
                                         <div className="bg-slate-50 rounded-lg p-8 aspect-[3/4] flex flex-col items-center justify-center">

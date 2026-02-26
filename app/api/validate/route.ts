@@ -55,59 +55,96 @@ export async function POST(request: NextRequest) {
         // 3. Validate
         const validationResult = await validateInvoice(invoice);
 
-        // 4. Deduct Credit & Save (if user is logged in)
+        // 4. Deduct Credit & Save — ONLY for signed-in users.
+        //    Guest ₹99 checks go through /api/quick-check + /api/process-check — NOT saved here.
         let dbCheckId: string | null = null;
 
         if (userId) {
             try {
                 // Deduct 1 credit
-                await supabaseAdmin.rpc('decrement_credits', { user_id_param: userId, amount: 1 });
+                const { error: rpcError } = await supabaseAdmin
+                    .rpc('decrement_credits', { user_id_param: userId, amount: 1 });
+                if (rpcError) console.error('Credit deduction RPC error:', rpcError);
 
-                // Save Check
-                const { data: checkRecord, error: dbError } = await supabaseAdmin
-                    .from('checks')
-                    .insert({
-                        user_id: userId, // Link to user
-                        invoice_hash: validationResult.invoiceHash,
-                        invoice_number: invoice.invoiceNumber,
-                        invoice_date: invoice.invoiceDate,
-                        supplier_gstin: invoice.supplierGSTIN,
-                        buyer_gstin: invoice.buyerGSTIN,
-                        invoice_total_amount: invoice.invoiceTotalAmount,
-                        status: 'completed',
-                        parsed_data: invoice, // Store full JSON
-                        health_score: validationResult.healthScore,
-                        risk_level: validationResult.riskLevel,
-                        issues_found: validationResult.issuesFound,
-                        checks_passed: validationResult.checksPassed,
-                        score_breakdown: validationResult.scoreBreakdown,
-                        validation_result: validationResult,
-                        processing_time_ms: validationResult.processingTimeMs,
-                    })
-                    .select()
-                    .single();
+                // Sanitize date — DB column is DATE type, must be valid or null
+                const invoiceDateValue = invoice.invoiceDate && invoice.invoiceDate.trim() !== ''
+                    ? invoice.invoiceDate
+                    : null;
 
-                if (dbError) {
-                    console.error('DB Insert Error:', dbError);
-                    // Don't fail the request if saving fails, but log it
+                // Progressive-fallback insert:
+                // Tries to save with full columns, then auto-removes any column the live DB
+                // schema cache rejects (PGRST204) until the insert succeeds.
+                // This handles schema drift between the local schema file and the live DB.
+                const baseInsert: Record<string, any> = {
+                    user_id: userId,
+                    invoice_number: invoice.invoiceNumber,
+                    invoice_date: invoiceDateValue,
+                    supplier_gstin: invoice.supplierGSTIN,
+                    buyer_gstin: invoice.buyerGSTIN || null,
+                    invoice_total_amount: invoice.invoiceTotalAmount,
+                };
+
+                // Desirable extra columns — may or may not exist in live DB
+                const extras: Record<string, any> = {
+                    check_type: 'bulk',
+                    status: 'completed',
+                    health_score: validationResult.healthScore,
+                    risk_level: validationResult.riskLevel,
+                    processing_time_ms: validationResult.processingTimeMs,
+                };
+
+                let checkRecord: { id: string } | null = null;
+                let dbError: any = null;
+                let insertAttempt: Record<string, any> = { ...baseInsert, ...extras };
+
+                for (let attempt = 0; attempt < 12; attempt++) {
+                    const res = await supabaseAdmin
+                        .from('checks')
+                        .insert(insertAttempt)
+                        .select('id')
+                        .single();
+
+                    if (!res.error) {
+                        checkRecord = res.data;
+                        dbError = null;
+                        break;
+                    }
+
+                    dbError = res.error;
+
+                    // PGRST204 = column not found in schema cache → remove it and retry
+                    if (res.error.code === 'PGRST204') {
+                        const match = res.error.message.match(/'([^']+)' column/);
+                        const badCol = match?.[1];
+                        if (badCol && badCol in insertAttempt) {
+                            console.warn(`⚠️  Column '${badCol}' missing in live DB — skipping and retrying`);
+                            delete insertAttempt[badCol];
+                            continue;
+                        }
+                    }
+
+                    // Any other error — stop retrying
+                    break;
                 }
 
-                if (checkRecord) dbCheckId = checkRecord.id;
+                if (dbError) {
+                    console.error('❌ DB Insert Error (checks table):', JSON.stringify(dbError, null, 2));
+                } else {
+                    console.log(`✅ Check saved: ${checkRecord?.id} for user ${userId}`);
+                    dbCheckId = checkRecord?.id ?? null;
+                }
 
             } catch (error) {
-                console.error('Credit deduction or DB save failed:', error);
+                console.error('❌ Credit deduction or DB save threw exception:', error);
             }
-        } else {
-            // Guest Check (Optional: Save without user_id if needed, or skip)
-            // For now, we skip saving guest checks to DB to save space, or save them with user_id=null if required.
-            // Let's save them for analytics if needed, but the requirement was about user history.
         }
+        // Guest/₹99 checks are intentionally NOT saved here.
 
         return NextResponse.json({
             success: true,
             checkId: dbCheckId || validationResult.checkId,
             result: validationResult,
-            remainingCredits: userId ? 'Updated' : 'Guest', // Frontend can refetch
+            remainingCredits: userId ? 'Updated' : 'Guest',
         });
     } catch (error) {
         console.error('Validation error:', error);

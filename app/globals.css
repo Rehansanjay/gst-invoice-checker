@@ -79,8 +79,34 @@
   * {
     @apply border-border;
   }
+  html {
+    /* Prevent horizontal overflow on mobile */
+    overflow-x: hidden;
+    /* Smooth scroll for anchor links */
+    scroll-behavior: smooth;
+    /* Prevent rubber-band overscroll on iOS */
+    overscroll-behavior-y: none;
+  }
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    /* Remove blue tap highlight on mobile */
+    -webkit-tap-highlight-color: transparent;
+    /* Prevent content from sliding under notch */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  /* Minimum touch target size for interactive elements */
+  button, a, input, select, textarea {
+    min-height: 44px;
+  }
+  /* Buttons inside icon-only slots should not enforce min-height */
+  .icon-btn {
+    min-height: unset;
+  }
+  /* Better text sizing on mobile */
+  input, select, textarea {
+    font-size: 16px; /* Prevents iOS auto-zoom on focus */
   }
 }
