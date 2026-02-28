@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
         const safeName = (invoiceNumber || result.checkId || 'report').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 50);
         const pdfBuffer = await generatePDF(result, invoiceNumber || 'Unknown');
 
-        return new NextResponse(pdfBuffer, {
+        return new NextResponse(new Uint8Array(pdfBuffer), {
             status: 200,
             headers: {
                 'Content-Type': 'application/pdf',
