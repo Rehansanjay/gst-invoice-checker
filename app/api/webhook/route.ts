@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Missing signature' }, { status: 400 });
         }
 
-        // Verify signature
+        // ── Verify Razorpay Signature ────────────────────────────────
         const expectedSignature = crypto
             .createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET!)
             .update(body)
@@ -29,6 +29,22 @@ export async function POST(request: NextRequest) {
         if (event.event === 'payment.captured') {
             const payment = event.payload.payment.entity;
 
+            // ── IDEMPOTENCY CHECK ────────────────────────────────────
+            // Razorpay retries failed webhooks. Guard against processing the
+            // same payment twice (would add duplicate credits / re-run validation).
+            const { data: existing } = await supabaseAdmin
+                .from('payments')
+                .select('id, status, payment_type')
+                .eq('razorpay_payment_id', payment.id)
+                .eq('status', 'captured')
+                .maybeSingle();
+
+            if (existing) {
+                console.log(`⚠️ Payment ${payment.id} already processed (idempotency). Skipping.`);
+                return NextResponse.json({ success: true, skipped: true });
+            }
+            // ────────────────────────────────────────────────────────
+
             // Update payment record
             const { data: paymentRecord } = await supabaseAdmin
                 .from('payments')
@@ -36,7 +52,7 @@ export async function POST(request: NextRequest) {
                     razorpay_payment_id: payment.id,
                     status: 'captured',
                     payment_method: payment.method,
-                    completed_at: new Date().toISOString(),
+                    captured_at: new Date().toISOString(), // was: completed_at (wrong column)
                 })
                 .eq('razorpay_order_id', payment.order_id)
                 .select()

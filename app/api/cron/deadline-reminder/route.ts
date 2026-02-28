@@ -5,34 +5,34 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 // Deadline dates for GSTR-3B (March 2026 filing season)
 const DEADLINES = [
-    { date: '2026-03-15', label: '5 days left', daysLeft: 5, urgency: 'moderate' as const },
-    { date: '2026-03-18', label: '2 days left', daysLeft: 2, urgency: 'high' as const },
-    { date: '2026-03-19', label: 'TOMORROW', daysLeft: 1, urgency: 'critical' as const },
+  { date: '2026-03-15', label: '5 days left', daysLeft: 5, urgency: 'moderate' as const },
+  { date: '2026-03-18', label: '2 days left', daysLeft: 2, urgency: 'high' as const },
+  { date: '2026-03-19', label: 'TOMORROW', daysLeft: 1, urgency: 'critical' as const },
 ];
 
 function getTodayIST(): string {
-    // IST = UTC+5:30
-    const now = new Date();
-    const istOffset = 5.5 * 60 * 60 * 1000;
-    const ist = new Date(now.getTime() + istOffset);
-    return ist.toISOString().split('T')[0];
+  // IST = UTC+5:30
+  const now = new Date();
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const ist = new Date(now.getTime() + istOffset);
+  return ist.toISOString().split('T')[0];
 }
 
 function buildReminderEmail(email: string, daysLeft: number, urgency: 'moderate' | 'high' | 'critical'): string {
-    const urgencyConfig = {
-        moderate: { emoji: '📅', color: '#f59e0b', bg: '#fffbeb', label: 'Filing Deadline Coming Up' },
-        high: { emoji: '⚠️', color: '#f97316', bg: '#fff7ed', label: 'GSTR-3B Due in 2 Days' },
-        critical: { emoji: '🔴', color: '#ef4444', bg: '#fef2f2', label: 'GSTR-3B Due TOMORROW!' },
-    };
-    const cfg = urgencyConfig[urgency];
+  const urgencyConfig = {
+    moderate: { emoji: '📅', color: '#f59e0b', bg: '#fffbeb', label: 'Filing Deadline Coming Up' },
+    high: { emoji: '⚠️', color: '#f97316', bg: '#fff7ed', label: 'GSTR-3B Due in 2 Days' },
+    critical: { emoji: '🔴', color: '#ef4444', bg: '#fef2f2', label: 'GSTR-3B Due TOMORROW!' },
+  };
+  const cfg = urgencyConfig[urgency];
 
-    return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
@@ -75,8 +75,8 @@ function buildReminderEmail(email: string, daysLeft: number, urgency: 'moderate'
       <p>
         The GSTR-3B filing deadline for February 2026 is <strong>March 20, 2026</strong>.
         ${urgency === 'critical'
-            ? 'This is your last chance to validate invoices before the deadline.'
-            : 'Make sure your invoices are validated before you file.'}
+      ? 'This is your last chance to validate invoices before the deadline.'
+      : 'Make sure your invoices are validated before you file.'}
       </p>
 
       <div class="deadline-box">
@@ -121,74 +121,74 @@ function buildReminderEmail(email: string, daysLeft: number, urgency: 'moderate'
 }
 
 export async function GET(request: NextRequest) {
-    // Security: Verify this is called by Vercel Cron (or with our secret in dev)
-    const authHeader = request.headers.get('authorization');
-    const cronSecret = process.env.CRON_SECRET;
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+  // Security: Verify this is called by Vercel Cron (or with our secret in dev)
+  const authHeader = request.headers.get('authorization');
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
-    const today = getTodayIST();
-    const deadline = DEADLINES.find(d => d.date === today);
+  const today = getTodayIST();
+  const deadline = DEADLINES.find(d => d.date === today);
 
-    if (!deadline) {
-        return NextResponse.json({
-            message: `No reminder scheduled for today (${today}). Scheduled dates: ${DEADLINES.map(d => d.date).join(', ')}`,
-            sent: 0,
-        });
-    }
-
-    // Fetch all verified registered users
-    const { data: users, error: usersError } = await supabase
-        .from('profiles')
-        .select('email, full_name')
-        .eq('email_confirmed', true);
-
-    if (usersError) {
-        console.error('Failed to fetch users:', usersError);
-        return NextResponse.json({ error: usersError.message }, { status: 500 });
-    }
-
-    if (!users || users.length === 0) {
-        return NextResponse.json({ message: 'No users to notify', sent: 0 });
-    }
-
-    // Send reminders in batches of 10 (Resend rate limit safe)
-    let sent = 0;
-    const errors: string[] = [];
-    const BATCH_SIZE = 10;
-
-    for (let i = 0; i < users.length; i += BATCH_SIZE) {
-        const batch = users.slice(i, i + BATCH_SIZE);
-        await Promise.all(
-            batch.map(async (user) => {
-                try {
-                    await resend.emails.send({
-                        from: 'InvoiceCheck.in <reminders@invoicecheck.in>',
-                        to: user.email,
-                        subject: `${deadline.daysLeft === 1 ? '🔴 TOMORROW' : `⚠️ ${deadline.daysLeft} days left`} — GSTR-3B filing deadline`,
-                        html: buildReminderEmail(user.email, deadline.daysLeft, deadline.urgency),
-                    });
-                    sent++;
-                } catch (err: any) {
-                    errors.push(`${user.email}: ${err.message}`);
-                }
-            })
-        );
-        // Small delay between batches to stay within rate limits
-        if (i + BATCH_SIZE < users.length) {
-            await new Promise(r => setTimeout(r, 200));
-        }
-    }
-
-    console.log(`Deadline reminder sent to ${sent}/${users.length} users for ${today}`);
-
+  if (!deadline) {
     return NextResponse.json({
-        date: today,
-        deadline: deadline.label,
-        daysLeft: deadline.daysLeft,
-        total: users.length,
-        sent,
-        errors: errors.length > 0 ? errors : undefined,
+      message: `No reminder scheduled for today (${today}). Scheduled dates: ${DEADLINES.map(d => d.date).join(', ')}`,
+      sent: 0,
     });
+  }
+
+  // Fetch all verified registered users
+  const { data: users, error: usersError } = await supabase
+    .from('profiles')
+    .select('email, full_name')
+    .eq('email_confirmed', true);
+
+  if (usersError) {
+    console.error('Failed to fetch users:', usersError);
+    return NextResponse.json({ error: usersError.message }, { status: 500 });
+  }
+
+  if (!users || users.length === 0) {
+    return NextResponse.json({ message: 'No users to notify', sent: 0 });
+  }
+
+  // Send reminders in batches of 10 (Resend rate limit safe)
+  let sent = 0;
+  const errors: string[] = [];
+  const BATCH_SIZE = 10;
+
+  for (let i = 0; i < users.length; i += BATCH_SIZE) {
+    const batch = users.slice(i, i + BATCH_SIZE);
+    await Promise.all(
+      batch.map(async (user) => {
+        try {
+          await resend.emails.send({
+            from: 'InvoiceCheck.in <reminders@invoicecheck.in>',
+            to: user.email,
+            subject: `${deadline.daysLeft === 1 ? '🔴 TOMORROW' : `⚠️ ${deadline.daysLeft} days left`} — GSTR-3B filing deadline`,
+            html: buildReminderEmail(user.email, deadline.daysLeft, deadline.urgency),
+          });
+          sent++;
+        } catch (err: any) {
+          errors.push(`${user.email}: ${err.message}`);
+        }
+      })
+    );
+    // Small delay between batches to stay within rate limits
+    if (i + BATCH_SIZE < users.length) {
+      await new Promise(r => setTimeout(r, 200));
+    }
+  }
+
+  console.log(`Deadline reminder sent to ${sent}/${users.length} users for ${today}`);
+
+  return NextResponse.json({
+    date: today,
+    deadline: deadline.label,
+    daysLeft: deadline.daysLeft,
+    total: users.length,
+    sent,
+    errors: errors.length > 0 ? errors : undefined,
+  });
 }

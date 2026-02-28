@@ -11,13 +11,14 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Missing validation result' }, { status: 400 });
         }
 
+        const safeName = (invoiceNumber || result.checkId || 'report').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 50);
         const pdfBuffer = await generatePDF(result, invoiceNumber || 'Unknown');
 
-        return new NextResponse(pdfBuffer, {
+        return new NextResponse(new Uint8Array(pdfBuffer), {
             status: 200,
             headers: {
                 'Content-Type': 'application/pdf',
-                'Content-Disposition': `attachment; filename="invoice-report-${invoiceNumber || result.checkId}.pdf"`,
+                'Content-Disposition': `attachment; filename="invoice-report-${safeName}.pdf"`,
                 'Content-Length': pdfBuffer.length.toString(),
             },
         });
