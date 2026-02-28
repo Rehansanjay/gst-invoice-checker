@@ -34,7 +34,7 @@ export async function processInvoiceCheck(
     if (paymentId) {
         const updateData: any = {
             status: 'captured',
-            completed_at: new Date().toISOString(),
+            captured_at: new Date().toISOString(), // was: completed_at (wrong column)
         };
 
         if (razorpayPaymentId) updateData.razorpay_payment_id = razorpayPaymentId;

@@ -38,11 +38,9 @@ export async function POST(request: NextRequest) {
         });
 
     } catch (error: any) {
-        console.error('Preview check error:', error);
-        console.error('Stack trace:', error?.stack);
+        console.error('Preview check internal error:', error);
         return NextResponse.json({
-            error: 'Validation failed',
-            message: error?.message || 'Unknown error'
+            error: 'Validation failed'
         }, { status: 500 });
     }
 }

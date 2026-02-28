@@ -31,25 +31,31 @@ export async function POST(request: NextRequest) {
         const { invoiceData } = result.data as { invoiceData: ParsedInvoice };
         const invoice = invoiceData;
 
-        // 1. Identify User
+        // 1. Require Authentication — guests must use /api/quick-check (₹99)
         const supabase = await createSupabaseServerClient();
         const { data: { session } } = await supabase.auth.getSession();
-        const userId = session?.user?.id;
 
-        // 2. Check Credits (if user is logged in)
-        if (userId) {
-            const { data: user } = await supabaseAdmin
-                .from('users')
-                .select('credits_remaining')
-                .eq('id', userId)
-                .single();
+        if (!session?.user) {
+            return NextResponse.json({
+                error: 'Please log in or use Quick Check (₹99) for guest validation.',
+                code: 'auth_required'
+            }, { status: 401 });
+        }
 
-            if (!user || user.credits_remaining <= 0) {
-                return NextResponse.json({
-                    error: 'Insufficient credits. Please upgrade your plan.',
-                    code: 'insufficient_credits'
-                }, { status: 403 });
-            }
+        const userId = session.user.id;
+
+        // 2. Check Credits
+        const { data: user } = await supabaseAdmin
+            .from('users')
+            .select('credits_remaining')
+            .eq('id', userId)
+            .single();
+
+        if (!user || user.credits_remaining <= 0) {
+            return NextResponse.json({
+                error: 'Insufficient credits. Please upgrade your plan.',
+                code: 'insufficient_credits'
+            }, { status: 403 });
         }
 
         // 3. Validate

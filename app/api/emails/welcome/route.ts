@@ -5,6 +5,12 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: NextRequest) {
     try {
+        // Security: Only allow internal calls (from signup flow)
+        const internalSecret = request.headers.get('x-internal-secret');
+        if (!process.env.INTERNAL_API_SECRET || internalSecret !== process.env.INTERNAL_API_SECRET) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         const { email, name } = await request.json();
 
         if (!email) {

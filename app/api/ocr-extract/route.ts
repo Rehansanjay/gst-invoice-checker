@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const OCR_API_URL = 'https://api.ocr.space/parse/image';
-const OCR_API_KEY = process.env.OCR_SPACE_API_KEY || 'helloworld';
 
 // GST regex patterns
 const GSTIN_REGEX = /\b\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]\b/g;
@@ -91,9 +90,16 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unsupported file type for OCR' }, { status: 400 });
         }
 
+        // Validate OCR API key is configured
+        const ocrApiKey = process.env.OCR_SPACE_API_KEY;
+        if (!ocrApiKey) {
+            console.error('OCR_SPACE_API_KEY not configured');
+            return NextResponse.json({ error: 'OCR service not configured' }, { status: 503 });
+        }
+
         // Forward to OCR.space
         const ocrForm = new FormData();
-        ocrForm.append('apikey', OCR_API_KEY);
+        ocrForm.append('apikey', ocrApiKey);
         ocrForm.append('file', file);
         ocrForm.append('isOverlayRequired', 'false');
         ocrForm.append('detectOrientation', 'true');
