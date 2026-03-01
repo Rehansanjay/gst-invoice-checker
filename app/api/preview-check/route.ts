@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { validateInvoice } from '@/lib/services/validationService';
 import { ParsedInvoice } from '@/types';
 import { z } from 'zod';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 const validateSchema = z.object({
     invoiceData: z.object({
@@ -18,6 +19,18 @@ const validateSchema = z.object({
 
 export async function POST(request: NextRequest) {
     try {
+        // ── Rate Limit: 10 previews per IP per hour ──────────────────
+        const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+            || request.headers.get('x-real-ip')
+            || 'unknown';
+        const rl = checkRateLimit(ip, '/api/preview-check', { limit: 10, windowMs: 60 * 60 * 1000 });
+        if (!rl.allowed) {
+            return NextResponse.json(
+                { error: 'Too many requests. Please try again later.' },
+                { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+            );
+        }
+
         const body = await request.json();
 
         // Validation
@@ -31,13 +44,26 @@ export async function POST(request: NextRequest) {
         // Run validation logic (Pure function, no DB side effects)
         const validationResult = await validateInvoice(invoiceData);
 
-        // Return the result directly for preview (Client will handle blurring)
+        // ── SECURITY: Return ONLY teaser data ────────────────────────
+        // Full details (issuesFound, checksPassed, howToFix) are ONLY
+        // available after payment via /api/process-check.
+        // This prevents users from calling the API directly to bypass payment.
         return NextResponse.json({
             success: true,
-            result: validationResult,
+            result: {
+                healthScore: validationResult.healthScore,
+                riskLevel: validationResult.riskLevel,
+                scoreBreakdown: validationResult.scoreBreakdown,
+                processingTimeMs: validationResult.processingTimeMs,
+                timestamp: validationResult.timestamp,
+                // Explicitly NOT returning:
+                // - issuesFound (detailed issue descriptions, howToFix, impact)
+                // - checksPassed (passed check details)
+                // - checkId, invoiceHash (internal identifiers)
+            },
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Preview check internal error:', error);
         return NextResponse.json({
             error: 'Validation failed'

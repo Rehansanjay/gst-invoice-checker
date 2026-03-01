@@ -53,7 +53,7 @@ function CheckPageInner() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
-    const [previewResult, setPreviewResult] = useState<ValidationResult | null>(null);
+    const [previewResult, setPreviewResult] = useState<Partial<ValidationResult> | null>(null);
     const [invoiceDataForPayment, setInvoiceDataForPayment] = useState<ParsedInvoice | null>(null);
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const [imageName, setImageName] = useState<string>('');

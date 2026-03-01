@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import Razorpay from 'razorpay';
 import { z } from 'zod';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 const quickCheckSchema = z.object({
     guestEmail: z.string().email().optional().or(z.literal('')).nullable(),
@@ -24,6 +25,18 @@ const quickCheckSchema = z.object({
 
 export async function POST(request: NextRequest) {
     try {
+        // ── Rate Limit: 5 order creations per IP per hour ────────────
+        const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+            || request.headers.get('x-real-ip')
+            || 'unknown';
+        const rl = checkRateLimit(ip, '/api/quick-check', { limit: 5, windowMs: 60 * 60 * 1000 });
+        if (!rl.allowed) {
+            return NextResponse.json(
+                { error: 'Too many requests. Please try again later.' },
+                { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+            );
+        }
+
         const body = await request.json();
 
         const result = quickCheckSchema.safeParse(body);

@@ -1,22 +1,46 @@
 'use client';
 
 import { ValidationResult } from '@/types';
-import ReportViewer from '@/components/ReportViewer';
 import { Button } from '@/components/ui/button';
 import { Lock, Zap } from 'lucide-react';
 
 interface BlurredReportPreviewProps {
-    result: ValidationResult;
+    result: Partial<ValidationResult>;
     onUnlock: () => void;
     isProcessing: boolean;
 }
 
 export default function BlurredReportPreview({ result, onUnlock, isProcessing }: BlurredReportPreviewProps) {
+    const totalIssues = result.scoreBreakdown?.totalIssues ?? 0;
+    const healthScore = result.healthScore ?? 0;
+    const criticalCount = result.scoreBreakdown?.criticalCount ?? 0;
+    const warningCount = result.scoreBreakdown?.warningCount ?? 0;
+    const riskLevel = result.riskLevel ?? 'medium';
+
     return (
         <div className="relative w-full max-w-4xl mx-auto mt-8">
-            {/* 1. Underlying Report (Blurred) */}
+            {/* 1. Fake placeholder content (blurred) — NO real data in DOM */}
             <div className="filter blur-md pointer-events-none select-none opacity-50 overflow-hidden h-[600px] relative">
-                <ReportViewer result={result} />
+                <div className="p-8 space-y-6">
+                    <div className="h-8 bg-slate-200 rounded w-2/3" />
+                    <div className="grid grid-cols-3 gap-4">
+                        <div className="h-24 bg-slate-100 rounded-lg" />
+                        <div className="h-24 bg-slate-100 rounded-lg" />
+                        <div className="h-24 bg-slate-100 rounded-lg" />
+                    </div>
+                    <div className="space-y-3">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} className="flex gap-3 items-start p-4 bg-slate-50 rounded-lg">
+                                <div className="h-5 w-5 bg-red-200 rounded-full shrink-0 mt-0.5" />
+                                <div className="flex-1 space-y-2">
+                                    <div className="h-4 bg-slate-200 rounded w-3/4" />
+                                    <div className="h-3 bg-slate-100 rounded w-full" />
+                                    <div className="h-3 bg-slate-100 rounded w-2/3" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
 
             {/* 2. Overlay (Call to Action) */}
@@ -33,24 +57,24 @@ export default function BlurredReportPreview({ result, onUnlock, isProcessing }:
                     </h2>
 
                     <p className="text-slate-600 mb-6">
-                        We found <span className="font-bold text-red-600">{result.scoreBreakdown.totalIssues} issues</span> in your invoice.
+                        We found <span className="font-bold text-red-600">{totalIssues} issues</span> in your invoice.
                         <br />
-                        Your Health Score is <span className="font-bold text-orange-600">{result.healthScore}/100</span>.
+                        Your Health Score is <span className="font-bold text-orange-600">{healthScore}/100</span>.
                     </p>
 
                     <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 mb-6 text-sm text-left space-y-2">
                         <div className="flex justify-between">
                             <span className="text-slate-500">Critical Issues:</span>
-                            <span className="font-mono font-bold text-red-600">{result.scoreBreakdown.criticalCount}</span>
+                            <span className="font-mono font-bold text-red-600">{criticalCount}</span>
                         </div>
                         <div className="flex justify-between">
                             <span className="text-slate-500">Warnings:</span>
-                            <span className="font-mono font-bold text-yellow-600">{result.scoreBreakdown.warningCount}</span>
+                            <span className="font-mono font-bold text-yellow-600">{warningCount}</span>
                         </div>
                         <div className="pt-2 border-t border-slate-200 mt-2 flex justify-between font-medium">
                             <span>Potential Penalty Risk:</span>
-                            <span className={result.riskLevel === 'high' ? 'text-red-600' : 'text-yellow-600'}>
-                                {result.riskLevel.toUpperCase()}
+                            <span className={riskLevel === 'high' ? 'text-red-600' : 'text-yellow-600'}>
+                                {riskLevel.toUpperCase()}
                             </span>
                         </div>
                     </div>
@@ -79,3 +103,4 @@ export default function BlurredReportPreview({ result, onUnlock, isProcessing }:
         </div>
     );
 }
+

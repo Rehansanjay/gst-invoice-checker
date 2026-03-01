@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import Razorpay from 'razorpay';
 import { z } from 'zod';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 const purchaseSchema = z.object({
     userId: z.string().uuid(), // Still validate format if needed, but we'll use session ID
@@ -12,6 +13,18 @@ const purchaseSchema = z.object({
 
 export async function POST(request: NextRequest) {
     try {
+        // ── Rate Limit: 5 purchases per IP per hour ──────────────────
+        const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+            || request.headers.get('x-real-ip')
+            || 'unknown';
+        const rl = checkRateLimit(ip, '/api/purchase-package', { limit: 5, windowMs: 60 * 60 * 1000 });
+        if (!rl.allowed) {
+            return NextResponse.json(
+                { error: 'Too many requests. Please try again later.' },
+                { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+            );
+        }
+
         const body = await request.json();
 
         // 1. Authenticate user server-side
