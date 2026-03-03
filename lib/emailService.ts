@@ -1,7 +1,8 @@
 import { Resend } from 'resend';
 import { ValidationResult } from '@/types';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy init — env vars not available during Vercel build
+function getResend() { return new Resend(process.env.RESEND_API_KEY!); }
 
 export async function sendEmailReport(
   email: string,
@@ -92,7 +93,7 @@ export async function sendEmailReport(
 </html>
     `;
 
-    await resend.emails.send({
+    await getResend().emails.send({
       // For local/testing: Resend's built-in sender works without domain verification
       // For production: verify invoicecheck.in in Resend dashboard and switch to:
       // from: 'InvoiceCheck.in <reports@invoicecheck.in>',
