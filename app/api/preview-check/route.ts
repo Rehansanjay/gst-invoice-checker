@@ -3,18 +3,10 @@ import { validateInvoice } from '@/lib/services/validationService';
 import { ParsedInvoice } from '@/types';
 import { z } from 'zod';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { invoiceDataSchema } from '@/lib/schemas';
 
 const validateSchema = z.object({
-    invoiceData: z.object({
-        invoiceNumber: z.string().min(1),
-        invoiceDate: z.string(),
-        supplierGSTIN: z.string().length(15),
-        buyerGSTIN: z.string().length(15).optional().or(z.literal('')),
-        lineItems: z.array(z.any()),
-        taxableTotalAmount: z.number(),
-        totalTaxAmount: z.number(),
-        invoiceTotalAmount: z.number(),
-    })
+    invoiceData: invoiceDataSchema,
 });
 
 export async function POST(request: NextRequest) {

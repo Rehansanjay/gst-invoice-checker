@@ -1,11 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@/lib/supabase-server';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
 
 export async function POST(request: NextRequest) {
     try {
+        // ── Rate Limit: 10 uploads per IP per hour ───────────────────
+        const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+            || request.headers.get('x-real-ip')
+            || 'unknown';
+        const rl = checkRateLimit(ip, '/api/upload', { limit: 10, windowMs: 60 * 60 * 1000 });
+        if (!rl.allowed) {
+            return NextResponse.json(
+                { error: 'Too many requests. Please try again later.' },
+                { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+            );
+        }
+
+        // ── Authentication ───────────────────────────────────────────
+        const supabase = await createSupabaseServerClient();
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (!session?.user) {
+            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        }
+
         const formData = await request.formData();
         const file = formData.get('file') as File;
 

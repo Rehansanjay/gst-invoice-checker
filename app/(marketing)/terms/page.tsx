@@ -78,7 +78,7 @@ export default function TermsPage() {
                     If a validation check fails due to a server error on our side (i.e., you are
                     charged but no result is returned), we will refund the credit or charge within
                     5 business days upon request to{' '}
-                    <a href="mailto:support@invoicecheck.in">support@invoicecheck.in</a>.
+                    <a href="mailto:mailtoinvoicecheck@gmail.com">mailtoinvoicecheck@gmail.com</a>.
                 </p>
                 <p>
                     Refunds are not issued for completed validations where results were delivered,
@@ -154,7 +154,7 @@ export default function TermsPage() {
                     For any questions regarding these Terms, please contact us:
                 </p>
                 <ul>
-                    <li>Email: <a href="mailto:support@invoicecheck.in">support@invoicecheck.in</a></li>
+                    <li>Email: <a href="mailto:mailtoinvoicecheck@gmail.com">mailtoinvoicecheck@gmail.com</a></li>
                     <li>Website: <a href="https://invoicecheck.in/contact">invoicecheck.in/contact</a></li>
                 </ul>
             </div>

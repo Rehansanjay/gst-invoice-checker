@@ -9,7 +9,10 @@ export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey)
 
 // Admin client for service-role operations (existing API routes use this)
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-if (!serviceRoleKey) console.error('⚠️ CRITICAL: SUPABASE_SERVICE_ROLE_KEY missing — admin operations will use anon key (insecure)')
+// Only warn on server-side — this key is intentionally unavailable in the browser
+if (!serviceRoleKey && typeof window === 'undefined') {
+    console.error('⚠️ CRITICAL: SUPABASE_SERVICE_ROLE_KEY missing — admin operations will use anon key (insecure)')
+}
 export const supabaseAdmin = createClient(
     supabaseUrl,
     serviceRoleKey || supabaseAnonKey

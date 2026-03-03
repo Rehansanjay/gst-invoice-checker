@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 const OCR_API_URL = 'https://api.ocr.space/parse/image';
 
@@ -73,6 +74,17 @@ function extractFieldsFromText(text: string) {
 
 export async function POST(request: NextRequest) {
     try {
+        // ── Rate Limit: 10 OCR requests per IP per hour ──────────────
+        const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+            || request.headers.get('x-real-ip')
+            || 'unknown';
+        const rl = checkRateLimit(ip, '/api/ocr-extract', { limit: 10, windowMs: 60 * 60 * 1000 });
+        if (!rl.allowed) {
+            return NextResponse.json(
+                { error: 'Too many requests. Please try again later.' },
+                { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+            );
+        }
         const contentType = request.headers.get('content-type') || '';
         if (!contentType.includes('multipart/form-data')) {
             return NextResponse.json({ error: 'Expected multipart/form-data' }, { status: 400 });

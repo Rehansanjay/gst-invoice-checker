@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import { escapeHtml } from '@/lib/sanitize';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -17,6 +18,9 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Email required' }, { status: 400 });
         }
 
+        // Sanitize name to prevent XSS in email HTML
+        const safeName = name ? escapeHtml(String(name)) : 'there';
+
         const { data, error } = await resend.emails.send({
             from: 'GST Invoice Checker <noreply@invoicecheck.in>', // Update with verified domain
             to: [email],
@@ -24,7 +28,7 @@ export async function POST(request: NextRequest) {
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                     <h1 style="color: #2563EB;">Welcome to InvoiceCheck!</h1>
-                    <p>Hi ${name || 'there'},</p>
+                    <p>Hi ${safeName},</p>
                     <p>Thanks for signing up. You're now ready to start validating GST invoices and preventing costly errors.</p>
                     
                     <div style="background-color: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">

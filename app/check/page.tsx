@@ -461,6 +461,25 @@ function CheckPageInner() {
                             </p>
                         </div>
 
+                        {/* Manual Entry Recommendation */}
+                        <div className="max-w-2xl mx-auto mb-6">
+                            <div className="flex items-start gap-3 px-4 py-3 bg-blue-50 border border-blue-200 rounded-lg text-sm">
+                                <div className="shrink-0 mt-0.5">
+                                    <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p className="font-semibold text-blue-900 mb-0.5">💡 Tip: Enter data manually for best results</p>
+                                    <p className="text-blue-700">
+                                        For the most accurate validation, we recommend entering your invoice details manually.
+                                        You can also upload an image/PDF to auto-fill — but our OCR is still being improved,
+                                        so please double-check the extracted values.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                             {/* Upload panel — compact on mobile, sticky sidebar on desktop */}
                             <div className="lg:col-span-5 lg:sticky lg:top-20 space-y-4">

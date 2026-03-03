@@ -3,19 +3,11 @@ import { supabaseAdmin } from '@/lib/supabase';
 import Razorpay from 'razorpay';
 import { z } from 'zod';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { invoiceDataSchema } from '@/lib/schemas';
 
 const quickCheckSchema = z.object({
     guestEmail: z.string().email().optional().or(z.literal('')).nullable(),
-    invoiceData: z.object({
-        invoiceNumber: z.string().min(1),
-        invoiceDate: z.string(),
-        supplierGSTIN: z.string().length(15),
-        buyerGSTIN: z.string().length(15).optional().or(z.literal('')).nullable(),
-        lineItems: z.array(z.any()),
-        taxableTotalAmount: z.number(),
-        totalTaxAmount: z.number(),
-        invoiceTotalAmount: z.number(),
-    }),
+    invoiceData: invoiceDataSchema,
     // ── UTM & Referral Tracking ──────────────────────────────────────
     utm_source: z.string().max(64).optional().nullable(),
     utm_medium: z.string().max(64).optional().nullable(),

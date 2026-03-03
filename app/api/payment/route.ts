@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
 import { supabaseAdmin } from '@/lib/supabase';
 import { z } from 'zod';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 // ── Input Validation Schema ──────────────────────────────────────────
 const paymentSchema = z.object({
@@ -18,6 +19,14 @@ const CREDITS_MAP: Record<string, number> = {
     pack_100: 100,
 };
 
+// ── Server-Side Price Validation ─────────────────────────────────────
+const PRICES: Record<string, number> = {
+    single: 99,
+    pack_10: 399,
+    pack_50: 1499,
+    pack_100: 2499,
+};
+
 const razorpay = new Razorpay({
     key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
     key_secret: process.env.RAZORPAY_KEY_SECRET!,
@@ -25,6 +34,18 @@ const razorpay = new Razorpay({
 
 export async function POST(request: NextRequest) {
     try {
+        // ── Rate Limit: 5 order creations per IP per hour ────────────
+        const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+            || request.headers.get('x-real-ip')
+            || 'unknown';
+        const rl = checkRateLimit(ip, '/api/payment', { limit: 5, windowMs: 60 * 60 * 1000 });
+        if (!rl.allowed) {
+            return NextResponse.json(
+                { error: 'Too many requests. Please try again later.' },
+                { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+            );
+        }
+
         const body = await request.json();
 
         // ── Validate input ──────────────────────────────────────────
@@ -37,6 +58,15 @@ export async function POST(request: NextRequest) {
         }
 
         const { amount, packageType, email, phone } = parsed.data;
+
+        // ── Server-Side Price Validation ──────────────────────────────
+        const expectedPrice = PRICES[packageType];
+        if (!expectedPrice || amount !== expectedPrice) {
+            return NextResponse.json(
+                { error: 'Invalid amount for the selected package.' },
+                { status: 400 }
+            );
+        }
 
         // Create Razorpay order
         const order = await razorpay.orders.create({

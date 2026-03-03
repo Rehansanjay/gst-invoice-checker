@@ -16,7 +16,7 @@ export default function RefundPage() {
 
                 <h2>3. Process</h2>
                 <p>
-                    To request a refund, email us at support@invoicecheck.in with your transaction ID or the email address used for payment.
+                    To request a refund, email us at mailtoinvoicecheck@gmail.com with your transaction ID or the email address used for payment.
                     We will process your refund within 5-7 business days to the original method of payment.
                 </p>
 

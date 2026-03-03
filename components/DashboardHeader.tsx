@@ -38,8 +38,10 @@ export default function DashboardHeader() {
                 onConfirm={confirmLogout}
             />
 
-            <header className="bg-white border-b sticky top-0 z-40 w-full">
-                <div className="container mx-auto px-4 h-14 flex items-center justify-between">
+            <header className="bg-white/95 backdrop-blur-md border-b sticky top-0 z-40 w-full">
+                {/* Gradient accent line */}
+                <div className="h-0.5 bg-gradient-to-r from-purple-600 via-indigo-500 to-purple-600"></div>
+                <div className="container mx-auto px-4 h-14 sm:h-16 flex items-center justify-between">
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity shrink-0">
                         <img src="/invoicecheck-logo.svg" alt="InvoiceCheck Logo" className="w-6 h-6" />
@@ -47,12 +49,14 @@ export default function DashboardHeader() {
                     </Link>
 
                     {/* Desktop Nav */}
-                    <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
+                    <nav className="hidden md:flex items-center gap-1 text-sm font-medium text-muted-foreground">
                         {NAV_LINKS.map((link) => (
                             <Link
                                 key={link.href}
                                 href={link.href}
-                                className={`hover:text-primary transition-colors ${pathname === link.href ? 'text-primary font-semibold' : ''}`}
+                                className={`px-3 py-2 rounded-lg transition-all ${pathname === link.href
+                                    ? 'text-primary bg-primary/5 font-semibold'
+                                    : 'hover:text-primary hover:bg-slate-50'}`}
                             >
                                 {link.label}
                             </Link>
@@ -105,11 +109,10 @@ export default function DashboardHeader() {
                                         key={link.href}
                                         href={link.href}
                                         onClick={() => setMenuOpen(false)}
-                                        className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
-                                            active
+                                        className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${active
                                                 ? 'text-primary bg-primary/5'
                                                 : 'text-slate-700 hover:bg-slate-50'
-                                        }`}
+                                            }`}
                                     >
                                         <Icon className="w-4 h-4 shrink-0" />
                                         {link.label}

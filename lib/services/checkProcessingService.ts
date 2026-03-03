@@ -119,28 +119,21 @@ export async function processInvoiceCheck(
 }
 
 async function deductCredit(userId: string, checkId: string) {
-    const { data: user, error } = await supabaseAdmin
-        .from('users')
-        .select('credits_remaining, credits_used')
-        .eq('id', userId)
-        .single();
+    // Use atomic RPC to prevent race conditions (same pattern as /api/validate)
+    const { error: rpcError } = await supabaseAdmin
+        .rpc('decrement_credits', { user_id_param: userId, amount: 1 });
 
-    if (error || !user) throw new Error('User not found for credit deduction');
-
-    // Check if user has enough credits
-    if (user.credits_remaining <= 0) {
-        throw new Error('No credits remaining');
+    if (rpcError) {
+        console.error('Credit deduction RPC error:', rpcError);
+        throw new Error('Credit deduction failed');
     }
 
-    const newBalance = user.credits_remaining - 1;
-
-    await supabaseAdmin
+    // Get updated balance for the transaction log
+    const { data: user } = await supabaseAdmin
         .from('users')
-        .update({
-            credits_remaining: newBalance,
-            credits_used: (user.credits_used || 0) + 1,
-        })
-        .eq('id', userId);
+        .select('credits_remaining')
+        .eq('id', userId)
+        .single();
 
     await supabaseAdmin
         .from('credit_transactions')
@@ -149,7 +142,7 @@ async function deductCredit(userId: string, checkId: string) {
             transaction_type: 'usage',
             credits_used: 1,
             credits_added: 0,
-            credits_balance: newBalance,
+            credits_balance: user?.credits_remaining ?? 0,
             check_id: checkId,
             description: 'Invoice validation check',
         });
