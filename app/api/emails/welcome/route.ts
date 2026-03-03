@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { escapeHtml } from '@/lib/sanitize';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+function getResend() { return new Resend(process.env.RESEND_API_KEY!); }
 
 export async function POST(request: NextRequest) {
     try {
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
         // Sanitize name to prevent XSS in email HTML
         const safeName = name ? escapeHtml(String(name)) : 'there';
 
-        const { data, error } = await resend.emails.send({
+        const { data, error } = await getResend().emails.send({
             from: 'GST Invoice Checker <noreply@invoicecheck.in>', // Update with verified domain
             to: [email],
             subject: 'Welcome to InvoiceCheck.in! 🚀',

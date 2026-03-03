@@ -2,12 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazily initialize — these run at request time, NOT during build
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY!);
+}
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 // Deadline dates for GSTR-3B (March 2026 filing season)
 const DEADLINES = [
@@ -139,7 +144,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Fetch all verified registered users
-  const { data: users, error: usersError } = await supabase
+  const { data: users, error: usersError } = await getSupabase()
     .from('profiles')
     .select('email, full_name')
     .eq('email_confirmed', true);
@@ -161,9 +166,9 @@ export async function GET(request: NextRequest) {
   for (let i = 0; i < users.length; i += BATCH_SIZE) {
     const batch = users.slice(i, i + BATCH_SIZE);
     await Promise.all(
-      batch.map(async (user) => {
+      batch.map(async (user: any) => {
         try {
-          await resend.emails.send({
+          await getResend().emails.send({
             from: 'InvoiceCheck.in <reminders@invoicecheck.in>',
             to: user.email,
             subject: `${deadline.daysLeft === 1 ? '🔴 TOMORROW' : `⚠️ ${deadline.daysLeft} days left`} — GSTR-3B filing deadline`,

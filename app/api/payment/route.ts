@@ -27,11 +27,6 @@ const PRICES: Record<string, number> = {
     pack_100: 2499,
 };
 
-const razorpay = new Razorpay({
-    key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
-    key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
-
 export async function POST(request: NextRequest) {
     try {
         // ── Rate Limit: 5 order creations per IP per hour ────────────
@@ -68,7 +63,11 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Create Razorpay order
+        // Lazily init Razorpay inside handler (env vars not available at build time)
+        const razorpay = new Razorpay({
+            key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
+            key_secret: process.env.RAZORPAY_KEY_SECRET!,
+        });
         const order = await razorpay.orders.create({
             amount: amount * 100, // paisa
             currency: 'INR',
