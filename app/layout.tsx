@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "sonner";
+import { GoogleAnalytics } from '@next/third-parties/google';
 import "./globals.css";
 
 const geistSans = Geist({
@@ -179,6 +180,7 @@ export default function RootLayout({
           <Toaster />
         </AuthProvider>
       </body>
+      <GoogleAnalytics gaId="G-17FW1M1B0K" />
     </html>
   );
 }
