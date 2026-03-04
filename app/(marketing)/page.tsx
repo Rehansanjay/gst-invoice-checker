@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { CheckCircle2, AlertCircle, Clock, DollarSign, ArrowRight, Zap, ShieldCheck, Star, Calculator } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Clock, DollarSign, ArrowRight, Zap, ShieldCheck, Calculator } from 'lucide-react';
 import Link from 'next/link';
 import GetStartedModal from '@/components/GetStartedModal';
 import LoggedInHome from '@/components/LoggedInHome';
@@ -99,22 +99,11 @@ export default function Home() {
               </Link>
             </div>
 
-            {/* Live Counter — Social Proof */}
-            <div className="mt-6 text-sm text-slate-400">
-              🔥 <span className="text-white font-semibold">247 invoices</span> validated today
-            </div>
-
             {/* Trust Indicators */}
             <div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-slate-300">
               <div className="flex items-center gap-2">
-                <div className="flex text-yellow-400">
-                  <Star className="w-5 h-5 fill-current" />
-                  <Star className="w-5 h-5 fill-current" />
-                  <Star className="w-5 h-5 fill-current" />
-                  <Star className="w-5 h-5 fill-current" />
-                  <Star className="w-5 h-5 fill-current opacity-50" />
-                </div>
-                <span className="font-semibold text-white">4.2/5</span>
+                <ShieldCheck className="w-5 h-5 text-green-400" />
+                <span className="font-semibold text-white">GST Act Compliant</span>
               </div>
               <div className="hidden sm:block w-px h-4 bg-slate-600"></div>
               <div className="flex items-center gap-2">
@@ -294,58 +283,101 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SOCIAL PROOF - Innovative Anonymous Format */}
+      {/* WHY YOU NEED THIS — Real GST Facts */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
-              <div className="flex justify-center mb-4 text-yellow-500 text-3xl">
-                <Star className="w-8 h-8 fill-current" />
-                <Star className="w-8 h-8 fill-current" />
-                <Star className="w-8 h-8 fill-current" />
-                <Star className="w-8 h-8 fill-current" />
-                <Star className="w-8 h-8 fill-current opacity-50" />
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-100 text-amber-700 rounded-full font-semibold mb-4">
+                <AlertCircle className="w-5 h-5" />
+                Why This Matters
               </div>
-              <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
-                Real Results from Real Sellers
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+                What Happens When GST Invoices Have Errors?
               </h2>
-              <p className="text-slate-600">What our users are saying</p>
+              <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+                Under Indian GST law, even small mistakes have real financial consequences
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="p-6 bg-gradient-to-br from-purple-50 via-white to-indigo-50 border-purple-200 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-purple-200 rounded-full blur-3xl opacity-30"></div>
-                <div className="flex text-yellow-500 mb-3">★ ★ ★ ★ ★</div>
-                <p className="text-slate-700 mb-4 italic relative z-10">
-                  "Found my ₹1,800 error before sending to marketplace. Saved my ₹67,000 payment hold!"
+              <Card className="p-6 border-l-4 border-l-red-500">
+                <h3 className="font-bold text-slate-900 text-lg mb-2">🚫 ITC Denial (Section 16)</h3>
+                <p className="text-slate-600 text-sm">
+                  If your supplier's GSTIN is invalid or returns are not filed, the buyer loses Input Tax Credit. This means you pay tax twice — once to your supplier, and again to the government.
                 </p>
-                <div className="flex items-center gap-3 relative z-10">
-                  <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                    M
-                  </div>
-                  <div>
-                    <div className="font-bold text-slate-900">Mumbai Seller</div>
-                    <div className="text-sm text-slate-600">E-commerce Business</div>
-                  </div>
-                </div>
               </Card>
 
-              <Card className="p-6 bg-gradient-to-br from-green-50 via-white to-emerald-50 border-green-200 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-green-200 rounded-full blur-3xl opacity-30"></div>
-                <div className="flex text-yellow-500 mb-3">★ ★ ★ ★ ★</div>
-                <p className="text-slate-700 mb-4 italic relative z-10">
-                  "Cheaper than CA, faster than email. Now I check every invoice before submission!"
+              <Card className="p-6 border-l-4 border-l-red-500">
+                <h3 className="font-bold text-slate-900 text-lg mb-2">💸 Late Filing Penalty (Section 47)</h3>
+                <p className="text-slate-600 text-sm">
+                  GSTR-1 filed late attracts ₹50/day (₹20/day for NIL returns). A single month's delay on an incorrect invoice can cost ₹1,500+ in penalties alone.
                 </p>
-                <div className="flex items-center gap-3 relative z-10">
-                  <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-bold">
-                    D
-                  </div>
+              </Card>
+
+              <Card className="p-6 border-l-4 border-l-amber-500">
+                <h3 className="font-bold text-slate-900 text-lg mb-2">🏪 Marketplace Payment Holds</h3>
+                <p className="text-slate-600 text-sm">
+                  Amazon, Flipkart, and Meesho automatically reject invoices with wrong tax types (IGST vs CGST/SGST), invalid HSN codes, or calculation mismatches — holding your payments for days or weeks.
+                </p>
+              </Card>
+
+              <Card className="p-6 border-l-4 border-l-amber-500">
+                <h3 className="font-bold text-slate-900 text-lg mb-2">📋 GST Audit Notice (Section 65)</h3>
+                <p className="text-slate-600 text-sm">
+                  Businesses with turnover above ₹5 crore face mandatory GST audit. Repeated invoice errors create a paper trail of non-compliance that auditors flag immediately.
+                </p>
+              </Card>
+            </div>
+
+            <div className="mt-8 text-center">
+              <p className="text-slate-500 text-sm">
+                All references from CGST Act, 2017 and CBIC circulars. <Link href="/faq" className="text-primary underline">Read our FAQ</Link> for more details.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* COMMON ERRORS WE CATCH */}
+      <section className="py-20 bg-slate-50">
+        <div className="container mx-auto px-4">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-full font-semibold mb-4">
+                <ShieldCheck className="w-5 h-5" />
+                What We Check
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+                11 Validation Checks in 15 Seconds
+              </h2>
+              <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+                Every invoice goes through the same checks that marketplace systems and GST auditors use
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[
+                { check: 'GSTIN Format Validation', desc: '15-digit format per CBIC standard' },
+                { check: 'GSTIN Active Status', desc: 'Verified against government portal' },
+                { check: 'HSN Code Validation', desc: 'Correct code for your goods/services' },
+                { check: 'Tax Type Check', desc: 'IGST vs CGST/SGST based on Place of Supply' },
+                { check: 'Tax Rate Verification', desc: 'Matches approved GST slab for HSN' },
+                { check: 'Math Accuracy', desc: 'Tax calculations match line item totals' },
+                { check: 'Place of Supply', desc: 'Inter-state vs intra-state classification' },
+                { check: 'Invoice Date Format', desc: 'Valid date within the tax period' },
+                { check: 'Reverse Charge Check', desc: 'RCM applicability validation' },
+                { check: 'Supplier-Buyer Match', desc: 'Both GSTINs are distinct and valid' },
+                { check: 'Duplicate Detection', desc: 'Flags potential duplicate invoices' },
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-3 p-4 bg-white rounded-lg border hover:shadow-sm transition-shadow">
+                  <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
                   <div>
-                    <div className="font-bold text-slate-900">Delhi Seller</div>
-                    <div className="text-sm text-slate-600">Online Retailer</div>
+                    <p className="font-semibold text-slate-900 text-sm">{item.check}</p>
+                    <p className="text-xs text-slate-500">{item.desc}</p>
                   </div>
                 </div>
-              </Card>
+              ))}
             </div>
           </div>
         </div>
