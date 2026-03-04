@@ -97,7 +97,7 @@ export async function sendEmailReport(
       // For local/testing: Resend's built-in sender works without domain verification
       // For production: verify invoicecheck.in in Resend dashboard and switch to:
       // from: 'InvoiceCheck.in <reports@invoicecheck.in>',
-      from: 'InvoiceCheck.in <onboarding@resend.dev>',
+      from: 'InvoiceCheck.in <noreply@invoicecheck.in>',
       to: email,
       subject: `${riskEmoji} Invoice Validation Report - ${riskLevel.toUpperCase()} RISK`,
       html: htmlContent,

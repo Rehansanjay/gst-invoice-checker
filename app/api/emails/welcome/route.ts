@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
         const safeName = name ? escapeHtml(String(name)) : 'there';
 
         const { data, error } = await getResend().emails.send({
-            from: 'GST Invoice Checker <noreply@invoicecheck.in>', // Update with verified domain
+            from: 'InvoiceCheck.in <noreply@invoicecheck.in>',
             to: [email],
             subject: 'Welcome to InvoiceCheck.in! 🚀',
             html: `
