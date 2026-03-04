@@ -169,7 +169,7 @@ export async function GET(request: NextRequest) {
       batch.map(async (user: any) => {
         try {
           await getResend().emails.send({
-            from: 'InvoiceCheck.in <reminders@invoicecheck.in>',
+            from: 'InvoiceCheck.in <noreply@invoicecheck.in>',
             to: user.email,
             subject: `${deadline.daysLeft === 1 ? '🔴 TOMORROW' : `⚠️ ${deadline.daysLeft} days left`} — GSTR-3B filing deadline`,
             html: buildReminderEmail(user.email, deadline.daysLeft, deadline.urgency),
