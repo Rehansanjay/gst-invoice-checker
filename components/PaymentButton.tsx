@@ -59,7 +59,7 @@ export default function PaymentButton({
                 email: customerEmail,
             },
             theme: {
-                color: '#2563EB', // Primary blue
+                color: '#6d28d9',
             },
             handler: async function (response: any) {
                 // Payment successful - verification needed on backend

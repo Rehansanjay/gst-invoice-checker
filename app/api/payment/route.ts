@@ -22,9 +22,9 @@ const CREDITS_MAP: Record<string, number> = {
 // ── Server-Side Price Validation ─────────────────────────────────────
 const PRICES: Record<string, number> = {
     single: 99,
-    pack_10: 399,
-    pack_50: 1499,
-    pack_100: 2499,
+    pack_10: 599,
+    pack_50: 1999,
+    pack_100: 2999,
 };
 
 export async function POST(request: NextRequest) {
