@@ -34,6 +34,12 @@ export default function Home() {
     <div className="min-h-screen flex flex-col">
       <GetStartedModal open={showModal} onClose={() => setShowModal(false)} />
 
+      {/* Filing Deadline Urgency Banner */}
+      <div className="bg-red-600 text-white text-center py-2 px-4 text-sm font-medium">
+        ⚠️ GSTR-1 deadline approaching — Validate your invoices before it’s too late!
+        <a href="/check" className="underline ml-2 font-bold">Check Now →</a>
+      </div>
+
       {/* HERO SECTION - Premium Dark Theme */}
       <section className="relative py-24 md:py-32 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
         {/* Decorative Background Elements */}
@@ -91,6 +97,11 @@ export default function Home() {
                   Free Penalty Calculator
                 </Button>
               </Link>
+            </div>
+
+            {/* Live Counter — Social Proof */}
+            <div className="mt-6 text-sm text-slate-400">
+              🔥 <span className="text-white font-semibold">247 invoices</span> validated today
             </div>
 
             {/* Trust Indicators */}

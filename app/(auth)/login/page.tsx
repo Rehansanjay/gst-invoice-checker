@@ -222,6 +222,13 @@ export default function LoginPage() {
                         </div>
                     </Card>
 
+                    {/* Trust Bar */}
+                    <div className="flex items-center justify-center gap-6 mt-6 text-xs text-muted-foreground">
+                        <span>✅ 500+ invoices checked</span>
+                        <span>✅ Trusted by CAs</span>
+                        <span>✅ 100% secure</span>
+                    </div>
+
                     {/* Mobile: Features */}
                     <div className="lg:hidden mt-8 space-y-3 px-4">
                         <div className="flex items-center gap-3 text-slate-700">

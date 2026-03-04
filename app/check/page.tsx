@@ -355,7 +355,7 @@ function CheckPageInner() {
                 },
 
                 theme: {
-                    color: '#2563EB',
+                    color: '#6d28d9',
                 },
             };
 

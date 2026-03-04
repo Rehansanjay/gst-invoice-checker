@@ -94,7 +94,7 @@ export default function PackagePurchaseButton({
                     email: user.email,
                 },
                 theme: {
-                    color: '#2563EB',
+                    color: '#6d28d9',
                 },
                 handler: function (response: any) {
                     toast.success('Payment successful! Credits added.');

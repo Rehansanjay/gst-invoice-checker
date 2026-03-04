@@ -1,5 +1,10 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
+export const metadata = {
+    title: 'GST Invoice Validation FAQ | InvoiceCheck.in',
+    description: 'Common questions about GST invoice errors, validation rules, GSTIN format, HSN codes and more.',
+};
+
 export default function FAQPage() {
     return (
         <div className="container mx-auto px-4 py-16">
