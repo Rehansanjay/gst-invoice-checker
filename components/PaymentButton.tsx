@@ -50,8 +50,9 @@ export default function PaymentButton({
             key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
             amount: amount * 100, // Amount is in paise
             currency: 'INR',
-            name: 'GST Invoice Checker',
+            name: 'InvoiceCheck.in',
             description: description,
+            image: 'https://invoicecheck.in/invoicecheck-logo.svg',
             order_id: orderId,
             prefill: {
                 name: customerName,

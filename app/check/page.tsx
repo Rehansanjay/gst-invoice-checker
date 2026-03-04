@@ -308,6 +308,7 @@ function CheckPageInner() {
                 currency: 'INR',
                 name: 'InvoiceCheck.in',
                 description: 'GST Invoice Validation — ₹99',
+                image: 'https://invoicecheck.in/invoicecheck-logo.svg',
                 order_id: orderData.orderId,
 
                 handler: async function (response: any) {

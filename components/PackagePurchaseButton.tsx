@@ -86,8 +86,9 @@ export default function PackagePurchaseButton({
                 key: data.razorpayKeyId,
                 amount: data.amount * 100,
                 currency: 'INR',
-                name: 'GST Invoice Checker',
+                name: 'InvoiceCheck.in',
                 description: `Purchase ${credits} Credits`,
+                image: 'https://invoicecheck.in/invoicecheck-logo.svg',
                 order_id: data.orderId,
                 prefill: {
                     email: user.email,
