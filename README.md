@@ -4,22 +4,22 @@ A comprehensive Next.js application for validating GST invoices with 11 complian
 
 ## Features
 
+✅ **AI-Powered OCR Capability** - Instantly auto-fill invoice data from PDF/Image uploads.
+✅ **Quick Check & Comprehensive Invoice Form** - Validate without logic barriers, featuring distinct sections for Supplier, Buyer, Invoice info, and detailed Line Items.
+✅ **Real-time Compliance Engine** - Identifies format errors, arithmetic mismatches, and missing mandatory fields.
+✅ **Detailed Compliance Reports** - Get instant feedback, generated reports with fix instructions.
 ✅ **11 Comprehensive Validation Rules:**
-1. GSTIN Format Validation (Supplier & Buyer)
-2. Tax Type Logic (CGST/SGST vs IGST based on state)
+1. GSTIN Format Validation
+2. Tax Type Logic (CGST/SGST vs IGST)
 3. GST Calculation Accuracy
 4. CGST/SGST Equal Split Verification
 5. HSN Code Validation
 6. Tax Rate Validation
-7. Invoice Number Validation
-8. Invoice Date Validation
-9. Taxable Amount Sum Verification
-10. Invoice Total Calculation Check
-
-✅ **Health Score System** - Get instant feedback on invoice quality
+7. Invoice Number & Date Validation
+8. Taxable Amount Sum & Invoice Total Validation
 ✅ **Risk Level Assessment** - Low, Medium, or High risk classification
-✅ **Detailed Issue Reports** - Clear explanations with fix instructions
-✅ **Modern UI** - Beautiful, responsive interface built with Tailwind CSS
+✅ **User Authentication** - Login and Sign-up to track validation history.
+✅ **Modern, Professional UI** - Designed with Tailwind CSS for responsiveness and clarity.
 
 ## Getting Started
 
