@@ -3,7 +3,6 @@
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -63,9 +62,7 @@ function runCalculation(tax: number, days: number, violationType: string): CalcR
 
 // ── Voluntary disclosure savings (DRC-03) ─────────────────────────────────────
 function getVoluntaryDiscount(tax: number, violationType: string, payNow: boolean) {
-    // Section 73 (non-fraud): 100% waiver before SCN, 25% post-SCN
-    // Section 74 (fraud): 15% before SCN adjudication
-    const isSection74 = violationType === 'itc_mismatch'; // treat as higher risk
+    const isSection74 = violationType === 'itc_mismatch'; 
     const basePenalty = Math.max(tax * 0.10, 10000);
 
     if (payNow) {
@@ -77,21 +74,19 @@ function getVoluntaryDiscount(tax: number, violationType: string, payNow: boolea
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// Inner component (needs useSearchParams → must be wrapped in Suspense)
+// Inner component
 // ────────────────────────────────────────────────────────────────────────────
 function GstPenaltyCalculatorInner() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const audience = searchParams.get('audience') === 'ca' ? 'ca' : 'seller';
 
-    // Calculator state
     const [taxLiability, setTaxLiability] = useState('');
     const [delayDays, setDelayDays] = useState('');
     const [violationType, setViolationType] = useState('late_filing');
     const [result, setResult] = useState<null | CalcResult>(null);
     const [activeScenario, setActiveScenario] = useState<'wrong' | 'right' | null>(null);
 
-    // CA-specific state
     const [caSection, setCaSection] = useState<'73' | '74' | '74A'>('73');
     const [payNow, setPayNow] = useState(true);
     const [showDrcCalc, setShowDrcCalc] = useState(false);
@@ -145,7 +140,6 @@ function GstPenaltyCalculatorInner() {
     const tax = parseFloat(taxLiability) || 0;
     const drcData = showDrcCalc && tax > 0 ? getVoluntaryDiscount(tax, violationType, payNow) : null;
 
-    // SCN deadline calc
     const scnDeadline = (() => {
         if (!defaultDate) return null;
         const d = new Date(defaultDate);
@@ -159,418 +153,366 @@ function GstPenaltyCalculatorInner() {
     })();
 
     return (
-        <div className="container mx-auto px-4 py-16 max-w-3xl">
+        <div className="min-h-screen py-16" style={{ background: 'var(--warm-bg)' }}>
+            <div className="container mx-auto px-4 max-w-3xl">
 
-            {/* Hero */}
-            <div className="text-center mb-8">
-                <div className="inline-flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm font-medium px-4 py-1.5 rounded-full mb-4">
-                    <AlertTriangle className="w-4 h-4" />
-                    Free Tool — No Signup Required
+                {/* Hero */}
+                <div className="text-center mb-10 scroll-reveal">
+                    <span className="pill-badge mb-5 text-[12px] hover-glow-border cursor-default" style={{ background: '#FCE8E8', borderColor: '#F5C6C6', color: '#C53030' }}>
+                        <AlertTriangle className="w-3 h-3 fill-current" />
+                        Free Tool — No Signup Required
+                    </span>
+                    <h1 className="text-[2.5rem] sm:text-[3rem] font-heading font-bold mb-4 leading-tight" style={{ color: 'var(--warm-charcoal)' }}>
+                        GST Penalty Calculator
+                    </h1>
+                    <p className="text-[1.125rem]" style={{ color: 'var(--warm-text-secondary)' }}>
+                        Estimate your GST interest and penalty exposure under Sections 47, 50, 73 and 122 of the CGST Act 2017.
+                    </p>
                 </div>
-                <h1 className="text-4xl font-bold mb-3">GST Penalty Calculator</h1>
-                <p className="text-muted-foreground max-w-xl mx-auto text-base">
-                    Estimate your GST interest and penalty exposure under Sections 47, 50, 73 and 122 of the CGST Act 2017.
-                </p>
-            </div>
 
-            {/* ── AUDIENCE TOGGLE ─────────────────────────────────────────── */}
-            <div className="flex justify-center mb-8">
-                <div className="inline-flex rounded-xl border border-slate-200 bg-slate-100 p-1 gap-1">
-                    <button
-                        onClick={() => switchAudience('seller')}
-                        className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${audience === 'seller'
-                                ? 'bg-white shadow text-slate-900'
-                                : 'text-slate-500 hover:text-slate-700'
-                            }`}
-                    >
-                        <User className="w-4 h-4" /> Regular Seller
-                    </button>
-                    <button
-                        onClick={() => switchAudience('ca')}
-                        className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${audience === 'ca'
-                                ? 'bg-indigo-600 shadow text-white'
-                                : 'text-slate-500 hover:text-slate-700'
-                            }`}
-                    >
-                        <Briefcase className="w-4 h-4" /> CA / Tax Pro
-                        {audience === 'ca' && (
-                            <span className="bg-indigo-400/40 text-white text-xs px-1.5 py-0.5 rounded font-medium">Pro Mode</span>
-                        )}
-                    </button>
-                </div>
-            </div>
-            {audience === 'ca' && (
-                <p className="text-center text-xs text-muted-foreground -mt-5 mb-7">
-                    📎 Bookmark: <span className="font-mono text-indigo-600">/gst-penalty-calculator?audience=ca</span>
-                </p>
-            )}
-
-            {/* ── INFO BOX ────────────────────────────────────────────────── */}
-            {audience === 'seller' ? (
-                /* SELLER INFO BOX — simple, jargon-free */
-                <div className="mb-8 rounded-xl border border-blue-200 bg-blue-50/60 p-5">
-                    <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
-                            <Info className="w-4 h-4 text-blue-600" />
-                        </div>
-                        <h2 className="font-bold text-blue-900 text-base">How to use this — and why check before filing</h2>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
-                        <div className="bg-white rounded-lg p-3 border border-blue-100">
-                            <div className="flex items-center gap-1.5 mb-1">
-                                <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                                <p className="text-xs font-bold text-slate-800">Know your risk first</p>
-                            </div>
-                            <p className="text-xs text-muted-foreground">A single wrong tax category or missing product code can silently create a fine of <strong>₹10,000+</strong> — before you even get a notice.</p>
-                        </div>
-                        <div className="bg-white rounded-lg p-3 border border-blue-100">
-                            <div className="flex items-center gap-1.5 mb-1">
-                                <Lightbulb className="w-3.5 h-3.5 text-yellow-500 shrink-0" />
-                                <p className="text-xs font-bold text-slate-800">Check before you submit</p>
-                            </div>
-                            <p className="text-xs text-muted-foreground">Run this calculator <strong>before you submit your GST return</strong>. If the exposure is high, validate your invoice first.</p>
-                        </div>
-                        <div className="bg-white rounded-lg p-3 border border-blue-100">
-                            <div className="flex items-center gap-1.5 mb-1">
-                                <BookOpen className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                                <p className="text-xs font-bold text-slate-800">Based on real law</p>
-                            </div>
-                            <p className="text-xs text-muted-foreground">Results show the exact government rule that applies so you know it's not a guess.</p>
-                        </div>
-                    </div>
-                    <div className="border-t border-blue-100 pt-4">
-                        <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-3">How to use — 3 steps</p>
-                        <ol className="space-y-2">
-                            {[
-                                ['What went wrong?', 'Pick the option that matches your situation — e.g. "Filed GST Return Late" or "Used Wrong Tax Category".'],
-                                ['How much GST is on the invoice?', 'Enter the rupee amount of GST (not the total invoice amount — just the tax portion).'],
-                                ['How late are you?', 'Type the number of days past the deadline. If you filed on time, enter 0.'],
-                            ].map(([title, desc], i) => (
-                                <li key={i} className="flex items-start gap-2 text-xs text-slate-700">
-                                    <span className="w-5 h-5 bg-blue-200 text-blue-800 rounded-full flex items-center justify-center font-bold shrink-0 mt-0.5">{i + 1}</span>
-                                    <span><strong>{title}</strong> — {desc}</span>
-                                </li>
-                            ))}
-                        </ol>
-                    </div>
-                </div>
-            ) : (
-                /* CA INFO BOX — technical, section references */
-                <div className="mb-8 rounded-xl border border-indigo-200 bg-indigo-50/40 p-5">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center shrink-0">
-                                <Briefcase className="w-4 h-4 text-indigo-600" />
-                            </div>
-                            <h2 className="font-bold text-indigo-900 text-base">CA / Tax Pro Reference Panel</h2>
-                        </div>
-                        <span className="text-xs bg-indigo-200 text-indigo-800 px-2 py-0.5 rounded-full font-medium">Technical Mode</span>
-                    </div>
-
-                    {/* Section 73 / 74 / 74A selector */}
-                    <div className="mb-4">
-                        <p className="text-xs font-semibold text-indigo-700 uppercase tracking-wide mb-2">Which provision applies?</p>
-                        <div className="grid grid-cols-3 gap-2 mb-3">
-                            {([
-                                { id: '73', label: 'Sec 73', sub: 'Non-fraud · 3 yr limit' },
-                                { id: '74', label: 'Sec 74', sub: 'Fraud/wilful · 5 yr limit' },
-                                { id: '74A', label: 'Sec 74A', sub: 'New provision · 42 months' },
-                            ] as const).map(s => (
-                                <button
-                                    key={s.id}
-                                    onClick={() => setCaSection(s.id)}
-                                    className={`rounded-lg border p-2 text-left transition-all ${caSection === s.id ? 'border-indigo-500 bg-indigo-100' : 'border-indigo-200 hover:border-indigo-400 bg-white'}`}
-                                >
-                                    <p className={`text-xs font-bold ${caSection === s.id ? 'text-indigo-800' : 'text-slate-700'}`}>{s.label}</p>
-                                    <p className="text-[10px] text-muted-foreground">{s.sub}</p>
-                                </button>
-                            ))}
-                        </div>
-                        <div className="bg-white border border-indigo-100 rounded-lg p-3 text-xs text-slate-600 space-y-1">
-                            {caSection === '73' && <><p><strong>Section 73</strong> — Genuine error/oversight. SCN must be issued 3 months before limitation expiry. Penalty: 10% of tax (min ₹10,000). <strong>100% penalty waiver</strong> if paid via DRC-03 before SCN.</p></>}
-                            {caSection === '74' && <><p><strong>Section 74</strong> — Fraud/wilful misstatement. Higher scrutiny. Penalty: 100% of tax. <strong>15% waiver</strong> if paid before SCN order (Section 74(5)); 25% waiver after SCN but before order (74(8)).</p></>}
-                            {caSection === '74A' && <><p><strong>Section 74A</strong> — New unified provision (effective FY 2024-25 onwards under Finance Act 2024). Limitation: 42 months. Consolidates fraud and non-fraud into single proceeding. SCN must issue 6 months before limit expiry.</p></>}
-                        </div>
-                    </div>
-
-                    {/* Voluntary Disclosure DRC-03 */}
-                    <button
-                        onClick={() => setShowDrcCalc(!showDrcCalc)}
-                        className="flex items-center gap-1.5 text-xs font-semibold text-indigo-700 mb-2 hover:text-indigo-900"
-                    >
-                        {showDrcCalc ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-                        DRC-03 Voluntary Disclosure Savings Calculator
-                    </button>
-                    {showDrcCalc && (
-                        <div className="bg-white border border-indigo-100 rounded-lg p-3 mb-3">
-                            <p className="text-xs text-muted-foreground mb-2">Based on tax liability entered in the calculator below.</p>
-                            <div className="flex gap-2 mb-3">
-                                <button onClick={() => setPayNow(true)} className={`flex-1 text-xs py-2 rounded-lg border font-medium transition-all ${payNow ? 'bg-green-100 border-green-400 text-green-800' : 'border-slate-200 text-slate-500'}`}>Pay via DRC-03 Now</button>
-                                <button onClick={() => setPayNow(false)} className={`flex-1 text-xs py-2 rounded-lg border font-medium transition-all ${!payNow ? 'bg-amber-100 border-amber-400 text-amber-800' : 'border-slate-200 text-slate-500'}`}>Wait for SCN</button>
-                            </div>
-                            {tax > 0 ? (
-                                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                                    <p className="text-xs font-bold text-green-800 mb-1">
-                                        Penalty: ₹{drcData?.penalty.toFixed(2)} &nbsp;|&nbsp; You save: ₹{drcData?.saving.toFixed(2)}
-                                    </p>
-                                    <p className="text-[10px] text-green-700">{drcData?.note}</p>
-                                </div>
-                            ) : (
-                                <p className="text-[10px] text-muted-foreground italic">Enter tax liability in the calculator below first.</p>
+                {/* ── AUDIENCE TOGGLE ─────────────────────────────────────────── */}
+                <div className="flex justify-center mb-10 scroll-reveal">
+                    <div className="inline-flex rounded-2xl p-1.5 shadow-inner" style={{ background: 'rgba(250, 248, 246, 0.5)', border: '1px solid var(--warm-border)' }}>
+                        <button
+                            onClick={() => switchAudience('seller')}
+                            className={`flex items-center gap-2 px-6 py-3 rounded-xl text-[14px] font-bold transition-all ${audience === 'seller'
+                                    ? 'bg-white shadow-md'
+                                    : 'hover:bg-white/50'
+                                }`}
+                            style={{ color: audience === 'seller' ? 'var(--warm-charcoal)' : '#B8A895' }}
+                        >
+                            <User className="w-4 h-4" /> Regular Seller
+                        </button>
+                        <button
+                            onClick={() => switchAudience('ca')}
+                            className={`flex items-center gap-2 px-6 py-3 rounded-xl text-[14px] font-bold transition-all ${audience === 'ca'
+                                    ? 'shadow-md'
+                                    : 'hover:bg-white/50'
+                                }`}
+                            style={{ 
+                                background: audience === 'ca' ? 'var(--warm-charcoal)' : 'transparent',
+                                color: audience === 'ca' ? 'white' : '#B8A895'
+                            }}
+                        >
+                            <Briefcase className="w-4 h-4" /> CA / Tax Pro
+                            {audience === 'ca' && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded ml-1" style={{ background: 'rgba(255,255,255,0.1)', color: 'var(--warm-cream)' }}>Pro</span>
                             )}
-                        </div>
-                    )}
+                        </button>
+                    </div>
+                </div>
 
-                    {/* SCN Timeline Tracker */}
-                    <button
-                        onClick={() => setShowScnTracker(!showScnTracker)}
-                        className="flex items-center gap-1.5 text-xs font-semibold text-indigo-700 hover:text-indigo-900"
-                    >
-                        {showScnTracker ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-                        SCN Deadline Tracker
-                    </button>
-                    {showScnTracker && (
-                        <div className="bg-white border border-indigo-100 rounded-lg p-3 mt-2">
-                            <label className="block text-xs font-medium text-slate-700 mb-1">Date of default / original due date</label>
-                            <Input type="date" value={defaultDate} onChange={e => setDefaultDate(e.target.value)} className="text-xs h-8 mb-2" />
-                            {scnDeadline ? (
-                                <div className="space-y-1.5 text-xs">
-                                    <div className="flex justify-between bg-amber-50 border border-amber-100 rounded px-3 py-2">
-                                        <span className="text-amber-700 font-medium">Last date for SCN</span>
-                                        <span className="font-bold text-amber-800">{scnDeadline.scnDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                                    </div>
-                                    <div className="flex justify-between bg-red-50 border border-red-100 rounded px-3 py-2">
-                                        <span className="text-red-700 font-medium">Limitation expiry</span>
-                                        <span className="font-bold text-red-800">{scnDeadline.limitDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                                    </div>
+                {/* ── INFO BOX ────────────────────────────────────────────────── */}
+                {audience === 'seller' ? (
+                    <div className="warm-card p-6 mb-10 border-l-4 scroll-reveal" style={{ borderLeftColor: 'var(--warm-accent)' }}>
+                        <div className="flex items-center gap-3 mb-5">
+                            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FEF3E2' }}>
+                                <Info className="w-5 h-5" style={{ color: 'var(--warm-accent)' }} />
+                            </div>
+                            <h2 className="font-bold text-lg font-heading" style={{ color: 'var(--warm-charcoal)' }}>How to use this — and why check before filing</h2>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                            <div className="bg-white rounded-xl p-4 border" style={{ borderColor: 'var(--warm-border)' }}>
+                                <div className="flex items-center gap-2 mb-2">
+                                    <AlertTriangle className="w-4 h-4" style={{ color: '#D4A017' }} />
+                                    <p className="text-[13px] font-bold" style={{ color: 'var(--warm-charcoal)' }}>Know your risk</p>
                                 </div>
-                            ) : (
-                                <p className="text-[10px] text-muted-foreground italic">Enter a date to calculate deadlines.</p>
-                            )}
-                        </div>
-                    )}
-                </div>
-            )}
-
-            {/* ── SCENARIO CARDS ────────────────────────────────────────────── */}
-            <div className="mb-8">
-                <p className="text-sm font-semibold text-center text-muted-foreground mb-4 uppercase tracking-wide">See it in action — click an example</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* ❌ Wrong */}
-                    <div onClick={() => loadScenario(WRONG_SCENARIO, 'wrong')} className={`cursor-pointer rounded-xl border-2 p-5 transition-all hover:shadow-md ${activeScenario === 'wrong' ? 'border-red-400 bg-red-50 shadow-md' : 'border-red-200 bg-red-50/40 hover:border-red-400'}`}>
-                        <div className="flex items-center gap-2 mb-3">
-                            <XCircle className="w-5 h-5 text-red-600 shrink-0" />
-                            <span className="font-bold text-red-800">❌ Wrong Filing</span>
-                            {activeScenario === 'wrong' && <span className="ml-auto text-xs bg-red-200 text-red-800 px-2 py-0.5 rounded-full font-medium">Loaded</span>}
-                        </div>
-                        <div className="space-y-1.5 mb-4 text-sm">
-                            <div className="flex justify-between"><span className="text-muted-foreground">Violation</span><span className="font-medium text-red-700">Wrong Tax Type</span></div>
-                            <div className="flex justify-between"><span className="text-muted-foreground">Tax Liability</span><span className="font-medium">₹85,000</span></div>
-                            <div className="flex justify-between"><span className="text-muted-foreground">Delay</span><span className="font-medium">60 days overdue</span></div>
-                        </div>
-                        <div className="bg-red-100 rounded-lg px-3 py-2 flex justify-between items-center">
-                            <span className="text-xs font-semibold text-red-700">Estimated Exposure</span>
-                            <span className="text-lg font-black text-red-800">₹{runCalculation(85000, 60, 'wrong_tax_type').total.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
-                        </div>
-                        <p className="text-xs text-red-600 mt-2">Used IGST on intrastate supply — treated as short payment under {audience === 'ca' ? 'Section 73' : 'GST Act'}.</p>
-                    </div>
-
-                    {/* ✅ Correct */}
-                    <div onClick={() => loadScenario(RIGHT_SCENARIO, 'right')} className={`cursor-pointer rounded-xl border-2 p-5 transition-all hover:shadow-md ${activeScenario === 'right' ? 'border-green-400 bg-green-50 shadow-md' : 'border-green-200 bg-green-50/40 hover:border-green-400'}`}>
-                        <div className="flex items-center gap-2 mb-3">
-                            <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
-                            <span className="font-bold text-green-800">✅ Correct Filing</span>
-                            {activeScenario === 'right' && <span className="ml-auto text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full font-medium">Loaded</span>}
-                        </div>
-                        <div className="space-y-1.5 mb-4 text-sm">
-                            <div className="flex justify-between"><span className="text-muted-foreground">Filing</span><span className="font-medium text-green-700">Correct CGST+SGST applied</span></div>
-                            <div className="flex justify-between"><span className="text-muted-foreground">Tax Liability</span><span className="font-medium">₹85,000</span></div>
-                            <div className="flex justify-between"><span className="text-muted-foreground">Delay</span><span className="font-medium text-green-700">Filed on time ✓</span></div>
-                        </div>
-                        <div className="bg-green-100 rounded-lg px-3 py-2 flex justify-between items-center">
-                            <span className="text-xs font-semibold text-green-700">Estimated Exposure</span>
-                            <span className="text-lg font-black text-green-800">₹0</span>
-                        </div>
-                        <p className="text-xs text-green-600 mt-2">Correct tax type, filed on time — zero interest, zero penalty. This is the goal.</p>
-                    </div>
-                </div>
-                <div className="flex items-center gap-3 my-6">
-                    <div className="flex-1 h-px bg-border" />
-                    <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">or enter your own details below</span>
-                    <div className="flex-1 h-px bg-border" />
-                </div>
-            </div>
-
-            {/* ── CALCULATOR ──────────────────────────────────────────────── */}
-            <Card className="p-6 mb-6">
-                <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-                    <Calculator className="w-5 h-5 text-primary" />
-                    Calculate Your Exposure
-                </h2>
-                <div className="space-y-5">
-                    <div>
-                        <label className="block text-sm font-medium mb-2">
-                            {audience === 'ca' ? 'Type of Violation' : 'What went wrong?'}
-                        </label>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            {violationTypes.map(v => (
-                                <button
-                                    key={v.value}
-                                    onClick={() => { setViolationType(v.value); setResult(null); setActiveScenario(null); }}
-                                    className={`text-left text-sm px-4 py-2.5 rounded-lg border transition-colors flex justify-between items-center ${violationType === v.value ? 'border-primary bg-primary/10 text-primary font-medium' : 'border-input hover:border-primary/50 text-muted-foreground'}`}
-                                >
-                                    <span>{v.label}</span>
-                                    {audience === 'ca' && <span className="text-[10px] font-mono text-indigo-500 shrink-0 ml-2">{v.caLabel}</span>}
-                                </button>
-                            ))}
+                                <p className="text-[12px] leading-relaxed" style={{ color: 'var(--warm-text-secondary)' }}>A single wrong tax category can silently create a fine of <strong>₹10,000+</strong>.</p>
+                            </div>
+                            <div className="bg-white rounded-xl p-4 border" style={{ borderColor: 'var(--warm-border)' }}>
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Lightbulb className="w-4 h-4" style={{ color: 'var(--warm-accent)' }} />
+                                    <p className="text-[13px] font-bold" style={{ color: 'var(--warm-charcoal)' }}>Check before submit</p>
+                                </div>
+                                <p className="text-[12px] leading-relaxed" style={{ color: 'var(--warm-text-secondary)' }}>Run this calculator <strong>before you submit</strong>. If exposure is high, validate first.</p>
+                            </div>
+                            <div className="bg-white rounded-xl p-4 border" style={{ borderColor: 'var(--warm-border)' }}>
+                                <div className="flex items-center gap-2 mb-2">
+                                    <BookOpen className="w-4 h-4" style={{ color: 'var(--warm-charcoal)' }} />
+                                    <p className="text-[13px] font-bold" style={{ color: 'var(--warm-charcoal)' }}>Based on real law</p>
+                                </div>
+                                <p className="text-[12px] leading-relaxed" style={{ color: 'var(--warm-text-secondary)' }}>Results show the exact government rule that applies.</p>
+                            </div>
                         </div>
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium mb-2">
-                            {audience === 'ca' ? 'Tax Liability / ITC Amount (₹)' : 'How much GST is on the invoice? (₹)'}
-                        </label>
-                        <Input type="number" placeholder="e.g. 50000" value={taxLiability} onChange={e => { setTaxLiability(e.target.value); setResult(null); setActiveScenario(null); }} />
-                        {audience === 'seller' && <p className="text-xs text-muted-foreground mt-1">Just the tax amount, not the full invoice total. E.g. if GST is 18% and the invoice is ₹1,00,000 — enter ₹18,000.</p>}
-                    </div>
-                    {violationType !== 'missing_hsn' && (
-                        <div>
-                            <label className="block text-sm font-medium mb-2">
-                                {audience === 'ca'
-                                    ? `Delay in Days ${violationType === 'itc_mismatch' ? '(since ITC claimed)' : '(from original due date)'}`
-                                    : 'How many days late? (enter 0 if on time)'}
-                            </label>
-                            <Input type="number" placeholder="e.g. 30" value={delayDays} onChange={e => { setDelayDays(e.target.value); setResult(null); setActiveScenario(null); }} />
+                ) : (
+                    <div className="warm-card p-6 mb-10 scroll-reveal" style={{ background: 'var(--warm-charcoal)', border: 'none', color: 'white' }}>
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(255,255,255,0.1)' }}>
+                                    <Briefcase className="w-5 h-5" style={{ color: 'var(--warm-cream)' }} />
+                                </div>
+                                <h2 className="font-bold text-lg font-heading" style={{ color: 'white' }}>CA / Tax Pro Reference Panel</h2>
+                            </div>
                         </div>
-                    )}
-                    <Button onClick={() => calculate()} className="w-full" size="lg">
-                        <Calculator className="w-4 h-4 mr-2" /> Calculate Penalty
-                    </Button>
-                </div>
-            </Card>
 
-            {/* ── RESULT ───────────────────────────────────────────────────── */}
-            {result && (
-                <Card id="calc-result" className={`p-6 mb-6 animate-in fade-in duration-300 ${result.total === 0 ? 'border-green-200 bg-green-50/40' : 'border-red-200 bg-red-50/40'}`}>
-                    {result.total === 0 ? (
-                        <>
-                            <h3 className="text-lg font-bold text-green-800 mb-2 flex items-center gap-2"><CheckCircle2 className="w-5 h-5" /> ✅ Zero Penalty Exposure</h3>
-                            <p className="text-green-700 text-sm mb-4">No interest or penalty applies. {audience === 'seller' ? 'Filing on time with the correct tax category means zero financial exposure.' : 'No Section 47/50 exposure. Filed within due date — no demand notice risk.'}</p>
-                        </>
-                    ) : (
-                        <>
-                            <h3 className="text-lg font-bold text-red-800 mb-4">⚠️ Estimated Penalty Exposure</h3>
-                            <div className="space-y-3 mb-5">
-                                {result.interest > 0 && (
-                                    <div className="flex justify-between items-center py-2 border-b border-red-100">
-                                        <span className="text-sm text-red-700">{audience === 'ca' ? 'Interest (Section 50 @ 18% p.a.)' : 'Interest charged by Government'}</span>
-                                        <span className="font-bold text-red-800">₹{result.interest.toFixed(2)}</span>
+                        {/* Section 73 / 74 / 74A selector */}
+                        <div className="mb-6">
+                            <p className="text-[11px] font-bold uppercase tracking-wider mb-3" style={{ color: '#B8A895' }}>Which provision applies?</p>
+                            <div className="grid grid-cols-3 gap-3 mb-4">
+                                {([
+                                    { id: '73', label: 'Sec 73', sub: 'Non-fraud · 3 yr limit' },
+                                    { id: '74', label: 'Sec 74', sub: 'Fraud/wilful · 5 yr limit' },
+                                    { id: '74A', label: 'Sec 74A', sub: 'New provision · 42m' },
+                                ] as const).map(s => (
+                                    <button
+                                        key={s.id}
+                                        onClick={() => setCaSection(s.id)}
+                                        className="rounded-xl border p-3 text-left transition-all"
+                                        style={{
+                                            background: caSection === s.id ? 'rgba(255,255,255,0.1)' : 'transparent',
+                                            borderColor: caSection === s.id ? 'var(--warm-accent)' : 'rgba(255,255,255,0.05)'
+                                        }}
+                                    >
+                                        <p className="text-[13px] font-bold mb-0.5" style={{ color: caSection === s.id ? 'var(--warm-cream)' : 'white' }}>{s.label}</p>
+                                        <p className="text-[11px]" style={{ color: '#9E8A78' }}>{s.sub}</p>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Voluntary Disclosure DRC-03 */}
+                        <button
+                            onClick={() => setShowDrcCalc(!showDrcCalc)}
+                            className="flex items-center gap-2 text-[13px] font-bold hover:opacity-80 transition-opacity mb-4"
+                            style={{ color: 'var(--warm-cream)' }}
+                        >
+                            {showDrcCalc ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                            DRC-03 Voluntary Disclosure Calculator
+                        </button>
+                        {showDrcCalc && (
+                            <div className="rounded-xl p-4 mb-6 border" style={{ background: 'rgba(0,0,0,0.2)', borderColor: 'rgba(255,255,255,0.05)' }}>
+                                <div className="flex gap-2 mb-4">
+                                    <button onClick={() => setPayNow(true)} className="flex-1 text-[12px] py-2.5 rounded-lg border font-bold transition-all" style={{ background: payNow ? '#FEF3E2' : 'transparent', borderColor: payNow ? 'var(--warm-accent)' : 'rgba(255,255,255,0.1)', color: payNow ? 'var(--warm-charcoal)' : 'white' }}>Pay via DRC-03</button>
+                                    <button onClick={() => setPayNow(false)} className="flex-1 text-[12px] py-2.5 rounded-lg border font-bold transition-all" style={{ background: !payNow ? '#FEF3E2' : 'transparent', borderColor: !payNow ? 'var(--warm-accent)' : 'rgba(255,255,255,0.1)', color: !payNow ? 'var(--warm-charcoal)' : 'white' }}>Wait for SCN</button>
+                                </div>
+                                {tax > 0 ? (
+                                    <div className="rounded-lg p-3 border" style={{ background: 'rgba(126, 200, 155, 0.1)', borderColor: 'rgba(126, 200, 155, 0.3)' }}>
+                                        <p className="text-[13px] font-bold mb-1" style={{ color: '#7EC89B' }}>
+                                            Penalty: ₹{drcData?.penalty.toFixed(2)} &nbsp;|&nbsp; You save: ₹{drcData?.saving.toFixed(2)}
+                                        </p>
+                                        <p className="text-[11px]" style={{ color: '#B8A895' }}>{drcData?.note}</p>
                                     </div>
+                                ) : (
+                                    <p className="text-[11px] italic" style={{ color: '#9E8A78' }}>Enter tax liability in the calculator below first.</p>
                                 )}
-                                <div className="flex justify-between items-center py-2 border-b border-red-100">
-                                    <span className="text-sm text-red-700">{audience === 'ca' ? (violationType === 'late_filing' ? 'Late Fee (Section 47)' : 'Penalty') : 'Fine / Late fee'}</span>
-                                    <span className="font-bold text-red-800">₹{result.penalty.toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between items-center py-3 bg-red-100 rounded-lg px-3">
-                                    <span className="font-bold text-red-900">Total Exposure</span>
-                                    <span className="text-2xl font-black text-red-900">₹{result.total.toFixed(2)}</span>
-                                </div>
                             </div>
-                        </>
-                    )}
+                        )}
+                    </div>
+                )}
 
-                    {/* Context note — different for each audience */}
-                    <div className="bg-white border border-slate-100 rounded-lg p-3 mb-4">
-                        {audience === 'ca' ? (
+                {/* ── SCENARIO CARDS ────────────────────────────────────────────── */}
+                <div className="mb-10 scroll-reveal">
+                    <p className="text-[12px] font-bold text-center uppercase tracking-widest mb-5" style={{ color: 'var(--warm-text-secondary)' }}>See it in action — click an example</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        {/* ❌ Wrong */}
+                        <div onClick={() => loadScenario(WRONG_SCENARIO, 'wrong')} className="warm-card cursor-pointer rounded-2xl p-6 transition-all hover:-translate-y-1 hover:shadow-lg" style={{ borderColor: activeScenario === 'wrong' ? '#E53E3E' : 'var(--warm-border)' }}>
+                            <div className="flex items-center gap-2 mb-4">
+                                <XCircle className="w-5 h-5 text-red-600 shrink-0" />
+                                <span className="font-bold text-[15px]" style={{ color: 'var(--warm-charcoal)' }}>Wrong Filing</span>
+                            </div>
+                            <div className="space-y-2 mb-5 text-[13px]">
+                                <div className="flex justify-between"><span style={{ color: 'var(--warm-text-secondary)' }}>Violation</span><span className="font-bold" style={{ color: '#E53E3E' }}>Wrong Tax Type</span></div>
+                                <div className="flex justify-between"><span style={{ color: 'var(--warm-text-secondary)' }}>Tax Liability</span><span className="font-bold" style={{ color: 'var(--warm-charcoal)' }}>₹85,000</span></div>
+                                <div className="flex justify-between"><span style={{ color: 'var(--warm-text-secondary)' }}>Delay</span><span className="font-bold" style={{ color: 'var(--warm-charcoal)' }}>60 days overdue</span></div>
+                            </div>
+                            <div className="rounded-xl px-4 py-3 flex justify-between items-center" style={{ background: '#FFF5F5' }}>
+                                <span className="text-[12px] font-bold uppercase tracking-wider" style={{ color: '#C53030' }}>Exposure</span>
+                                <span className="text-xl font-black font-heading" style={{ color: '#9B2C2C' }}>₹{runCalculation(85000, 60, 'wrong_tax_type').total.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+                            </div>
+                        </div>
+
+                        {/* ✅ Correct */}
+                        <div onClick={() => loadScenario(RIGHT_SCENARIO, 'right')} className="warm-card cursor-pointer rounded-2xl p-6 transition-all hover:-translate-y-1 hover:shadow-lg" style={{ borderColor: activeScenario === 'right' ? '#38A169' : 'var(--warm-border)' }}>
+                            <div className="flex items-center gap-2 mb-4">
+                                <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
+                                <span className="font-bold text-[15px]" style={{ color: 'var(--warm-charcoal)' }}>Correct Filing</span>
+                            </div>
+                            <div className="space-y-2 mb-5 text-[13px]">
+                                <div className="flex justify-between"><span style={{ color: 'var(--warm-text-secondary)' }}>Filing</span><span className="font-bold" style={{ color: '#38A169' }}>Correct CGST+SGST</span></div>
+                                <div className="flex justify-between"><span style={{ color: 'var(--warm-text-secondary)' }}>Tax Liability</span><span className="font-bold" style={{ color: 'var(--warm-charcoal)' }}>₹85,000</span></div>
+                                <div className="flex justify-between"><span style={{ color: 'var(--warm-text-secondary)' }}>Delay</span><span className="font-bold" style={{ color: '#38A169' }}>Filed on time ✓</span></div>
+                            </div>
+                            <div className="rounded-xl px-4 py-3 flex justify-between items-center" style={{ background: '#F0FFF4' }}>
+                                <span className="text-[12px] font-bold uppercase tracking-wider" style={{ color: '#2F855A' }}>Exposure</span>
+                                <span className="text-xl font-black font-heading" style={{ color: '#22543D' }}>₹0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="section-divider" />
+
+                {/* ── CALCULATOR ──────────────────────────────────────────────── */}
+                <div className="warm-card p-8 mb-10 scroll-reveal">
+                    <h2 className="text-[1.5rem] font-bold font-heading mb-6 flex items-center gap-3" style={{ color: 'var(--warm-charcoal)' }}>
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white shadow-sm border" style={{ borderColor: 'var(--warm-border)' }}>
+                            <Calculator className="w-5 h-5" style={{ color: 'var(--warm-accent)' }} />
+                        </div>
+                        Calculate Your Exposure
+                    </h2>
+                    
+                    <div className="space-y-6">
+                        <div>
+                            <label className="block text-[14px] font-bold mb-3" style={{ color: 'var(--warm-charcoal)' }}>
+                                {audience === 'ca' ? 'Type of Violation' : 'What went wrong?'}
+                            </label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {violationTypes.map(v => (
+                                    <button
+                                        key={v.value}
+                                        onClick={() => { setViolationType(v.value); setResult(null); setActiveScenario(null); }}
+                                        className="text-left text-[14px] px-4 py-3 rounded-xl border transition-all flex justify-between items-center"
+                                        style={{ 
+                                            background: violationType === v.value ? 'white' : 'transparent',
+                                            borderColor: violationType === v.value ? 'var(--warm-accent)' : 'var(--warm-border)',
+                                            color: violationType === v.value ? 'var(--warm-charcoal)' : 'var(--warm-text-secondary)',
+                                            boxShadow: violationType === v.value ? '0 4px 12px rgba(212, 160, 23, 0.1)' : 'none',
+                                            fontWeight: violationType === v.value ? 'bold' : '500'
+                                        }}
+                                    >
+                                        <span>{v.label}</span>
+                                        {audience === 'ca' && <span className="text-[10px] font-mono shrink-0 ml-2" style={{ color: 'var(--warm-accent)' }}>{v.caLabel}</span>}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label className="block text-[14px] font-bold mb-3" style={{ color: 'var(--warm-charcoal)' }}>
+                                {audience === 'ca' ? 'Tax Liability / ITC Amount (₹)' : 'How much GST is on the invoice? (₹)'}
+                            </label>
+                            <Input type="number" placeholder="e.g. 50000" className="h-12 text-[15px] rounded-xl bg-white border" style={{ borderColor: 'var(--warm-border)' }} value={taxLiability} onChange={e => { setTaxLiability(e.target.value); setResult(null); setActiveScenario(null); }} />
+                        </div>
+                        
+                        {violationType !== 'missing_hsn' && (
+                            <div>
+                                <label className="block text-[14px] font-bold mb-3" style={{ color: 'var(--warm-charcoal)' }}>
+                                    {audience === 'ca'
+                                        ? `Delay in Days ${violationType === 'itc_mismatch' ? '(since ITC claimed)' : '(from original due date)'}`
+                                        : 'How many days late? (enter 0 if on time)'}
+                                </label>
+                                <Input type="number" placeholder="e.g. 30" className="h-12 text-[15px] rounded-xl bg-white border" style={{ borderColor: 'var(--warm-border)' }} value={delayDays} onChange={e => { setDelayDays(e.target.value); setResult(null); setActiveScenario(null); }} />
+                            </div>
+                        )}
+                        
+                        <button onClick={() => calculate()} className="w-full btn-warm-primary magnetic-btn h-14 text-[16px] flex items-center justify-center gap-2 mt-4">
+                            <Calculator className="w-5 h-5" /> Calculate Penalty
+                        </button>
+                    </div>
+                </div>
+
+                {/* ── RESULT ───────────────────────────────────────────────────── */}
+                {result && (
+                    <div id="calc-result" className="warm-card p-8 mb-10 animate-in fade-in duration-500 shadow-xl" style={{ border: `2px solid ${result.total === 0 ? '#48BB78' : '#F56565'}` }}>
+                        {result.total === 0 ? (
                             <>
-                                <p className="text-xs font-semibold text-slate-600 mb-1">📖 Law Reference</p>
-                                <p className="text-xs text-slate-500">{result.lawRef}</p>
-                                <p className="text-xs text-slate-500 mt-1">{result.note}</p>
+                                <h3 className="text-[1.5rem] font-bold font-heading mb-3 flex items-center gap-3" style={{ color: '#2F855A' }}>
+                                    <CheckCircle2 className="w-7 h-7" /> Zero Penalty Exposure
+                                </h3>
+                                <p className="text-[15px] font-medium" style={{ color: '#276749' }}>No interest or penalty applies. {audience === 'seller' ? 'Filing on time with the correct tax category means zero financial exposure.' : 'No Section 47/50 exposure. Filed within due date — no demand notice risk.'}</p>
                             </>
                         ) : (
                             <>
-                                <p className="text-xs font-semibold text-slate-600 mb-1">💡 What this means</p>
-                                <p className="text-xs text-slate-500">{result.sellerNote}</p>
-                                <p className="text-xs text-slate-400 mt-1">Technical ref: {result.lawRef}</p>
+                                <h3 className="text-[1.5rem] font-bold font-heading mb-6 flex items-center gap-3" style={{ color: '#C53030' }}>
+                                    <AlertTriangle className="w-6 h-6" /> Estimated Penalty Exposure
+                                </h3>
+                                <div className="space-y-4 mb-6">
+                                    {result.interest > 0 && (
+                                        <div className="flex justify-between items-center py-3 border-b" style={{ borderColor: '#FED7D7' }}>
+                                            <span className="text-[15px] font-medium" style={{ color: '#C53030' }}>{audience === 'ca' ? 'Interest (Section 50 @ 18% p.a.)' : 'Interest charged by Government'}</span>
+                                            <span className="font-bold text-[16px]" style={{ color: '#9B2C2C' }}>₹{result.interest.toFixed(2)}</span>
+                                        </div>
+                                    )}
+                                    <div className="flex justify-between items-center py-3 border-b" style={{ borderColor: '#FED7D7' }}>
+                                        <span className="text-[15px] font-medium" style={{ color: '#C53030' }}>{audience === 'ca' ? (violationType === 'late_filing' ? 'Late Fee (Section 47)' : 'Penalty') : 'Fine / Late fee'}</span>
+                                        <span className="font-bold text-[16px]" style={{ color: '#9B2C2C' }}>₹{result.penalty.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center py-4 rounded-xl px-5 mt-2" style={{ background: '#FFF5F5' }}>
+                                        <span className="font-bold text-[16px] uppercase tracking-wider" style={{ color: '#9B2C2C' }}>Total Exposure</span>
+                                        <span className="text-[2rem] font-black font-heading" style={{ color: '#742A2A' }}>₹{result.total.toFixed(2)}</span>
+                                    </div>
+                                </div>
                             </>
                         )}
-                    </div>
 
-                    {/* CA actions */}
-                    {audience === 'ca' && result.total > 0 && (
-                        <div className="flex gap-2 mb-3">
-                            <Button variant="outline" size="sm" onClick={copyCitation} className="flex-1 text-xs gap-1.5 border-indigo-200 text-indigo-700 hover:bg-indigo-50">
-                                <FileText className="w-3.5 h-3.5" /> Copy Legal Citation
-                            </Button>
-                            <Button variant="outline" size="sm" onClick={shareWhatsApp} className="flex-1 text-xs gap-1.5 border-red-200 text-red-700 hover:bg-red-50">
-                                <Share2 className="w-3.5 h-3.5" /> Share via WhatsApp
-                            </Button>
+                        <div className="bg-white rounded-xl p-4 mb-6 border shadow-sm" style={{ borderColor: 'var(--warm-border)' }}>
+                            {audience === 'ca' ? (
+                                <>
+                                    <p className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--warm-text-secondary)' }}>Law Reference</p>
+                                    <p className="text-[14px] font-bold mb-1" style={{ color: 'var(--warm-charcoal)' }}>{result.lawRef}</p>
+                                    <p className="text-[13px]" style={{ color: 'var(--warm-text-secondary)' }}>{result.note}</p>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--warm-text-secondary)' }}>What this means</p>
+                                    <p className="text-[14px] font-bold mb-1" style={{ color: 'var(--warm-charcoal)' }}>{result.sellerNote}</p>
+                                    <p className="text-[12px] mt-2" style={{ color: '#9E8A78' }}>Technical ref: {result.lawRef}</p>
+                                </>
+                            )}
                         </div>
-                    )}
 
-                    {/* Seller share */}
-                    {audience === 'seller' && result.total > 0 && (
-                        <Button variant="outline" onClick={shareWhatsApp} className="w-full border-red-200 text-red-700 hover:bg-red-50 mb-3">
-                            <Share2 className="w-4 h-4 mr-2" /> Share with my CA on WhatsApp
-                        </Button>
-                    )}
+                        {audience === 'ca' && result.total > 0 && (
+                            <div className="flex gap-3 mb-4">
+                                <button onClick={copyCitation} className="flex-1 btn-warm-secondary h-12 text-[13px] bg-white flex justify-center items-center gap-2">
+                                    <FileText className="w-4 h-4" /> Copy Citation
+                                </button>
+                                <button onClick={shareWhatsApp} className="flex-1 h-12 rounded-xl text-[13px] font-bold border flex justify-center items-center gap-2 hover:opacity-80 transition-opacity" style={{ background: '#FFF5F5', borderColor: '#FEB2B2', color: '#C53030' }}>
+                                    <Share2 className="w-4 h-4" /> Share via WhatsApp
+                                </button>
+                            </div>
+                        )}
 
-                    <p className="text-xs text-center text-muted-foreground">Estimate only — actual liability may vary. {audience === 'ca' ? 'Rule 142 applies for e-assessment proceedings.' : 'Consult a CA for final assessment.'}</p>
-                </Card>
-            )}
+                        {audience === 'seller' && result.total > 0 && (
+                            <button onClick={shareWhatsApp} className="w-full h-12 rounded-xl text-[14px] font-bold border flex justify-center items-center gap-2 hover:opacity-80 transition-opacity mb-4" style={{ background: '#FFF5F5', borderColor: '#FEB2B2', color: '#C53030' }}>
+                                <Share2 className="w-4 h-4" /> Share with my CA on WhatsApp
+                            </button>
+                        )}
 
-            {/* CTA */}
-            <Card className="p-6 border-green-200 bg-green-50/40">
-                <div className="flex items-start gap-3">
-                    <ShieldCheck className="w-8 h-8 text-green-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                        <h3 className="font-bold text-green-900 mb-1">
-                            {audience === 'ca' ? 'Validate Client Invoices — ₹99/check or Bulk Plans' : 'Prevent This Entirely — ₹99/check'}
-                        </h3>
-                        <p className="text-sm text-green-800 mb-4">
-                            {audience === 'ca'
-                                ? 'Catch wrong tax types, invalid HSN codes, and ITC eligibility issues before your client files. 15-rule engine, results in 30 seconds. Bulk plans available for CA firms.'
-                                : 'Catch wrong tax category, missing product codes, and calculation errors before you file. Our 15-rule GST validation checks every invoice in under 30 seconds.'}
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-3">
-                            <Link href="/check">
-                                <Button className="bg-green-700 hover:bg-green-800 text-white w-full sm:w-auto">
-                                    <ArrowRight className="w-4 h-4 mr-2" />
-                                    {audience === 'ca' ? 'Check a Client Invoice' : 'Check My Invoice Now — ₹99'}
-                                </Button>
-                            </Link>
-                            <Link href="/pricing">
-                                <Button variant="outline" className="border-green-300 text-green-800 w-full sm:w-auto">
-                                    {audience === 'ca' ? 'View CA Bulk Plans' : 'View Bulk Plans'}
-                                </Button>
-                            </Link>
+                        <p className="text-[12px] text-center" style={{ color: '#9E8A78' }}>Estimate only — actual liability may vary. {audience === 'ca' ? 'Rule 142 applies for e-assessment proceedings.' : 'Consult a CA for final assessment.'}</p>
+                    </div>
+                )}
+
+                {/* ── CTA ──────────────────────────────────────────────────────── */}
+                <div className="rounded-3xl p-8 scroll-reveal" style={{ background: 'var(--warm-accent)', color: 'white' }}>
+                    <div className="flex flex-col md:flex-row items-center gap-6">
+                        <div className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0" style={{ background: 'rgba(255,255,255,0.1)' }}>
+                            <ShieldCheck className="w-8 h-8 text-white" />
+                        </div>
+                        <div className="text-center md:text-left flex-1">
+                            <h3 className="text-[1.5rem] font-bold font-heading mb-2">
+                                {audience === 'ca' ? 'Validate Client Invoices — ₹99/check' : 'Prevent This Entirely — ₹99/check'}
+                            </h3>
+                            <p className="text-[15px] opacity-90 mb-6">
+                                {audience === 'ca'
+                                    ? 'Catch wrong tax types, invalid HSN codes, and ITC eligibility issues before your client files. 15-rule engine, results in 30 seconds.'
+                                    : 'Catch wrong tax category, missing product codes, and calculation errors before you file. Our 15-rule GST validation checks every invoice in under 30 seconds.'}
+                            </p>
+                            <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
+                                <Link href="/check">
+                                    <button className="h-12 px-6 rounded-xl text-[15px] font-bold w-full sm:w-auto transition-transform hover:scale-[1.02]" style={{ background: 'white', color: 'var(--warm-charcoal)' }}>
+                                        {audience === 'ca' ? 'Check a Client Invoice' : 'Check My Invoice Now'}
+                                    </button>
+                                </Link>
+                                <Link href="/pricing">
+                                    <button className="h-12 px-6 rounded-xl text-[15px] font-bold w-full sm:w-auto border transition-colors hover:bg-white/10" style={{ borderColor: 'rgba(255,255,255,0.3)', color: 'white' }}>
+                                        {audience === 'ca' ? 'View CA Bulk Plans' : 'View Bulk Plans'}
+                                    </button>
+                                </Link>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </Card>
 
-            {/* FAQ */}
-            <div className="mt-12 space-y-6">
-                <h2 className="text-2xl font-bold">Common GST Penalty Questions</h2>
-                {[
-                    { q: 'What is the GST late filing penalty in India?', a: 'Under Section 47, the late fee is ₹50/day (₹25 CGST + ₹25 SGST), max ₹5,000. Section 50 adds 18% p.a. interest on unpaid tax.' },
-                    { q: 'What happens if I use IGST instead of CGST+SGST?', a: 'Wrong tax type on intrastate supply = short payment. Section 73 attracts 10% penalty (min ₹10,000) + 18% interest from due date.' },
-                    { q: 'Is HSN code mandatory on GST invoices?', a: 'Yes. Notification 78/2020-CT mandates 4-digit HSN for turnover ≤₹5 Cr and 6-digit for >₹5 Cr. Missing HSN = penalty under Section 122.' },
-                    { q: 'What is Section 73 penalty vs Section 74?', a: 'Section 73 — genuine error: 10% of tax or ₹10,000 (higher). Section 74 — fraud: 100% of tax evaded. Pay DRC-03 under Section 73 before SCN for 100% penalty waiver.' },
-                ].map((faq, i) => (
-                    <div key={i} className="border-b border-border pb-4">
-                        <h3 className="font-semibold mb-2">{faq.q}</h3>
-                        <p className="text-sm text-muted-foreground">{faq.a}</p>
-                    </div>
-                ))}
             </div>
         </div>
     );
 }
 
-// ── Export with Suspense (required for useSearchParams in App Router) ──────────
+// ── Export with Suspense ──────────
 export default function GstPenaltyCalculator() {
     return (
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-pulse text-muted-foreground">Loading calculator…</div></div>}>
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--warm-bg)' }}><div className="animate-pulse font-heading text-xl" style={{ color: 'var(--warm-text-secondary)' }}>Loading calculator…</div></div>}>
             <GstPenaltyCalculatorInner />
         </Suspense>
     );

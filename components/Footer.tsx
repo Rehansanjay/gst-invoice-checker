@@ -2,59 +2,99 @@ import Link from 'next/link';
 
 export default function Footer() {
     return (
-        <footer className="border-t bg-muted/30 mt-16">
-            <div className="container mx-auto px-4 py-12">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <footer style={{ background: 'var(--warm-charcoal)' }}>
+            <div className="container mx-auto px-4 sm:px-6 py-16">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
                     {/* Brand */}
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                         <div className="flex items-center gap-2">
                             <img
                                 src="/invoicecheck-logo.svg"
                                 alt="InvoiceCheck Logo"
-                                className="w-6 h-6"
+                                className="w-6 h-6 brightness-0 invert opacity-80"
                             />
-                            <h3 className="text-lg font-bold">InvoiceCheck.in</h3>
+                            <h3 className="text-lg font-bold" style={{ color: 'var(--warm-cream)' }}>
+                                InvoiceCheck.in
+                            </h3>
                         </div>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm leading-relaxed" style={{ color: '#A8917A' }}>
                             India&apos;s fastest GST invoice validator. Catch errors before the portal rejects your filing.
                         </p>
                     </div>
 
                     {/* Product */}
-                    <div className="space-y-3">
-                        <h4 className="font-semibold text-sm">Product</h4>
-                        <ul className="space-y-2 text-sm text-muted-foreground">
-                            <li><Link href="/check" className="hover:text-foreground transition-colors">Check Invoice</Link></li>
-                            <li><Link href="/pricing" className="hover:text-foreground transition-colors">Pricing</Link></li>
-                            <li><Link href="/faq" className="hover:text-foreground transition-colors">FAQ</Link></li>
+                    <div className="space-y-4">
+                        <h4 className="font-semibold text-sm tracking-wide uppercase" style={{ color: '#C4B5A3' }}>
+                            Product
+                        </h4>
+                        <ul className="space-y-3 text-sm">
+                            <li>
+                                <Link href="/check" className="transition-colors" style={{ color: '#9E8A78' }}>
+                                    Check Invoice
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/pricing" className="transition-colors" style={{ color: '#9E8A78' }}>
+                                    Pricing
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/faq" className="transition-colors" style={{ color: '#9E8A78' }}>
+                                    FAQ
+                                </Link>
+                            </li>
                         </ul>
                     </div>
 
                     {/* Company */}
-                    <div className="space-y-3">
-                        <h4 className="font-semibold text-sm">Company</h4>
-                        <ul className="space-y-2 text-sm text-muted-foreground">
-                            <li><Link href="/about" className="hover:text-foreground transition-colors">About Us</Link></li>
-                            <li><Link href="/contact" className="hover:text-foreground transition-colors">Contact</Link></li>
+                    <div className="space-y-4">
+                        <h4 className="font-semibold text-sm tracking-wide uppercase" style={{ color: '#C4B5A3' }}>
+                            Company
+                        </h4>
+                        <ul className="space-y-3 text-sm">
+                            <li>
+                                <Link href="/about" className="transition-colors" style={{ color: '#9E8A78' }}>
+                                    About Us
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/contact" className="transition-colors" style={{ color: '#9E8A78' }}>
+                                    Contact
+                                </Link>
+                            </li>
                         </ul>
                     </div>
 
                     {/* Legal */}
-                    <div className="space-y-3">
-                        <h4 className="font-semibold text-sm">Legal</h4>
-                        <ul className="space-y-2 text-sm text-muted-foreground">
-                            <li><Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link></li>
-                            <li><Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link></li>
-                            <li><Link href="/refund" className="hover:text-foreground transition-colors">Refund Policy</Link></li>
+                    <div className="space-y-4">
+                        <h4 className="font-semibold text-sm tracking-wide uppercase" style={{ color: '#C4B5A3' }}>
+                            Legal
+                        </h4>
+                        <ul className="space-y-3 text-sm">
+                            <li>
+                                <Link href="/privacy" className="transition-colors" style={{ color: '#9E8A78' }}>
+                                    Privacy Policy
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/terms" className="transition-colors" style={{ color: '#9E8A78' }}>
+                                    Terms of Service
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/refund" className="transition-colors" style={{ color: '#9E8A78' }}>
+                                    Refund Policy
+                                </Link>
+                            </li>
                         </ul>
                     </div>
                 </div>
 
-                <div className="border-t mt-8 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <p className="text-sm text-muted-foreground">
+                <div className="mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4" style={{ borderTop: '1px solid rgba(250, 248, 246, 0.1)' }}>
+                    <p className="text-sm" style={{ color: '#9E8A78' }}>
                         © {new Date().getFullYear()} InvoiceCheck.in. All rights reserved.
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs" style={{ color: '#7A6B5D' }}>
                         Not a substitute for professional CA advice. For informational purposes only.
                     </p>
                 </div>

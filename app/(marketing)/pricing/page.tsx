@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Check, AlertTriangle, ShieldCheck, Zap, CreditCard, Star } from 'lucide-react';
 import PackagePurchaseButton from '@/components/PackagePurchaseButton';
 
@@ -11,295 +10,243 @@ export const metadata = {
 
 export default function PricingPage() {
     return (
-        <div className="container mx-auto px-4 py-16">
-
-            {/* Loss-aversion penalty banner */}
-            <div className="max-w-4xl mx-auto mb-10 bg-amber-50 border border-amber-300 rounded-xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="flex items-start gap-3">
-                    <AlertTriangle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                        <p className="font-bold text-amber-900 text-base">One GST penalty = ₹10,000+</p>
-                        <p className="text-amber-800 text-sm mt-0.5">A single wrong tax type, invalid HSN, or calculation error can trigger Section 73 penalties plus 18% interest. <span className="font-semibold">One prevented penalty pays for your entire subscription.</span></p>
+        <div className="min-h-screen py-24 md:py-32" style={{ background: 'var(--warm-bg)' }}>
+            <div className="container mx-auto px-5 sm:px-6 lg:px-8">
+                
+                {/* Loss-aversion penalty banner */}
+                <div className="max-w-4xl mx-auto mb-16 p-5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-5 transition-transform hover:scale-[1.01]" style={{ background: 'rgba(212, 160, 23, 0.05)', border: '1px solid rgba(212, 160, 23, 0.2)' }}>
+                    <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ background: 'rgba(212, 160, 23, 0.1)' }}>
+                            <AlertTriangle className="w-5 h-5" style={{ color: '#D4A017' }} />
+                        </div>
+                        <div>
+                            <p className="font-bold text-[15px]" style={{ color: 'var(--warm-charcoal)' }}>One GST penalty = ₹10,000+</p>
+                            <p className="text-[14px] mt-1" style={{ color: 'var(--warm-text-secondary)' }}>
+                                A single wrong tax type or calculation error triggers Section 73 penalties plus 18% interest. <span className="font-semibold" style={{ color: 'var(--warm-charcoal)' }}>One prevented penalty pays for your entire subscription.</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 rounded-xl px-5 py-3 whitespace-nowrap" style={{ background: 'var(--warm-accent)', color: 'white' }}>
+                        <ShieldCheck className="w-5 h-5" />
+                        <span className="font-semibold text-[14px]">Protect your filing</span>
                     </div>
                 </div>
-                <div className="flex items-center gap-2 bg-green-100 border border-green-300 rounded-lg px-4 py-2 whitespace-nowrap">
-                    <ShieldCheck className="w-5 h-5 text-green-700" />
-                    <span className="text-green-800 font-semibold text-sm">Protect your filing now</span>
+
+                {/* Header */}
+                <div className="text-center max-w-3xl mx-auto mb-20 scroll-reveal">
+                    <span className="pill-badge mb-5 text-[12px] hover-glow-border cursor-default" style={{ background: '#E8F5EE', borderColor: '#C8E6D4', color: 'var(--warm-success)' }}>
+                        <Star className="w-3 h-3 fill-current" />
+                        Transparent Pricing
+                    </span>
+                    <h1 className="text-[2.75rem] md:text-[3.5rem] leading-[1.05] mb-6 font-heading" style={{ color: 'var(--warm-charcoal)' }}>
+                        Choose Your Plan
+                    </h1>
+                    <p className="text-[1.125rem] md:text-xl" style={{ color: 'var(--warm-text-secondary)' }}>
+                        Pay-as-you-go or save big with bulk credits.
+                    </p>
+                    <p className="mt-3 text-[14px] font-medium" style={{ color: '#9E8A78' }}>
+                        CA firm? Ask about our bulk plan — <span className="font-bold" style={{ color: 'var(--warm-accent)' }}>₹4,999/mo for 100+ checks</span> with multi-client dashboard.
+                    </p>
                 </div>
-            </div>
 
-            <div className="text-center max-w-3xl mx-auto mb-16">
-                <h1 className="text-4xl font-bold mb-4">Choose Your Plan</h1>
-                <p className="text-xl text-muted-foreground">
-                    Pay-as-you-go or save big with bulk credits.
-                </p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                    CA firm? Ask about our bulk plan — <span className="font-semibold text-primary">₹4,999/mo for 100+ checks</span> with multi-client dashboard.
-                </p>
-            </div>
+                {/* Main Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-7xl mx-auto scroll-reveal-stagger">
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-7xl mx-auto">
-
-                {/* Option 2: Starter Pack */}
-                <Card className="p-6 border hover:border-primary/50 transition-colors flex flex-col">
-                    <h3 className="text-lg font-bold mb-2">Starter Pack</h3>
-                    <div className="text-3xl font-bold mb-1">
-                        ₹599
-                    </div>
-                    <p className="text-sm text-green-600 font-semibold mb-4">
-                        ₹60 / check (Save 40%)
-                    </p>
-                    <p className="text-sm text-muted-foreground mb-6">
-                        10 Credits. Good for small sellers.
-                    </p>
-
-                    <PackagePurchaseButton
-                        packageType="pack_10"
-                        price={599}
-                        credits={10}
-                        title="Starter Pack"
-                        className="mb-6 border-input hover:bg-accent h-11"
-                    />
-
-                    <ul className="space-y-2 text-sm text-muted-foreground mt-auto">
-                        <li className="flex items-center gap-2"><Check className="w-4 h-4" /> Valid forever</li>
-                        <li className="flex items-center gap-2"><Check className="w-4 h-4" /> Dashboard Access</li>
-                    </ul>
-                </Card>
-
-                {/* Option 3: Pro Pack */}
-                <Card className="p-6 border-2 border-blue-200 bg-blue-50/20 flex flex-col relative">
-                    <div className="absolute top-0 right-0 bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-bl-lg uppercase">
-                        Best Value
-                    </div>
-                    <h3 className="text-lg font-bold mb-2">Growth Pack</h3>
-                    <div className="text-3xl font-bold mb-1">
-                        ₹1,999
-                    </div>
-                    <p className="text-sm text-green-600 font-semibold mb-4">
-                        ₹40 / check (Save 60%)
-                    </p>
-                    <p className="text-sm text-muted-foreground mb-6">
-                        50 Credits. For growing businesses.
-                    </p>
-
-                    <PackagePurchaseButton
-                        packageType="pack_50"
-                        price={1999}
-                        credits={50}
-                        title="Growth Pack"
-                        className="mb-6 h-11 bg-blue-600 hover:bg-blue-700 text-white"
-                    />
-
-                    <ul className="space-y-2 text-sm text-muted-foreground mt-auto">
-                        <li className="flex items-center gap-2"><Check className="w-4 h-4" /> Priority Support</li>
-                        <li className="flex items-center gap-2"><Check className="w-4 h-4" /> Export Reports</li>
-                    </ul>
-                </Card>
-
-                {/* Option 4: Power Pack */}
-                <Card className="p-6 border flex flex-col">
-                    <h3 className="text-lg font-bold mb-2">Power Pack</h3>
-                    <div className="text-3xl font-bold mb-1">
-                        ₹2,999
-                    </div>
-                    <p className="text-sm text-green-600 font-semibold mb-4">
-                        ₹30 / check (Save 70%)
-                    </p>
-                    <p className="text-sm text-muted-foreground mb-6">
-                        100 Credits. For high volume.
-                    </p>
-
-                    <PackagePurchaseButton
-                        packageType="pack_100"
-                        price={2999}
-                        credits={100}
-                        title="Power Pack"
-                        className="mb-6 border-input hover:bg-accent h-11"
-                    />
-
-                    <ul className="space-y-2 text-sm text-muted-foreground mt-auto">
-                        <li className="flex items-center gap-2"><Check className="w-4 h-4" /> Dedicated Manager</li>
-                        <li className="flex items-center gap-2"><Check className="w-4 h-4" /> API Access</li>
-                    </ul>
-                </Card>
-
-            </div>
-
-            {/* Annual Plan + CA Bulk — full-width section */}
-            <div className="max-w-7xl mx-auto mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                {/* Annual Plan */}
-                <Card className="p-8 border-2 border-indigo-300 bg-gradient-to-br from-indigo-50 to-purple-50/40 relative overflow-hidden flex flex-col">
-                    <div className="absolute top-0 right-0 bg-indigo-600 text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl uppercase tracking-wide flex items-center gap-1.5">
-                        <Star className="w-3 h-3 fill-white" /> Best for Full Year
-                    </div>
-                    <div className="flex items-center gap-2 mb-4">
-                        <div className="w-9 h-9 bg-indigo-100 rounded-lg flex items-center justify-center">
-                            <Zap className="w-5 h-5 text-indigo-600" />
+                    {/* Option 1: Starter Pack */}
+                    <div className="warm-card hover-glow-border p-8 flex flex-col">
+                        <h3 className="text-xl font-bold font-heading mb-2" style={{ color: 'var(--warm-charcoal)' }}>Starter Pack</h3>
+                        <div className="text-[2.5rem] font-bold font-heading mb-1" style={{ color: 'var(--warm-charcoal)' }}>
+                            ₹599
                         </div>
-                        <h3 className="text-xl font-bold text-indigo-900">Annual Plan</h3>
-                    </div>
+                        <p className="text-[14px] font-semibold mb-4" style={{ color: 'var(--warm-success)' }}>
+                            ₹60 / check (Save 40%)
+                        </p>
+                        <p className="text-[14px] mb-8" style={{ color: 'var(--warm-text-secondary)' }}>
+                            10 Credits. Good for small sellers.
+                        </p>
 
-                    <div className="flex items-end gap-2 mb-1">
-                        <span className="text-4xl font-black text-indigo-900">₹4,166</span>
-                        <span className="text-muted-foreground text-sm mb-1.5">/month</span>
-                    </div>
-                    <p className="text-sm text-indigo-700 font-semibold mb-1">
-                        Billed annually at <span className="line-through text-slate-400 font-normal">₹59,988</span>{' '}
-                        <span className="text-green-700">₹49,999/yr — Save ₹9,989</span>
-                    </p>
-                    <p className="text-sm text-muted-foreground mb-5">
-                        600 credits/year · Auto-refill monthly · Never expire
-                    </p>
+                        <PackagePurchaseButton
+                            packageType="pack_10"
+                            price={599}
+                            credits={10}
+                            title="Starter Pack"
+                            className="w-full btn-warm-secondary magnetic-btn mb-8 h-12"
+                        />
 
-                    {/* EMI pill */}
-                    <div className="flex items-center gap-2 bg-white border border-indigo-200 rounded-lg px-4 py-2.5 mb-6 w-fit">
-                        <CreditCard className="w-4 h-4 text-indigo-500" />
-                        <span className="text-sm font-medium text-indigo-800">EMI available via Razorpay — No Cost EMI on select cards</span>
-                    </div>
-
-                    <Link href="/contact" className="mt-auto">
-                        <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white h-11">
-                            Get Annual Plan — Contact Sales
-                        </Button>
-                    </Link>
-
-                    <ul className="space-y-2 text-sm text-muted-foreground mt-5">
-                        <li className="flex items-center gap-2"><Check className="w-4 h-4 text-indigo-500" /> 600 checks/year (50/mo)</li>
-                        <li className="flex items-center gap-2"><Check className="w-4 h-4 text-indigo-500" /> Dashboard history + PDF exports</li>
-                        <li className="flex items-center gap-2"><Check className="w-4 h-4 text-indigo-500" /> Priority email support</li>
-                        <li className="flex items-center gap-2"><Check className="w-4 h-4 text-indigo-500" /> Razorpay No Cost EMI</li>
-                    </ul>
-                </Card>
-
-                {/* CA Bulk Plan */}
-                <Card className="p-8 border-2 border-slate-200 bg-slate-50/40 relative overflow-hidden flex flex-col">
-                    <div className="absolute top-0 right-0 bg-slate-700 text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl uppercase tracking-wide">
-                        CA / Firm
-                    </div>
-                    <div className="flex items-center gap-2 mb-4">
-                        <div className="w-9 h-9 bg-slate-100 rounded-lg flex items-center justify-center">
-                            <ShieldCheck className="w-5 h-5 text-slate-600" />
-                        </div>
-                        <h3 className="text-xl font-bold text-slate-900">CA Bulk Plan</h3>
-                    </div>
-
-                    <div className="flex items-end gap-2 mb-1">
-                        <span className="text-4xl font-black text-slate-900">₹4,999</span>
-                        <span className="text-muted-foreground text-sm mb-1.5">/month</span>
-                    </div>
-                    <p className="text-sm text-green-700 font-semibold mb-1">100+ checks/month · ₹50/check</p>
-                    <p className="text-sm text-muted-foreground mb-6">
-                        Multi-client dashboard · Branded reports · Referral dashboard
-                    </p>
-
-                    <Link href="/contact" className="mt-auto">
-                        <Button variant="outline" className="w-full border-slate-300 h-11 font-semibold">
-                            Contact Us for CA Pricing
-                        </Button>
-                    </Link>
-
-                    <ul className="space-y-2 text-sm text-muted-foreground mt-5">
-                        <li className="flex items-center gap-2"><Check className="w-4 h-4" /> Multi-GSTIN dashboard</li>
-                        <li className="flex items-center gap-2"><Check className="w-4 h-4" /> Referral partner tracking</li>
-                        <li className="flex items-center gap-2"><Check className="w-4 h-4" /> Bulk CSV upload (coming Week 3)</li>
-                        <li className="flex items-center gap-2"><Check className="w-4 h-4" /> Dedicated account manager</li>
-                    </ul>
-                </Card>
-
-            </div>
-
-            {/* Monthly Subscription Plans */}
-            <div className="max-w-7xl mx-auto mt-16">
-                <div className="text-center mb-10">
-                    <h2 className="text-3xl font-bold mb-3">Monthly Subscription Plans</h2>
-                    <p className="text-muted-foreground">For CAs, firms, and businesses with recurring validation needs</p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-                    {/* CA Starter */}
-                    <Card className="p-6 border hover:border-primary/50 transition-colors flex flex-col">
-                        <h3 className="text-lg font-bold mb-2">CA Starter</h3>
-                        <div className="flex items-end gap-1 mb-1">
-                            <span className="text-3xl font-bold">₹999</span>
-                            <span className="text-muted-foreground text-sm mb-1">/month</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-6">Perfect for individual CAs</p>
-                        <Link href="/contact">
-                            <Button variant="outline" className="w-full mb-6 h-11">Get Started</Button>
-                        </Link>
-                        <ul className="space-y-2 text-sm text-muted-foreground mt-auto">
-                            <li className="flex items-center gap-2"><Check className="w-4 h-4" /> 20 invoice checks/month</li>
-                            <li className="flex items-center gap-2"><Check className="w-4 h-4" /> Email reports</li>
-                            <li className="flex items-center gap-2"><Check className="w-4 h-4" /> Priority support</li>
-                            <li className="flex items-center gap-2"><Check className="w-4 h-4" /> Credits roll over 1 month</li>
+                        <ul className="space-y-3 text-[14px] font-medium mt-auto" style={{ color: '#9E8A78' }}>
+                            <li className="flex items-center gap-3"><Check className="w-4 h-4" style={{ color: 'var(--warm-accent)' }} /> Valid forever</li>
+                            <li className="flex items-center gap-3"><Check className="w-4 h-4" style={{ color: 'var(--warm-accent)' }} /> Dashboard Access</li>
                         </ul>
-                    </Card>
+                    </div>
 
-                    {/* CA Pro */}
-                    <Card className="p-6 border-2 border-purple-200 bg-purple-50/20 flex flex-col relative">
-                        <div className="absolute top-0 right-0 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-bl-lg uppercase">
-                            Popular
+                    {/* Option 2: Growth Pack */}
+                    <div className="warm-card p-8 flex flex-col relative transform md:-translate-y-4 shadow-xl" style={{ border: '2px solid var(--warm-accent)' }}>
+                        <div className="absolute top-0 right-0 text-[11px] font-bold px-4 py-1.5 rounded-bl-2xl uppercase tracking-wider" style={{ background: 'var(--warm-accent)', color: 'white' }}>
+                            Best Value
                         </div>
-                        <h3 className="text-lg font-bold mb-2">CA Pro</h3>
-                        <div className="flex items-end gap-1 mb-1">
-                            <span className="text-3xl font-bold">₹2,499</span>
-                            <span className="text-muted-foreground text-sm mb-1">/month</span>
+                        <h3 className="text-xl font-bold font-heading mb-2" style={{ color: 'var(--warm-charcoal)' }}>Growth Pack</h3>
+                        <div className="text-[2.5rem] font-bold font-heading mb-1" style={{ color: 'var(--warm-charcoal)' }}>
+                            ₹1,999
                         </div>
-                        <p className="text-sm text-muted-foreground mb-6">For busy CA practices</p>
-                        <Link href="/contact">
-                            <Button className="w-full mb-6 h-11 bg-purple-600 hover:bg-purple-700 text-white">Get Started</Button>
-                        </Link>
-                        <ul className="space-y-2 text-sm text-muted-foreground mt-auto">
-                            <li className="flex items-center gap-2"><Check className="w-4 h-4" /> 60 invoice checks/month</li>
-                            <li className="flex items-center gap-2"><Check className="w-4 h-4" /> Bulk validation coming soon</li>
-                            <li className="flex items-center gap-2"><Check className="w-4 h-4" /> Dedicated support</li>
-                            <li className="flex items-center gap-2"><Check className="w-4 h-4" /> Credits roll over 2 months</li>
-                        </ul>
-                    </Card>
+                        <p className="text-[14px] font-semibold mb-4" style={{ color: 'var(--warm-success)' }}>
+                            ₹40 / check (Save 60%)
+                        </p>
+                        <p className="text-[14px] mb-8" style={{ color: 'var(--warm-text-secondary)' }}>
+                            50 Credits. For growing businesses.
+                        </p>
 
-                    {/* Business */}
-                    <Card className="p-6 border hover:border-primary/50 transition-colors flex flex-col">
-                        <h3 className="text-lg font-bold mb-2">Business</h3>
-                        <div className="flex items-end gap-1 mb-1">
-                            <span className="text-3xl font-bold">₹4,999</span>
-                            <span className="text-muted-foreground text-sm mb-1">/month</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-6">For firms and large businesses</p>
-                        <Link href="/contact">
-                            <Button variant="outline" className="w-full mb-6 h-11">Contact Sales</Button>
-                        </Link>
-                        <ul className="space-y-2 text-sm text-muted-foreground mt-auto">
-                            <li className="flex items-center gap-2"><Check className="w-4 h-4" /> 150 invoice checks/month</li>
-                            <li className="flex items-center gap-2"><Check className="w-4 h-4" /> Team access (3 users)</li>
-                            <li className="flex items-center gap-2"><Check className="w-4 h-4" /> API access coming soon</li>
-                            <li className="flex items-center gap-2"><Check className="w-4 h-4" /> White label reports</li>
+                        <PackagePurchaseButton
+                            packageType="pack_50"
+                            price={1999}
+                            credits={50}
+                            title="Growth Pack"
+                            className="w-full btn-warm-primary magnetic-btn mb-8 h-12 text-[15px]"
+                        />
+
+                        <ul className="space-y-3 text-[14px] font-medium mt-auto" style={{ color: '#9E8A78' }}>
+                            <li className="flex items-center gap-3"><Check className="w-4 h-4" style={{ color: 'var(--warm-accent)' }} /> Priority Support</li>
+                            <li className="flex items-center gap-3"><Check className="w-4 h-4" style={{ color: 'var(--warm-accent)' }} /> Export Reports</li>
                         </ul>
-                    </Card>
+                    </div>
+
+                    {/* Option 3: Power Pack */}
+                    <div className="warm-card hover-glow-border p-8 flex flex-col">
+                        <h3 className="text-xl font-bold font-heading mb-2" style={{ color: 'var(--warm-charcoal)' }}>Power Pack</h3>
+                        <div className="text-[2.5rem] font-bold font-heading mb-1" style={{ color: 'var(--warm-charcoal)' }}>
+                            ₹2,999
+                        </div>
+                        <p className="text-[14px] font-semibold mb-4" style={{ color: 'var(--warm-success)' }}>
+                            ₹30 / check (Save 70%)
+                        </p>
+                        <p className="text-[14px] mb-8" style={{ color: 'var(--warm-text-secondary)' }}>
+                            100 Credits. For high volume.
+                        </p>
+
+                        <PackagePurchaseButton
+                            packageType="pack_100"
+                            price={2999}
+                            credits={100}
+                            title="Power Pack"
+                            className="w-full btn-warm-secondary magnetic-btn mb-8 h-12"
+                        />
+
+                        <ul className="space-y-3 text-[14px] font-medium mt-auto" style={{ color: '#9E8A78' }}>
+                            <li className="flex items-center gap-3"><Check className="w-4 h-4" style={{ color: 'var(--warm-accent)' }} /> Dedicated Manager</li>
+                            <li className="flex items-center gap-3"><Check className="w-4 h-4" style={{ color: 'var(--warm-accent)' }} /> API Access</li>
+                        </ul>
+                    </div>
 
                 </div>
-            </div>
 
-            <div className="mt-16 text-center bg-muted/30 p-8 rounded-lg max-w-4xl mx-auto">
-                <h3 className="text-2xl font-bold mb-4">Why credits?</h3>
-                <p className="text-muted-foreground mb-6">
-                    Credits give you the flexibility to check invoices whenever you need without a monthly expiry.
-                    Unused credits roll over forever.
-                </p>
-                <Link href="/contact">
-                    <Button variant="link" className="text-primary">Have questions? Contact Sales</Button>
-                </Link>
-            </div>
+                {/* Annual Plan + CA Bulk */}
+                <div className="max-w-7xl mx-auto mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 scroll-reveal">
 
-            {/* Penalty calculator CTA */}
-            <div className="mt-8 text-center">
-                <p className="text-sm text-muted-foreground">
-                    Not sure what a mistake costs you?{' '}
-                    <Link href="/gst-penalty-calculator" className="text-primary underline font-medium hover:text-primary/80">
-                        Use our free GST Penalty Calculator →
+                    {/* Annual Plan */}
+                    <div className="warm-card p-10 relative overflow-hidden flex flex-col shadow-lg" style={{ background: 'var(--warm-charcoal)' }}>
+                        <div className="absolute inset-0 opacity-[0.05]" style={{ background: 'radial-gradient(circle at top right, var(--warm-accent), transparent 70%)' }} />
+                        <div className="absolute top-0 right-0 text-[11px] font-bold px-5 py-2 rounded-bl-2xl uppercase tracking-wider flex items-center gap-2 z-10" style={{ background: 'var(--warm-accent)', color: 'white' }}>
+                            <Star className="w-3 h-3 fill-current" /> Best for Full Year
+                        </div>
+                        
+                        <div className="relative z-10">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(250, 248, 246, 0.1)' }}>
+                                    <Zap className="w-5 h-5" style={{ color: 'var(--warm-cream)' }} />
+                                </div>
+                                <h3 className="text-2xl font-bold font-heading" style={{ color: 'white' }}>Annual Plan</h3>
+                            </div>
+
+                            <div className="flex items-end gap-2 mb-2">
+                                <span className="text-[2.75rem] font-black font-heading leading-none" style={{ color: 'var(--warm-cream)' }}>₹4,166</span>
+                                <span className="text-[15px] font-medium mb-1" style={{ color: '#B8A895' }}>/month</span>
+                            </div>
+                            <p className="text-[14px] font-semibold mb-2" style={{ color: 'var(--warm-success)' }}>
+                                Billed annually at <span className="line-through font-normal opacity-60">₹59,988</span>{' '}
+                                ₹49,999/yr — Save ₹9,989
+                            </p>
+                            <p className="text-[14px] mb-8" style={{ color: '#B8A895' }}>
+                                600 credits/year · Auto-refill monthly · Never expire
+                            </p>
+
+                            {/* EMI pill */}
+                            <div className="flex items-center gap-3 rounded-xl px-4 py-3 mb-8 w-fit" style={{ background: 'rgba(250, 248, 246, 0.05)', border: '1px solid rgba(250, 248, 246, 0.1)' }}>
+                                <CreditCard className="w-4 h-4" style={{ color: 'var(--warm-cream)' }} />
+                                <span className="text-[13px] font-medium" style={{ color: 'var(--warm-cream)' }}>EMI available via Razorpay — No Cost EMI on select cards</span>
+                            </div>
+
+                            <Link href="/contact" className="block mt-auto mb-8">
+                                <button className="w-full btn-warm-primary magnetic-btn h-12 text-[15px]">
+                                    Get Annual Plan — Contact Sales
+                                </button>
+                            </Link>
+
+                            <ul className="space-y-3 text-[14px] font-medium" style={{ color: '#9E8A78' }}>
+                                <li className="flex items-center gap-3"><Check className="w-4 h-4" style={{ color: 'var(--warm-success)' }} /> <span style={{ color: 'var(--warm-cream)' }}>600 checks/year (50/mo)</span></li>
+                                <li className="flex items-center gap-3"><Check className="w-4 h-4" style={{ color: 'var(--warm-success)' }} /> <span style={{ color: 'var(--warm-cream)' }}>Dashboard history + PDF exports</span></li>
+                                <li className="flex items-center gap-3"><Check className="w-4 h-4" style={{ color: 'var(--warm-success)' }} /> <span style={{ color: 'var(--warm-cream)' }}>Priority email support</span></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    {/* CA Bulk Plan */}
+                    <div className="warm-card p-10 relative overflow-hidden flex flex-col shadow-lg" style={{ background: '#F8F6F4' }}>
+                        <div className="absolute top-0 right-0 text-[11px] font-bold px-5 py-2 rounded-bl-2xl uppercase tracking-wider" style={{ background: 'var(--warm-charcoal)', color: 'white' }}>
+                            CA / Firm
+                        </div>
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white shadow-sm border" style={{ borderColor: 'var(--warm-border)' }}>
+                                <ShieldCheck className="w-5 h-5" style={{ color: 'var(--warm-charcoal)' }} />
+                            </div>
+                            <h3 className="text-2xl font-bold font-heading" style={{ color: 'var(--warm-charcoal)' }}>CA Bulk Plan</h3>
+                        </div>
+
+                        <div className="flex items-end gap-2 mb-2">
+                            <span className="text-[2.75rem] font-black font-heading leading-none" style={{ color: 'var(--warm-charcoal)' }}>₹4,999</span>
+                            <span className="text-[15px] font-medium mb-1" style={{ color: 'var(--warm-text-secondary)' }}>/month</span>
+                        </div>
+                        <p className="text-[14px] font-semibold mb-2" style={{ color: 'var(--warm-success)' }}>100+ checks/month · ₹50/check</p>
+                        <p className="text-[14px] mb-8" style={{ color: 'var(--warm-text-secondary)' }}>
+                            Multi-client dashboard · Branded reports · Referral dashboard
+                        </p>
+
+                        <Link href="/contact" className="block mt-auto mb-8">
+                            <button className="w-full btn-warm-secondary magnetic-btn h-12 text-[15px]" style={{ background: 'white' }}>
+                                Contact Us for CA Pricing
+                            </button>
+                        </Link>
+
+                        <ul className="space-y-3 text-[14px] font-medium" style={{ color: '#9E8A78' }}>
+                            <li className="flex items-center gap-3"><Check className="w-4 h-4" style={{ color: 'var(--warm-accent)' }} /> <span style={{ color: 'var(--warm-charcoal)' }}>Multi-GSTIN dashboard</span></li>
+                            <li className="flex items-center gap-3"><Check className="w-4 h-4" style={{ color: 'var(--warm-accent)' }} /> <span style={{ color: 'var(--warm-charcoal)' }}>Referral partner tracking</span></li>
+                            <li className="flex items-center gap-3"><Check className="w-4 h-4" style={{ color: 'var(--warm-accent)' }} /> <span style={{ color: 'var(--warm-charcoal)' }}>Bulk CSV upload (coming Week 3)</span></li>
+                        </ul>
+                    </div>
+
+                </div>
+
+                <div className="section-divider" />
+
+                {/* FAQ Style Credits Info */}
+                <div className="text-center p-12 rounded-3xl max-w-4xl mx-auto scroll-reveal" style={{ background: 'white', border: '1px solid var(--warm-border)' }}>
+                    <h3 className="text-[2rem] font-heading font-bold mb-4" style={{ color: 'var(--warm-charcoal)' }}>Why credits?</h3>
+                    <p className="text-lg mb-8" style={{ color: 'var(--warm-text-secondary)' }}>
+                        Credits give you the flexibility to check invoices whenever you need without a monthly expiry.
+                        Unused credits roll over forever.
+                    </p>
+                    <Link href="/contact">
+                        <span className="text-[15px] font-bold underline hover:no-underline" style={{ color: 'var(--warm-accent)' }}>Have questions? Contact Sales →</span>
                     </Link>
-                </p>
+                </div>
+
+                {/* Penalty calculator CTA */}
+                <div className="mt-12 text-center scroll-reveal">
+                    <p className="text-[15px] font-medium" style={{ color: '#9E8A78' }}>
+                        Not sure what a mistake costs you?{' '}
+                        <Link href="/gst-penalty-calculator" className="font-bold underline hover:no-underline" style={{ color: 'var(--warm-charcoal)' }}>
+                            Use our free GST Penalty Calculator →
+                        </Link>
+                    </p>
+                </div>
             </div>
         </div>
     );
