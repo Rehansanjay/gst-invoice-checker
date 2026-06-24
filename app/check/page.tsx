@@ -27,9 +27,7 @@ const loadRazorpayScript = (): Promise<boolean> => {
         }
         const existingScript = document.getElementById('razorpay-script');
         if (existingScript) {
-            existingScript.addEventListener('load', () => resolve(true));
-            existingScript.addEventListener('error', () => resolve(false));
-            return;
+            existingScript.remove();
         }
         const script = document.createElement('script');
         script.id = 'razorpay-script';
@@ -303,7 +301,7 @@ function CheckPageInner() {
             setProcessingStep('Opening payment...');
 
             const options = {
-                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+                key: orderData.razorpayKeyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
                 amount: orderData.amount,
                 currency: 'INR',
                 name: 'InvoiceCheck.in',

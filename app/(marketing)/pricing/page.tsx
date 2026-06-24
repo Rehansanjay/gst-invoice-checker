@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Check, AlertTriangle, ShieldCheck, Zap, CreditCard, Star } from 'lucide-react';
 import PackagePurchaseButton from '@/components/PackagePurchaseButton';
+import ScrollRevealWrapper from '@/components/ScrollRevealWrapper';
 
 export const metadata = {
     title: 'GST Invoice Checker Pricing — ₹99 Per Check | InvoiceCheck.in',
@@ -10,7 +11,7 @@ export const metadata = {
 
 export default function PricingPage() {
     return (
-        <div className="min-h-screen py-24 md:py-32" style={{ background: 'var(--warm-bg)' }}>
+        <ScrollRevealWrapper className="min-h-screen py-24 md:py-32" style={{ background: 'var(--warm-bg)' }}>
             <div className="container mx-auto px-5 sm:px-6 lg:px-8">
                 
                 {/* Loss-aversion penalty banner */}
@@ -248,6 +249,6 @@ export default function PricingPage() {
                     </p>
                 </div>
             </div>
-        </div>
+        </ScrollRevealWrapper>
     );
 }

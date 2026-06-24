@@ -85,8 +85,8 @@ export default function SignupPage() {
     // Show loading while checking auth
     if (authLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-900">
-                <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+            <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--warm-bg)' }}>
+                <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--warm-accent)' }} />
             </div>
         );
     }
@@ -97,55 +97,55 @@ export default function SignupPage() {
     }
 
     return (
-        <div className="min-h-screen grid lg:grid-cols-2 bg-slate-900">
-            {/* Left Side - Branding & Info (Similar to Login but blue theme) */}
-            <div className="hidden lg:flex flex-col justify-center p-12 bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900 relative overflow-hidden">
+        <div className="min-h-screen grid lg:grid-cols-2" style={{ background: 'var(--warm-bg)' }}>
+            {/* Left Side - Branding & Info */}
+            <div className="hidden lg:flex flex-col justify-center p-12 relative overflow-hidden" style={{ background: 'var(--warm-charcoal)' }}>
                 {/* Background Decoration */}
-                <div className="absolute inset-0 opacity-20">
-                    <div className="absolute top-20 right-20 w-64 h-64 bg-blue-600 rounded-full blur-3xl"></div>
-                    <div className="absolute bottom-20 left-20 w-96 h-96 bg-purple-600 rounded-full blur-3xl"></div>
+                <div className="absolute inset-0 opacity-[0.12]">
+                    <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, #9E542F 0%, transparent 70%)' }}></div>
+                    <div className="absolute -bottom-48 -right-24 w-[400px] h-[400px] rounded-full" style={{ background: 'radial-gradient(circle, #C4B5A3 0%, transparent 70%)' }}></div>
                 </div>
 
                 {/* Grid Pattern */}
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(to right, var(--warm-cream) 1px, transparent 1px), linear-gradient(to bottom, var(--warm-cream) 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
 
                 <div className="relative z-10 max-w-lg">
-                    <Link href="/" className="inline-flex items-center gap-2 text-white/80 hover:text-white mb-8 transition-colors">
+                    <Link href="/" className="inline-flex items-center gap-2 mb-8 transition-colors" style={{ color: '#B8A895' }}>
                         <ArrowLeft className="w-4 h-4" />
                         Back to Home
                     </Link>
 
-                    <h1 className="text-5xl font-bold text-white mb-6">
+                    <h1 className="text-[3rem] leading-[1.1] font-heading font-bold mb-6" style={{ color: 'var(--warm-cream)' }}>
                         Start Validating
                         <br />
-                        <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                        <span style={{ color: 'var(--warm-accent)' }}>
                             Invoices Today
                         </span>
                     </h1>
 
-                    <p className="text-xl text-blue-100 mb-12">
+                    <p className="text-[1.125rem] mb-12" style={{ color: '#B8A895' }}>
                         Join thousands of businesses ensuring 100% GST compliance with AI-powered checks.
                     </p>
 
                     {/* Features */}
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-3 text-white/90">
-                            <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                                <Zap className="w-5 h-5 text-blue-400" />
+                    <div className="space-y-5">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl flex items-center justify-center backdrop-blur-sm" style={{ background: 'rgba(250, 248, 246, 0.1)' }}>
+                                <Zap className="w-5 h-5" style={{ color: 'var(--warm-accent)' }} />
                             </div>
                             <div>
-                                <p className="font-semibold">Get Started in Seconds</p>
-                                <p className="text-sm text-blue-200">No credit card required for trial</p>
+                                <p className="font-semibold text-[15px]" style={{ color: 'var(--warm-cream)' }}>Get Started in Seconds</p>
+                                <p className="text-[13.5px]" style={{ color: '#B8A895' }}>No credit card required for trial</p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3 text-white/90">
-                            <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                                <ShieldCheck className="w-5 h-5 text-green-400" />
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl flex items-center justify-center backdrop-blur-sm" style={{ background: 'rgba(250, 248, 246, 0.1)' }}>
+                                <ShieldCheck className="w-5 h-5" style={{ color: 'var(--warm-success)' }} />
                             </div>
                             <div>
-                                <p className=" font-semibold">Bank-Grade Security</p>
-                                <p className="text-sm text-blue-200">Your data is encrypted & safe</p>
+                                <p className="font-semibold text-[15px]" style={{ color: 'var(--warm-cream)' }}>Bank-Grade Security</p>
+                                <p className="text-[13.5px]" style={{ color: '#B8A895' }}>Your data is encrypted & safe</p>
                             </div>
                         </div>
                     </div>
@@ -153,28 +153,28 @@ export default function SignupPage() {
             </div>
 
             {/* Right Side - Signup Form */}
-            <div className="flex items-center justify-center p-6 bg-slate-50">
+            <div className="flex items-center justify-center p-6" style={{ background: 'var(--warm-bg)' }}>
                 <div className="w-full max-w-md">
                     {/* Mobile: Back Button */}
-                    <Link href="/" className="inline-flex lg:hidden items-center gap-2 text-slate-600 hover:text-slate-900 mb-6 transition-colors">
+                    <Link href="/" className="inline-flex lg:hidden items-center gap-2 mb-6 transition-colors" style={{ color: 'var(--warm-text-secondary)' }}>
                         <ArrowLeft className="w-4 h-4" />
                         Back to Home
                     </Link>
 
-                    <Card className="p-8 shadow-xl border-0">
+                    <Card className="warm-card p-8 border-0">
                         {/* Header */}
                         <div className="text-center mb-8">
-                            <h2 className="text-3xl font-bold text-slate-900 mb-2">Create Account</h2>
-                            <p className="text-slate-600">Join us and start validating invoices</p>
+                            <h2 className="text-[2rem] font-heading font-bold mb-2" style={{ color: 'var(--warm-charcoal)' }}>Create Account</h2>
+                            <p className="text-[15px]" style={{ color: 'var(--warm-text-secondary)' }}>Join us and start validating invoices</p>
                         </div>
 
                         {successMessage && (
-                            <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-4 rounded-lg text-center animate-in fade-in slide-in-from-top-2">
-                                <Check className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                                <p className="font-medium">{successMessage}</p>
-                                <p className="text-sm mt-2">
+                            <div className="mb-6 px-4 py-4 rounded-lg text-center animate-in fade-in slide-in-from-top-2" style={{ background: '#E6F4EA', border: '1px solid #CEEAD6', color: 'var(--warm-success)' }}>
+                                <Check className="w-8 h-8 mx-auto mb-2" />
+                                <p className="font-medium text-[15px]">{successMessage}</p>
+                                <p className="text-[14px] mt-2 text-[#0D652D]">
                                     Already confirmed?{' '}
-                                    <Link href="/login" className="font-semibold text-green-800 hover:underline">
+                                    <Link href="/login" className="font-semibold hover:opacity-80" style={{ color: '#0D652D', textDecoration: 'underline' }}>
                                         Sign In here
                                     </Link>
                                 </p>
@@ -182,16 +182,16 @@ export default function SignupPage() {
                         )}
 
                         {error && (
-                            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-                                <X className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-                                <p className="text-sm text-red-600">{error}</p>
+                            <div className="mb-6 p-4 rounded-lg flex items-start gap-3" style={{ background: '#FDF5F4', border: '1px solid #FADEDC' }}>
+                                <X className="w-5 h-5 shrink-0 mt-0.5" style={{ color: 'var(--warm-danger)' }} />
+                                <p className="text-sm" style={{ color: 'var(--warm-danger)' }}>{error}</p>
                             </div>
                         )}
 
                         {!successMessage && (
                             <form onSubmit={handleSubmit} className="space-y-6">
                                 <div className="space-y-2">
-                                    <Label htmlFor="fullName">Full Name</Label>
+                                    <Label htmlFor="fullName" style={{ color: 'var(--warm-charcoal)' }} className="font-medium">Full Name</Label>
                                     <Input
                                         id="fullName"
                                         type="text"
@@ -200,12 +200,13 @@ export default function SignupPage() {
                                         onChange={(e) => setFullName(e.target.value)}
                                         required
                                         disabled={loading}
-                                        className="h-11"
+                                        className="h-12 bg-white transition-colors"
+                                        style={{ borderColor: 'var(--warm-border)' }}
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="email">Email</Label>
+                                    <Label htmlFor="email" style={{ color: 'var(--warm-charcoal)' }} className="font-medium">Email</Label>
                                     <Input
                                         id="email"
                                         type="email"
@@ -214,12 +215,13 @@ export default function SignupPage() {
                                         onChange={(e) => setEmail(e.target.value)}
                                         required
                                         disabled={loading}
-                                        className="h-11"
+                                        className="h-12 bg-white transition-colors"
+                                        style={{ borderColor: 'var(--warm-border)' }}
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="password">Password</Label>
+                                    <Label htmlFor="password" style={{ color: 'var(--warm-charcoal)' }} className="font-medium">Password</Label>
                                     <PasswordInput
                                         id="password"
                                         placeholder="Create a strong password"
@@ -227,40 +229,29 @@ export default function SignupPage() {
                                         onChange={handlePasswordChange}
                                         required
                                         disabled={loading}
-                                        className="h-11"
+                                        className="h-12 bg-white transition-colors"
+                                        style={{ borderColor: 'var(--warm-border)' }}
                                     />
 
                                     {/* Real-time Password Strength Indicators */}
-                                    <div className="grid grid-cols-1 gap-2 mt-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
-                                        <div className={cn("flex items-center gap-2 text-xs transition-colors duration-300",
-                                            validations.minLength ? "text-green-600 font-medium" : "text-slate-500"
-                                        )}>
-                                            <div className={cn("w-4 h-4 rounded-full flex items-center justify-center border",
-                                                validations.minLength ? "bg-green-100 border-green-600" : "border-slate-300"
-                                            )}>
-                                                {validations.minLength && <Check className="w-2.5 h-2.5" />}
+                                    <div className="grid grid-cols-1 gap-2 mt-3 p-3 rounded-lg border" style={{ background: 'var(--warm-bg-alt)', borderColor: 'var(--warm-border)' }}>
+                                        <div className="flex items-center gap-2 text-[13px] transition-colors duration-300" style={{ color: validations.minLength ? 'var(--warm-success)' : 'var(--warm-text-secondary)', fontWeight: validations.minLength ? 500 : 400 }}>
+                                            <div className="w-4 h-4 rounded-full flex items-center justify-center border" style={{ background: validations.minLength ? '#E6F4EA' : 'transparent', borderColor: validations.minLength ? 'var(--warm-success)' : 'var(--warm-border)' }}>
+                                                {validations.minLength && <Check className="w-2.5 h-2.5" style={{ color: 'var(--warm-success)' }} />}
                                             </div>
                                             Min 8 characters
                                         </div>
 
-                                        <div className={cn("flex items-center gap-2 text-xs transition-colors duration-300",
-                                            validations.hasUpperCase ? "text-green-600 font-medium" : "text-slate-500"
-                                        )}>
-                                            <div className={cn("w-4 h-4 rounded-full flex items-center justify-center border",
-                                                validations.hasUpperCase ? "bg-green-100 border-green-600" : "border-slate-300"
-                                            )}>
-                                                {validations.hasUpperCase && <Check className="w-2.5 h-2.5" />}
+                                        <div className="flex items-center gap-2 text-[13px] transition-colors duration-300" style={{ color: validations.hasUpperCase ? 'var(--warm-success)' : 'var(--warm-text-secondary)', fontWeight: validations.hasUpperCase ? 500 : 400 }}>
+                                            <div className="w-4 h-4 rounded-full flex items-center justify-center border" style={{ background: validations.hasUpperCase ? '#E6F4EA' : 'transparent', borderColor: validations.hasUpperCase ? 'var(--warm-success)' : 'var(--warm-border)' }}>
+                                                {validations.hasUpperCase && <Check className="w-2.5 h-2.5" style={{ color: 'var(--warm-success)' }} />}
                                             </div>
                                             At least 1 Uppercase letter (A-Z)
                                         </div>
 
-                                        <div className={cn("flex items-center gap-2 text-xs transition-colors duration-300",
-                                            validations.hasSpecialChar ? "text-green-600 font-medium" : "text-slate-500"
-                                        )}>
-                                            <div className={cn("w-4 h-4 rounded-full flex items-center justify-center border",
-                                                validations.hasSpecialChar ? "bg-green-100 border-green-600" : "border-slate-300"
-                                            )}>
-                                                {validations.hasSpecialChar && <Check className="w-2.5 h-2.5" />}
+                                        <div className="flex items-center gap-2 text-[13px] transition-colors duration-300" style={{ color: validations.hasSpecialChar ? 'var(--warm-success)' : 'var(--warm-text-secondary)', fontWeight: validations.hasSpecialChar ? 500 : 400 }}>
+                                            <div className="w-4 h-4 rounded-full flex items-center justify-center border" style={{ background: validations.hasSpecialChar ? '#E6F4EA' : 'transparent', borderColor: validations.hasSpecialChar ? 'var(--warm-success)' : 'var(--warm-border)' }}>
+                                                {validations.hasSpecialChar && <Check className="w-2.5 h-2.5" style={{ color: 'var(--warm-success)' }} />}
                                             </div>
                                             At least 1 Special character (@$!%*?&)
                                         </div>
@@ -268,7 +259,7 @@ export default function SignupPage() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="confirmPassword">Confirm Password</Label>
+                                    <Label htmlFor="confirmPassword" style={{ color: 'var(--warm-charcoal)' }} className="font-medium">Confirm Password</Label>
                                     <PasswordInput
                                         id="confirmPassword"
                                         placeholder="Re-enter password"
@@ -276,12 +267,13 @@ export default function SignupPage() {
                                         onChange={(e) => setConfirmPassword(e.target.value)}
                                         required
                                         disabled={loading}
-                                        className="h-11"
+                                        className="h-12 bg-white transition-colors"
+                                        style={{ borderColor: 'var(--warm-border)' }}
                                     />
                                 </div>
 
                                 <Button
-                                    className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-base shadow-lg transition-all hover:scale-[1.01]"
+                                    className="w-full btn-warm-primary magnetic-btn h-12 text-[15px]"
                                     type="submit"
                                     disabled={loading}
                                 >
@@ -298,10 +290,10 @@ export default function SignupPage() {
                         )}
 
                         {/* Sign In Link */}
-                        <div className="mt-8 text-center text-sm">
-                            <p className="text-slate-600">
+                        <div className="mt-8 text-center text-[15px]">
+                            <p style={{ color: 'var(--warm-text-secondary)' }}>
                                 Already have an account?{' '}
-                                <Link href="/login" className="font-semibold text-blue-600 hover:underline">
+                                <Link href="/login" className="font-semibold hover:opacity-80" style={{ color: 'var(--warm-accent)' }}>
                                     Sign In
                                 </Link>
                             </p>

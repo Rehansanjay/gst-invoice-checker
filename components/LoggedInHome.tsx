@@ -3,13 +3,15 @@
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import { ArrowRight, Plus, UploadCloud, Zap, FileJson, Calculator, Activity } from 'lucide-react';
+import { useScrollReveal } from '@/lib/useScrollReveal';
 
 export default function LoggedInHome() {
     const { user } = useAuth();
     const userName = user?.email?.split('@')[0] || 'User';
+    const scrollRef = useScrollReveal();
 
     return (
-        <div className="min-h-screen flex flex-col" style={{ background: 'var(--warm-bg)' }}>
+        <div ref={scrollRef as any} className="min-h-screen flex flex-col" style={{ background: 'var(--warm-bg)' }}>
             {/* 1. Feature Hero Section */}
             <section className="relative py-24 md:py-32 flex-1 flex flex-col justify-center overflow-hidden">
                 <div className="absolute inset-0 opacity-[0.03]" style={{ background: 'radial-gradient(circle at 50% 50%, var(--warm-charcoal), transparent 70%)' }} />

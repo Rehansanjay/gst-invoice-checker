@@ -190,18 +190,7 @@ export default function Home() {
   const router = useRouter();
   const scrollRef = useScrollReveal();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--warm-bg)' }}>
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 rounded-xl animate-pulse" style={{ background: 'var(--warm-border)' }} />
-          <div className="h-3 w-32 rounded-full animate-pulse" style={{ background: 'var(--warm-border)' }} />
-        </div>
-      </div>
-    );
-  }
-
-  if (user) {
+  if (!loading && user) {
     return <LoggedInHome />;
   }
 

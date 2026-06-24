@@ -10,6 +10,7 @@ import {
     XCircle, CheckCircle2, Info, Lightbulb, BookOpen,
     User, Briefcase, ChevronDown, ChevronRight, FileText,
 } from 'lucide-react';
+import { useScrollReveal } from '@/lib/useScrollReveal';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type CalcResult = {
@@ -80,6 +81,7 @@ function GstPenaltyCalculatorInner() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const audience = searchParams.get('audience') === 'ca' ? 'ca' : 'seller';
+    const scrollRef = useScrollReveal();
 
     const [taxLiability, setTaxLiability] = useState('');
     const [delayDays, setDelayDays] = useState('');
@@ -153,7 +155,7 @@ function GstPenaltyCalculatorInner() {
     })();
 
     return (
-        <div className="min-h-screen py-16" style={{ background: 'var(--warm-bg)' }}>
+        <div ref={scrollRef as any} className="min-h-screen py-16" style={{ background: 'var(--warm-bg)' }}>
             <div className="container mx-auto px-4 max-w-3xl">
 
                 {/* Hero */}

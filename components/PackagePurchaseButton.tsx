@@ -78,8 +78,29 @@ export default function PackagePurchaseButton({
                 throw new Error(data.error || 'Failed to initiate purchase');
             }
 
+            const loadRazorpayScript = (): Promise<boolean> => {
+                return new Promise((resolve) => {
+                    if (window.Razorpay) return resolve(true);
+                    const existingScript = document.getElementById('razorpay-script');
+                    if (existingScript) {
+                        existingScript.remove();
+                    }
+                    const script = document.createElement('script');
+                    script.id = 'razorpay-script';
+                    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+                    script.async = true;
+                    script.onload = () => resolve(true);
+                    script.onerror = () => resolve(false);
+                    document.body.appendChild(script);
+                });
+            };
+
             if (!window.Razorpay) {
-                throw new Error('Razorpay SDK not loaded');
+                await loadRazorpayScript();
+            }
+
+            if (!window.Razorpay) {
+                throw new Error('Razorpay SDK failed to load. Please refresh or disable adblock.');
             }
 
             const options = {
@@ -128,11 +149,6 @@ export default function PackagePurchaseButton({
 
     return (
         <div className="w-full space-y-3">
-            <Script
-                id="razorpay-checkout-js"
-                src="https://checkout.razorpay.com/v1/checkout.js"
-            />
-
             <div className="flex gap-2">
                 <div className="relative flex-1">
                     <Tag className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
