@@ -96,6 +96,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             success: true,
             orderId: order.id,
+            amount: 9900,
             checkId: check.id,
             paymentId: payment.id,
             razorpayKeyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,

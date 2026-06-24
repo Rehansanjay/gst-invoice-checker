@@ -29,8 +29,8 @@ export default function LoginPage() {
     // Show loading while checking auth
     if (authLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-900">
-                <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+            <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--warm-bg)' }}>
+                <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--warm-accent)' }} />
             </div>
         );
     }
@@ -56,65 +56,65 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen grid lg:grid-cols-2 bg-slate-900">
+        <div className="min-h-screen grid lg:grid-cols-2" style={{ background: 'var(--warm-bg)' }}>
             {/* Left Side - Branding & Info */}
-            <div className="hidden lg:flex flex-col justify-center p-12 bg-gradient-to-br from-purple-900 via-indigo-900 to-slate-900 relative overflow-hidden">
+            <div className="hidden lg:flex flex-col justify-center p-12 relative overflow-hidden" style={{ background: 'var(--warm-charcoal)' }}>
                 {/* Background Decoration */}
-                <div className="absolute inset-0 opacity-20">
-                    <div className="absolute top-20 left-20 w-64 h-64 bg-purple-600 rounded-full blur-3xl"></div>
-                    <div className="absolute bottom-20 right-20 w-96 h-96 bg-indigo-600 rounded-full blur-3xl"></div>
+                <div className="absolute inset-0 opacity-[0.12]">
+                    <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, #9E542F 0%, transparent 70%)' }}></div>
+                    <div className="absolute -bottom-48 -right-24 w-[400px] h-[400px] rounded-full" style={{ background: 'radial-gradient(circle, #C4B5A3 0%, transparent 70%)' }}></div>
                 </div>
 
                 {/* Grid Pattern */}
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(to right, var(--warm-cream) 1px, transparent 1px), linear-gradient(to bottom, var(--warm-cream) 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
 
                 <div className="relative z-10 max-w-lg">
-                    <Link href="/" className="inline-flex items-center gap-2 text-white/80 hover:text-white mb-8 transition-colors">
+                    <Link href="/" className="inline-flex items-center gap-2 mb-8 transition-colors" style={{ color: '#B8A895' }}>
                         <ArrowLeft className="w-4 h-4" />
                         Back to Home
                     </Link>
 
-                    <h1 className="text-5xl font-bold text-white mb-6">
+                    <h1 className="text-[3rem] leading-[1.1] font-heading font-bold mb-6" style={{ color: 'var(--warm-cream)' }}>
                         Welcome Back to
                         <br />
-                        <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                        <span style={{ color: 'var(--warm-accent)' }}>
                             InvoiceCheck.in
                         </span>
                     </h1>
 
-                    <p className="text-xl text-purple-200 mb-12">
+                    <p className="text-[1.125rem] mb-12" style={{ color: '#B8A895' }}>
                         Access your dashboard and continue validating invoices with ease.
                     </p>
 
                     {/* Features */}
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-3 text-white/90">
-                            <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                                <Zap className="w-5 h-5 text-purple-400" />
+                    <div className="space-y-5">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl flex items-center justify-center backdrop-blur-sm" style={{ background: 'rgba(250, 248, 246, 0.1)' }}>
+                                <Zap className="w-5 h-5" style={{ color: 'var(--warm-accent)' }} />
                             </div>
                             <div>
-                                <p className="font-semibold">15 Second Validation</p>
-                                <p className="text-sm text-purple-200">Lightning-fast invoice checking</p>
+                                <p className="font-semibold text-[15px]" style={{ color: 'var(--warm-cream)' }}>15 Second Validation</p>
+                                <p className="text-[13.5px]" style={{ color: '#B8A895' }}>Lightning-fast invoice checking</p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3 text-white/90">
-                            <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                                <ShieldCheck className="w-5 h-5 text-green-400" />
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl flex items-center justify-center backdrop-blur-sm" style={{ background: 'rgba(250, 248, 246, 0.1)' }}>
+                                <ShieldCheck className="w-5 h-5" style={{ color: 'var(--warm-success)' }} />
                             </div>
                             <div>
-                                <p className=" font-semibold">11 GST Checks</p>
-                                <p className="text-sm text-purple-200">100% accuracy guaranteed</p>
+                                <p className="font-semibold text-[15px]" style={{ color: 'var(--warm-cream)' }}>11 GST Checks</p>
+                                <p className="text-[13.5px]" style={{ color: '#B8A895' }}>100% accuracy guaranteed</p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3 text-white/90">
-                            <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                                <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl flex items-center justify-center backdrop-blur-sm" style={{ background: 'rgba(250, 248, 246, 0.1)' }}>
+                                <Star className="w-5 h-5 fill-current" style={{ color: '#D4A056' }} />
                             </div>
                             <div>
-                                <p className="font-semibold">Loved by Sellers</p>
-                                <p className="text-sm text-purple-200">4.2/5 rating from users</p>
+                                <p className="font-semibold text-[15px]" style={{ color: 'var(--warm-cream)' }}>Loved by Sellers</p>
+                                <p className="text-[13.5px]" style={{ color: '#B8A895' }}>4.2/5 rating from users</p>
                             </div>
                         </div>
                     </div>
@@ -122,32 +122,32 @@ export default function LoginPage() {
             </div>
 
             {/* Right Side - Login Form */}
-            <div className="flex items-center justify-center p-6 bg-slate-50">
+            <div className="flex items-center justify-center p-6" style={{ background: 'var(--warm-bg)' }}>
                 <div className="w-full max-w-md">
                     {/* Mobile: Back Button */}
-                    <Link href="/" className="inline-flex lg:hidden items-center gap-2 text-slate-600 hover:text-slate-900 mb-6 transition-colors">
+                    <Link href="/" className="inline-flex lg:hidden items-center gap-2 mb-6 transition-colors" style={{ color: 'var(--warm-text-secondary)' }}>
                         <ArrowLeft className="w-4 h-4" />
                         Back to Home
                     </Link>
 
-                    <Card className="p-8 shadow-xl border-0">
+                    <Card className="warm-card p-8 border-0">
                         {/* Header */}
                         <div className="text-center mb-8">
-                            <h2 className="text-3xl font-bold text-slate-900 mb-2">Sign In</h2>
-                            <p className="text-slate-600">Welcome back! Please enter your details</p>
+                            <h2 className="text-[2rem] font-heading font-bold mb-2" style={{ color: 'var(--warm-charcoal)' }}>Sign In</h2>
+                            <p className="text-[15px]" style={{ color: 'var(--warm-text-secondary)' }}>Welcome back! Please enter your details</p>
                         </div>
 
                         {/* Error Alert */}
                         {error && (
-                            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                                <p className="text-sm text-red-600">{error}</p>
+                            <div className="mb-6 p-4 rounded-lg" style={{ background: '#FDF5F4', border: '1px solid #FADEDC' }}>
+                                <p className="text-sm" style={{ color: 'var(--warm-danger)' }}>{error}</p>
                             </div>
                         )}
 
                         {/* Form */}
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-2">
-                                <Label htmlFor="email" className="text-slate-700 font-medium">Email</Label>
+                                <Label htmlFor="email" style={{ color: 'var(--warm-charcoal)' }} className="font-medium">Email</Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -155,14 +155,15 @@ export default function LoginPage() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
-                                    className="h-12 bg-white border-slate-300 focus:border-purple-500 focus:ring-purple-500"
+                                    className="h-12 bg-white transition-colors"
+                                    style={{ borderColor: 'var(--warm-border)' }}
                                 />
                             </div>
 
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                    <Label htmlFor="password" className="text-slate-700 font-medium">Password</Label>
-                                    <Link href="/forgot-password" className="text-sm text-purple-600 hover:text-purple-700 font-medium">
+                                    <Label htmlFor="password" style={{ color: 'var(--warm-charcoal)' }} className="font-medium">Password</Label>
+                                    <Link href="/forgot-password" className="text-sm font-medium hover:opacity-80" style={{ color: 'var(--warm-accent)' }}>
                                         Forgot?
                                     </Link>
                                 </div>
@@ -172,14 +173,15 @@ export default function LoginPage() {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
-                                    className="h-12 bg-white border-slate-300 focus:border-purple-500 focus:ring-purple-500"
+                                    className="h-12 bg-white transition-colors"
+                                    style={{ borderColor: 'var(--warm-border)' }}
                                 />
                             </div>
 
                             <Button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full h-12 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold text-base shadow-lg"
+                                className="w-full btn-warm-primary magnetic-btn h-12 text-[15px]"
                             >
                                 {loading ? (
                                     <>
@@ -194,28 +196,28 @@ export default function LoginPage() {
 
                         {/* Divider */}
                         <div className="my-8 flex items-center gap-4">
-                            <div className="flex-1 border-t border-slate-300"></div>
-                            <span className="text-sm text-slate-500 font-medium">OR</span>
-                            <div className="flex-1 border-t border-slate-300"></div>
+                            <div className="flex-1" style={{ borderTop: '1px solid var(--warm-border)' }}></div>
+                            <span className="text-[13px] font-medium" style={{ color: 'var(--warm-text-secondary)' }}>OR</span>
+                            <div className="flex-1" style={{ borderTop: '1px solid var(--warm-border)' }}></div>
                         </div>
 
                         {/* Sign Up Link */}
                         <div className="text-center">
-                            <p className="text-slate-600">
+                            <p className="text-[15px]" style={{ color: 'var(--warm-text-secondary)' }}>
                                 Don't have an account?{' '}
-                                <Link href="/signup" className="text-purple-600 hover:text-purple-700 font-semibold">
+                                <Link href="/signup" className="font-semibold hover:opacity-80" style={{ color: 'var(--warm-accent)' }}>
                                     Sign up for free
                                 </Link>
                             </p>
                         </div>
 
                         {/* Quick Check Option */}
-                        <div className="mt-6 p-4 bg-slate-100 rounded-lg text-center">
-                            <p className="text-sm text-slate-700 mb-2">
+                        <div className="mt-6 p-4 rounded-xl text-center" style={{ background: 'var(--warm-bg-alt)' }}>
+                            <p className="text-[14px] mb-2" style={{ color: 'var(--warm-charcoal)' }}>
                                 Need a one-time check?
                             </p>
                             <Link href="/check">
-                                <Button variant="outline" className="w-full border-slate-300 hover:bg-white">
+                                <Button className="w-full btn-warm-secondary bg-white h-11 text-[14px]">
                                     Quick Check (₹99)
                                 </Button>
                             </Link>
@@ -223,7 +225,7 @@ export default function LoginPage() {
                     </Card>
 
                     {/* Trust Bar */}
-                    <div className="flex items-center justify-center gap-6 mt-6 text-xs text-muted-foreground">
+                    <div className="flex items-center justify-center gap-6 mt-6 text-[13px] font-medium" style={{ color: 'var(--warm-text-secondary)' }}>
                         <span>✅ 500+ invoices checked</span>
                         <span>✅ Trusted by CAs</span>
                         <span>✅ 100% secure</span>
@@ -231,17 +233,17 @@ export default function LoginPage() {
 
                     {/* Mobile: Features */}
                     <div className="lg:hidden mt-8 space-y-3 px-4">
-                        <div className="flex items-center gap-3 text-slate-700">
-                            <Zap className="w-5 h-5 text-purple-600" />
-                            <span className="text-sm">15 second validation</span>
+                        <div className="flex items-center gap-3">
+                            <Zap className="w-5 h-5" style={{ color: 'var(--warm-accent)' }} />
+                            <span className="text-[14.5px]" style={{ color: 'var(--warm-charcoal)' }}>15 second validation</span>
                         </div>
-                        <div className="flex items-center gap-3 text-slate-700">
-                            <ShieldCheck className="w-5 h-5 text-green-600" />
-                            <span className="text-sm">11 GST checks</span>
+                        <div className="flex items-center gap-3">
+                            <ShieldCheck className="w-5 h-5" style={{ color: 'var(--warm-success)' }} />
+                            <span className="text-[14.5px]" style={{ color: 'var(--warm-charcoal)' }}>11 GST checks</span>
                         </div>
-                        <div className="flex items-center gap-3 text-slate-700">
-                            <Star className="w-5 h-5 text-yellow-500 fill-current" />
-                            <span className="text-sm">4.2/5 rating</span>
+                        <div className="flex items-center gap-3">
+                            <Star className="w-5 h-5 fill-current" style={{ color: '#D4A056' }} />
+                            <span className="text-[14.5px]" style={{ color: 'var(--warm-charcoal)' }}>4.2/5 rating</span>
                         </div>
                     </div>
                 </div>
