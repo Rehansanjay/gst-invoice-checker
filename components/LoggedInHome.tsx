@@ -1,84 +1,90 @@
 'use client';
 
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth-context';
-import { ArrowRight, Plus, UploadCloud, Zap, FileJson, Calculator } from 'lucide-react';
+import { ArrowRight, Plus, UploadCloud, Zap, FileJson, Calculator, Activity } from 'lucide-react';
 
 export default function LoggedInHome() {
     const { user } = useAuth();
     const userName = user?.email?.split('@')[0] || 'User';
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col">
+        <div className="min-h-screen flex flex-col" style={{ background: 'var(--warm-bg)' }}>
             {/* 1. Feature Hero Section */}
-            <section className="bg-white border-b py-20 flex-1 flex flex-col justify-center">
-                <div className="container mx-auto px-4 text-center max-w-4xl">
-                    <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 tracking-tight">
-                        Welcome back, <span className="text-purple-600">{userName}</span>
+            <section className="relative py-24 md:py-32 flex-1 flex flex-col justify-center overflow-hidden">
+                <div className="absolute inset-0 opacity-[0.03]" style={{ background: 'radial-gradient(circle at 50% 50%, var(--warm-charcoal), transparent 70%)' }} />
+                
+                <div className="container mx-auto px-5 relative z-10 max-w-5xl text-center scroll-reveal">
+                    <span className="pill-badge mb-6 hover-glow-border cursor-default inline-flex">
+                        <Activity className="w-4 h-4 mr-1.5" style={{ color: 'var(--warm-success)' }} />
+                        System Online
+                    </span>
+                    <h1 className="text-[3rem] md:text-[4rem] leading-[1.05] font-heading font-bold mb-6" style={{ color: 'var(--warm-charcoal)' }}>
+                        Welcome back, <span style={{ color: 'var(--warm-accent)' }}>{userName}</span>
                     </h1>
-                    <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
-                        Ready to check your invoices? Our AI is standing by to find errors for you.
+                    <p className="text-[1.25rem] mb-12 max-w-2xl mx-auto" style={{ color: 'var(--warm-text-secondary)' }}>
+                        Ready to check your invoices? Our validation engine is standing by to find errors for you.
                     </p>
 
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                        <Link href="/check">
-                            <Button size="lg" className="h-16 px-8 text-lg gap-3 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all bg-gradient-to-r from-purple-600 to-indigo-600 border-0">
+                        <Link href="/check" className="w-full sm:w-auto">
+                            <button className="w-full btn-warm-primary magnetic-btn h-16 px-10 text-[18px] flex items-center justify-center gap-3">
                                 <Plus className="w-6 h-6" /> Check Your Invoice
-                            </Button>
+                            </button>
                         </Link>
-                        <Link href="/dashboard">
-                            <Button size="lg" variant="outline" className="h-16 px-8 text-lg gap-3 border-2 hover:bg-slate-50">
+                        <Link href="/dashboard" className="w-full sm:w-auto">
+                            <button className="w-full btn-warm-secondary magnetic-btn h-16 px-8 text-[16px] flex items-center justify-center gap-3">
                                 Go to Dashboard <ArrowRight className="w-5 h-5" />
-                            </Button>
+                            </button>
                         </Link>
-                        <Link href="/gst-penalty-calculator">
-                            <Button size="lg" variant="ghost" className="h-16 px-6 text-base gap-2 border border-amber-300 text-amber-700 hover:bg-amber-50">
-                                <Calculator className="w-5 h-5" /> Penalty Calculator
-                            </Button>
+                    </div>
+                    
+                    <div className="mt-6">
+                        <Link href="/gst-penalty-calculator" className="inline-flex items-center gap-2 text-[14px] font-bold hover:opacity-80 transition-opacity" style={{ color: 'var(--warm-accent)' }}>
+                            <Calculator className="w-4 h-4" /> Use Penalty Calculator →
                         </Link>
                     </div>
                 </div>
             </section>
 
             {/* 2. Simple Usage Guide */}
-            <section className="py-16 bg-slate-50">
-                <div className="container mx-auto px-4 max-w-5xl">
-                    <div className="text-center mb-12">
-                        <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-2">How it Works</h2>
-                        <p className="text-2xl font-semibold text-slate-900">Validating your invoice is simple</p>
+            <section className="py-24 relative" style={{ background: '#F8F6F4' }}>
+                <div className="container mx-auto px-5 max-w-6xl scroll-reveal">
+                    <div className="text-center mb-16">
+                        <h2 className="text-[12px] font-bold uppercase tracking-widest mb-3" style={{ color: 'var(--warm-text-secondary)' }}>How it Works</h2>
+                        <p className="text-[2rem] font-bold font-heading" style={{ color: 'var(--warm-charcoal)' }}>Validating your invoice is simple</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
                         {/* Connecting Lines for Desktop */}
-                        <div className="hidden md:block absolute top-[40%] left-[20%] w-[25%] border-t-2 border-slate-200 border-dashed -z-10"></div>
-                        <div className="hidden md:block absolute top-[40%] right-[20%] w-[25%] border-t-2 border-slate-200 border-dashed -z-10"></div>
+                        <div className="hidden md:block absolute top-[40%] left-[20%] w-[25%] border-t-2 border-dashed -z-10" style={{ borderColor: 'var(--warm-border)' }}></div>
+                        <div className="hidden md:block absolute top-[40%] right-[20%] w-[25%] border-t-2 border-dashed -z-10" style={{ borderColor: 'var(--warm-border)' }}></div>
 
                         {/* Step 1 */}
-                        <div className="flex flex-col items-center text-center group">
-                            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-sm border group-hover:border-purple-200 group-hover:shadow-md transition-all">
-                                <UploadCloud className="w-8 h-8 text-slate-400 group-hover:text-purple-600 transition-colors" />
+                        <div className="warm-card p-8 flex flex-col items-center text-center transition-all hover:-translate-y-2 hover:shadow-xl group">
+                            <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-sm border transition-all" style={{ borderColor: 'var(--warm-border)' }}>
+                                <UploadCloud className="w-10 h-10 transition-colors" style={{ color: 'var(--warm-accent)' }} />
                             </div>
-                            <h3 className="font-semibold text-lg mb-2 text-slate-900">1. Upload Invoice</h3>
-                            <p className="text-sm text-muted-foreground max-w-[200px]">Upload any PDF or image invoice you want to check.</p>
+                            <h3 className="font-bold font-heading text-xl mb-3" style={{ color: 'var(--warm-charcoal)' }}>1. Upload Invoice</h3>
+                            <p className="text-[15px]" style={{ color: 'var(--warm-text-secondary)' }}>Upload any PDF or image invoice you want to check.</p>
                         </div>
 
                         {/* Step 2 */}
-                        <div className="flex flex-col items-center text-center group">
-                            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-sm border group-hover:border-blue-200 group-hover:shadow-md transition-all">
-                                <Zap className="w-8 h-8 text-slate-400 group-hover:text-blue-600 transition-colors" />
+                        <div className="warm-card p-8 flex flex-col items-center text-center transition-all hover:-translate-y-2 hover:shadow-xl group" style={{ borderColor: 'var(--warm-accent)' }}>
+                            <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6 shadow-sm border transition-all" style={{ background: 'var(--warm-accent)', borderColor: 'var(--warm-accent)' }}>
+                                <Zap className="w-10 h-10 text-white transition-colors" />
                             </div>
-                            <h3 className="font-semibold text-lg mb-2 text-slate-900">2. AI Validation</h3>
-                            <p className="text-sm text-muted-foreground max-w-[200px]">We instantly scan for 11+ types of common GST errors.</p>
+                            <h3 className="font-bold font-heading text-xl mb-3" style={{ color: 'var(--warm-charcoal)' }}>2. AI Validation</h3>
+                            <p className="text-[15px]" style={{ color: 'var(--warm-text-secondary)' }}>We instantly scan for 11+ types of common GST errors.</p>
                         </div>
 
                         {/* Step 3 */}
-                        <div className="flex flex-col items-center text-center group">
-                            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-sm border group-hover:border-green-200 group-hover:shadow-md transition-all">
-                                <FileJson className="w-8 h-8 text-slate-400 group-hover:text-green-600 transition-colors" />
+                        <div className="warm-card p-8 flex flex-col items-center text-center transition-all hover:-translate-y-2 hover:shadow-xl group">
+                            <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-sm border transition-all" style={{ borderColor: 'var(--warm-border)' }}>
+                                <FileJson className="w-10 h-10 transition-colors" style={{ color: 'var(--warm-success)' }} />
                             </div>
-                            <h3 className="font-semibold text-lg mb-2 text-slate-900">3. View Report</h3>
-                            <p className="text-sm text-muted-foreground max-w-[200px]">See exactly what to fix to avoid payment rejections.</p>
+                            <h3 className="font-bold font-heading text-xl mb-3" style={{ color: 'var(--warm-charcoal)' }}>3. View Report</h3>
+                            <p className="text-[15px]" style={{ color: 'var(--warm-text-secondary)' }}>See exactly what to fix to avoid payment rejections.</p>
                         </div>
                     </div>
                 </div>
