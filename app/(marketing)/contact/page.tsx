@@ -1,5 +1,13 @@
+import type { Metadata } from 'next';
 import { Card } from '@/components/ui/card';
 import { Mail, Clock, FileText, HelpCircle, CheckCircle2 } from 'lucide-react';
+
+export const metadata: Metadata = {
+    title: 'Contact InvoiceCheck.in — Support, Billing & Refunds',
+    description:
+        'Get in touch about a validation result, a refund, billing, or a technical issue. Email support for InvoiceCheck.in, with typical response times.',
+    alternates: { canonical: '/contact' },
+};
 
 export default function ContactPage() {
     return (

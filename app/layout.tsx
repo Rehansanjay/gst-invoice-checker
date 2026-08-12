@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "sonner";
 import { GoogleAnalytics } from '@next/third-parties/google';
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const inter = Inter({
@@ -39,15 +40,15 @@ export const metadata: Metadata = {
   icons: {
     icon: "/invoicecheck-logo.svg",
   },
-  metadataBase: new URL("https://invoicecheck.in"),
+  metadataBase: new URL(SITE_URL),
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
     locale: "en_IN",
-    url: "https://invoicecheck.in",
-    siteName: "InvoiceCheck.in",
+    url: SITE_URL,
+    siteName: SITE_NAME,
     title: "GST Invoice Checker — Catch Errors Before Submission",
     description: "Validate your GST invoices in 15 seconds. 11-point compliance check covering GSTIN, HSN, tax math, Place of Supply & more. Avoid marketplace payment holds.",
     images: [
@@ -92,8 +93,8 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebApplication",
-              "name": "InvoiceCheck.in",
-              "url": "https://invoicecheck.in",
+              "name": SITE_NAME,
+              "url": SITE_URL,
               "description": "Online GST invoice checker and validator for Indian sellers and businesses. Validates GSTIN, HSN codes, tax calculations, Place of Supply, and e-invoice compliance.",
               "applicationCategory": "BusinessApplication",
               "operatingSystem": "Web",

@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
     title: 'Privacy Policy — InvoiceCheck.in',
     description: 'Privacy Policy for InvoiceCheck.in — learn how we collect, use, and protect your data when you use our GST invoice validation service.',
+    alternates: { canonical: '/privacy' },
 };
 
 export default function PrivacyPage() {

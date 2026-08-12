@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
     title: 'Terms of Service — InvoiceCheck.in',
     description: 'Terms of Service for InvoiceCheck.in. Please read these terms carefully before using our GST invoice validation service.',
+    alternates: { canonical: '/terms' },
 };
 
 export default function TermsPage() {
