@@ -1,5 +1,13 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+
+export const metadata: Metadata = {
+    title: 'About InvoiceCheck.in — Built for Indian E-commerce Sellers',
+    description:
+        'Why we built a GST invoice validator: Indian sellers lose payouts to minor compliance errors, and a CA check per invoice is too slow and too expensive. Our mission, and how we handle your data.',
+    alternates: { canonical: '/about' },
+};
 
 export default function AboutPage() {
     return (

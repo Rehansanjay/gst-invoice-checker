@@ -12,6 +12,7 @@ const navLinks = [
     { href: '/', label: 'Home' },
     { href: '/pricing', label: 'Pricing' },
     { href: '/gst-penalty-calculator', label: 'Penalty Calc', highlight: true },
+    { href: '/guides', label: 'Guides' },
     { href: '/about', label: 'About' },
     { href: '/faq', label: 'FAQ' },
     { href: '/contact', label: 'Contact' },

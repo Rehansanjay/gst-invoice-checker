@@ -1,3 +1,12 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+    title: 'Refund & Cancellation Policy — InvoiceCheck.in',
+    description:
+        'Our refund and cancellation policy: 48-hour satisfaction guarantee on validation reports, eligibility, how to request a refund, and processing times.',
+    alternates: { canonical: '/refund' },
+};
+
 export default function RefundPage() {
     return (
         <div className="container mx-auto px-4 py-16">
