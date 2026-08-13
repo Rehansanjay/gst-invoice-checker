@@ -36,4 +36,17 @@ export const invoiceDataSchema = z.object({
     taxableTotalAmount: z.number().min(0).max(999999999999),
     totalTaxAmount: z.number().min(0).max(999999999999),
     invoiceTotalAmount: z.number().min(0).max(999999999999),
+
+    // ── Compliance fields ────────────────────────────────────────────
+    // InvoiceForm collects all three, but z.object() strips unknown keys,
+    // so omitting them here silently dropped them before validation ran:
+    // every invoice reported "Place of Supply Not Specified" even when the
+    // user had filled it in, the bill-of-supply / export branches of the
+    // invoice-type rule were unreachable, and the reverse-charge rule never
+    // fired. See placeOfSupplyRule / invoiceTypeRule / reverseChargeRule.
+    invoiceType: z
+        .enum(['tax_invoice', 'bill_of_supply', 'credit_note', 'debit_note', 'export_invoice'])
+        .optional(),
+    placeOfSupply: z.string().max(2).optional().or(z.literal('')),
+    reverseCharge: z.boolean().optional(),
 });

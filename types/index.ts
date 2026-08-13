@@ -123,6 +123,45 @@ export interface ScoreBreakdown {
   totalDeduction: number;
 }
 
+/**
+ * A withheld issue, as shown to an unpaid visitor. Carries only enough to prove
+ * the check is real — the category and what failed. Everything actionable
+ * (description, expected/found values, howToFix, impact) stays behind payment.
+ */
+export interface LockedIssueSummary {
+  id: string;
+  severity: 'critical' | 'warning' | 'info';
+  category: string;
+  title: string;
+}
+
+/**
+ * The one issue explained for free. The dividing line is deliberate: the visitor
+ * is told what is wrong and what their invoice currently says (`found`), but not
+ * what it should say (`expected`, `difference`) or how to correct it
+ * (`howToFix`). Diagnosis is free, the remedy is paid.
+ *
+ * These fields are stripped server-side, not merely hidden in the UI — the
+ * withheld values never reach the browser.
+ */
+export type RevealedIssue = Omit<ValidationIssue, 'howToFix' | 'expected' | 'difference'>;
+
+/**
+ * Free preview payload. One issue is revealed so the visitor can verify the tool
+ * found something real; the remainder are named but locked.
+ */
+export interface PreviewResult {
+  healthScore: number;
+  riskLevel: 'low' | 'medium' | 'high';
+  scoreBreakdown: ScoreBreakdown;
+  processingTimeMs: number;
+  timestamp: string;
+  revealedIssue: RevealedIssue | null;
+  lockedIssues: LockedIssueSummary[];
+  passedCount: number;
+  totalCheckCount: number;
+}
+
 export const VALID_GST_RATES = [0, 0.25, 3, 5, 12, 18, 28] as const;
 export const VALID_STATE_CODES = [
   '01', '02', '03', '04', '05', '06', '07', '08', '09', '10',

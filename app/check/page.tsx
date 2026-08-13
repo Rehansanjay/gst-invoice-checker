@@ -6,10 +6,10 @@ import { ArrowLeft, Upload, X, ZoomIn, FileImage, Lock, CreditCard, Loader2, Spa
 import InvoiceForm from '@/components/InvoiceForm';
 import ReportViewer from '@/components/ReportViewer';
 import ProcessingView from '@/components/ProcessingView';
-import BlurredReportPreview from '@/components/BlurredReportPreview';
+import CheckResultPreview from '@/components/CheckResultPreview';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ParsedInvoice, ValidationResult } from '@/types';
+import { ParsedInvoice, ValidationResult, PreviewResult } from '@/types';
 import { useAuth } from '@/lib/auth-context';
 import { toast } from 'sonner';
 
@@ -51,7 +51,7 @@ function CheckPageInner() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
-    const [previewResult, setPreviewResult] = useState<Partial<ValidationResult> | null>(null);
+    const [previewResult, setPreviewResult] = useState<PreviewResult | null>(null);
     const [invoiceDataForPayment, setInvoiceDataForPayment] = useState<ParsedInvoice | null>(null);
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const [imageName, setImageName] = useState<string>('');
@@ -440,10 +440,11 @@ function CheckPageInner() {
                 ) : validationResult ? (
                     <ReportViewer result={validationResult} />
                 ) : previewResult ? (
-                    <BlurredReportPreview
+                    <CheckResultPreview
                         result={previewResult}
                         onUnlock={handleUnlockReport}
                         isProcessing={isProcessing}
+                        invoiceTotal={invoiceDataForPayment?.invoiceTotalAmount}
                     />
                 ) : (
                     <>
