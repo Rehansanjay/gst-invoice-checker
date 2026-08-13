@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
         console.log('Razorpay order created:', order.id);
 
         // Step 2: Create payment record
-        const { data: payment } = await supabaseAdmin
+        const { data: payment, error: paymentError } = await supabaseAdmin
             .from('payments')
             .insert({
                 razorpay_order_id: order.id,
@@ -67,8 +67,19 @@ export async function POST(request: NextRequest) {
             .select()
             .single();
 
+        // Without this the failure surfaces as `payment.id` throwing a
+        // TypeError, caught below as a generic "Failed to create check" — which
+        // tells neither the user nor Sentry that the DB write was the problem.
+        if (paymentError || !payment) {
+            console.error('Payment record insert failed:', paymentError);
+            return NextResponse.json(
+                { error: 'Could not start payment. Please try again.' },
+                { status: 500 }
+            );
+        }
+
         // Step 3: Create check record (pending) — with attribution
-        const { data: check } = await supabaseAdmin
+        const { data: check, error: checkError } = await supabaseAdmin
             .from('checks')
             .insert({
                 check_type: 'quick',
@@ -92,6 +103,14 @@ export async function POST(request: NextRequest) {
             })
             .select()
             .single();
+
+        if (checkError || !check) {
+            console.error('Check record insert failed:', checkError);
+            return NextResponse.json(
+                { error: 'Could not start payment. Please try again.' },
+                { status: 500 }
+            );
+        }
 
         return NextResponse.json({
             success: true,
