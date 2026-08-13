@@ -39,18 +39,60 @@ export async function POST(request: NextRequest) {
         const { invoiceData, guestEmail, utm_source, utm_medium, utm_campaign, ref_code } = result.data;
 
         // Step 1: Create Razorpay order
-        console.log('Init Razorpay with key:', process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ? 'Present' : 'Missing');
+        // Fail loudly and specifically if credentials are absent — previously a
+        // missing secret produced an opaque auth error from the SDK, caught by
+        // the generic handler below as "Failed to create check".
+        const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+        const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
-        const razorpay = new Razorpay({
-            key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
-            key_secret: process.env.RAZORPAY_KEY_SECRET!,
-        });
+        if (!keyId || !keySecret) {
+            console.error(
+                `Razorpay credentials missing — key_id: ${keyId ? 'present' : 'MISSING'}, ` +
+                `key_secret: ${keySecret ? 'present' : 'MISSING'}`
+            );
+            return NextResponse.json(
+                { error: 'Payment gateway is not configured. Please contact support.', code: 'GATEWAY_NOT_CONFIGURED' },
+                { status: 503 }
+            );
+        }
 
-        const order = await razorpay.orders.create({
-            amount: 9900, // ₹99 in paisa
-            currency: 'INR',
-            receipt: `quick_${Date.now()}`,
-        });
+        const razorpay = new Razorpay({ key_id: keyId, key_secret: keySecret });
+
+        let order;
+        try {
+            order = await razorpay.orders.create({
+                amount: 9900, // ₹99 in paisa
+                currency: 'INR',
+                receipt: `quick_${Date.now()}`,
+            });
+        } catch (rzpError: unknown) {
+            // Razorpay SDK errors carry statusCode and error.description — the
+            // actual reason (unactivated account, bad credentials, amount limits)
+            // lives here and was previously discarded.
+            const e = rzpError as {
+                statusCode?: number;
+                error?: { code?: string; description?: string; reason?: string };
+                message?: string;
+            };
+            console.error('Razorpay order creation failed:', {
+                statusCode: e?.statusCode,
+                code: e?.error?.code,
+                description: e?.error?.description,
+                reason: e?.error?.reason,
+                message: e?.message,
+                keyMode: keyId.startsWith('rzp_live_') ? 'live' : 'test',
+            });
+            return NextResponse.json(
+                {
+                    error: 'Could not reach the payment gateway. Please try again shortly.',
+                    code: 'GATEWAY_ORDER_FAILED',
+                    // Safe to expose: Razorpay's own description, no credentials.
+                    reason: e?.error?.description ?? null,
+                },
+                { status: 502 }
+            );
+        }
+
         console.log('Razorpay order created:', order.id);
 
         // Step 2: Create payment record
