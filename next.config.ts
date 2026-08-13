@@ -16,9 +16,33 @@ const securityHeaders = [
   // Force HTTPS for 1 year (production only — safe on Vercel)
   { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
   // Content Security Policy — restrict resource loading to prevent XSS
+  //
+  // Every third party we actually load must be listed here or the browser
+  // silently refuses it. Two things were missing and failing in production:
+  //
+  //   1. googletagmanager.com — the GA tag renders in the HTML but was blocked,
+  //      so no analytics were ever collected.
+  //   2. cdn.razorpay.com — Razorpay's checkout.js pulls its risk-detection
+  //      bundle, fonts and icons from cdn, not from checkout. Blocking it
+  //      breaks fraud checks and leaves the payment modal half-rendered.
+  //
+  // Razorpay also frames from checkout.razorpay.com as well as api.razorpay.com.
   {
     key: "Content-Security-Policy",
-    value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://*.sentry.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co https://*.razorpay.com https://*.sentry.io; frame-src https://api.razorpay.com;",
+    value: [
+      "default-src 'self'",
+      // GTM/GA + both Razorpay script hosts
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://cdn.razorpay.com https://*.googletagmanager.com https://*.sentry.io",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      // framerusercontent hosts the "Season Mix" heading face (see globals.css);
+      // blocked, every heading silently fell back to Georgia/Times.
+      "font-src 'self' https://fonts.gstatic.com https://framerusercontent.com https://*.razorpay.com",
+      // GA beacons are sent as image requests; Razorpay serves modal icons from cdn
+      "img-src 'self' data: blob: https://*.razorpay.com https://*.google-analytics.com https://*.googletagmanager.com",
+      "connect-src 'self' https://*.supabase.co https://*.razorpay.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.sentry.io",
+      // The checkout modal itself is an iframe
+      "frame-src https://api.razorpay.com https://checkout.razorpay.com https://*.razorpay.com",
+    ].join("; ") + ";",
   },
 ];
 
