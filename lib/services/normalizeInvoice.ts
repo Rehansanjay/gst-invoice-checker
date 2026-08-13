@@ -17,6 +17,12 @@ export function normalizeInvoice(raw: ParsedInvoice): ParsedInvoice {
         taxableTotalAmount: roundMoney(raw.taxableTotalAmount),
         totalTaxAmount: roundMoney(raw.totalTaxAmount),
         invoiceTotalAmount: roundMoney(raw.invoiceTotalAmount),
+        // Compliance fields must survive normalization — this function rebuilds
+        // the invoice field-by-field, so anything omitted here is dropped before
+        // the rules run, regardless of what the request schema accepted.
+        invoiceType: raw.invoiceType,
+        placeOfSupply: raw.placeOfSupply?.trim() || undefined,
+        reverseCharge: raw.reverseCharge,
     };
 }
 
