@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Upload, X, ZoomIn, FileImage, Lock, CreditCard, Loader2, Sparkles, Zap } from 'lucide-react';
 import InvoiceForm from '@/components/InvoiceForm';
 import ReportViewer from '@/components/ReportViewer';
-import ProcessingView from '@/components/ProcessingView';
+import ProcessingView, { type ProcessingMode } from '@/components/ProcessingView';
 import CheckResultPreview from '@/components/CheckResultPreview';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -57,6 +57,9 @@ function CheckPageInner() {
     const [imageName, setImageName] = useState<string>('');
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [processingStep, setProcessingStep] = useState<string>('');
+    // Drives which copy ProcessingView shows — the free validation flow has no
+    // payment step and must not claim one.
+    const [processingMode, setProcessingMode] = useState<ProcessingMode>('validate');
     const [outOfCredits, setOutOfCredits] = useState(false);
     const [isOcrLoading, setIsOcrLoading] = useState(false);
     const [extractedData, setExtractedData] = useState<Partial<ParsedInvoice> | null>(null);
@@ -191,6 +194,9 @@ function CheckPageInner() {
         }
 
         setIsProcessing(true);
+        // Reset from any earlier unlock attempt, so a re-check after an
+        // abandoned or failed payment does not show payment copy.
+        setProcessingMode('validate');
         setProcessingStep('Starting...');
 
         try {
@@ -264,6 +270,7 @@ function CheckPageInner() {
         }
 
         setIsProcessing(true);
+        setProcessingMode('payment');
         setProcessingStep('Initializing payment...');
 
         try {
@@ -416,7 +423,7 @@ function CheckPageInner() {
             <main className="container mx-auto px-4 py-8">
                 {isProcessing ? (
                     <div className="flex flex-col items-center justify-center min-h-[60vh]">
-                        <ProcessingView />
+                        <ProcessingView mode={processingMode} />
                         <p className="mt-4 text-muted-foreground animate-pulse">{processingStep}</p>
                     </div>
                 ) : outOfCredits ? (
