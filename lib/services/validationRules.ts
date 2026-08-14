@@ -15,8 +15,14 @@ export const gstinFormatRule: ValidationRule = {
     gstLawRef: 'Section 25 of CGST Act 2017 — Registration',
     execute: (invoice) => {
         const issues: ValidationIssue[] = [];
-        const check = (gstin: string, label: string) => {
+        // `required` is false for the buyer: a B2C sale to an unregistered
+        // customer and an export invoice both legitimately carry no buyer
+        // GSTIN. Flagging those as critical made every such invoice fail — a
+        // large share of a seller's book, and an instant credibility loss with
+        // anyone who checks the tool against their own correct invoices.
+        const check = (gstin: string, label: string, required: boolean) => {
             if (!gstin || gstin.trim() === '') {
+                if (!required) return;
                 issues.push({
                     id: `gstin-missing-${label.toLowerCase()}`,
                     ruleId: 'RULE_GSTIN_FORMAT',
@@ -68,8 +74,8 @@ export const gstinFormatRule: ValidationRule = {
             }
         };
 
-        check(invoice.supplierGSTIN, 'Supplier');
-        check(invoice.buyerGSTIN, 'Buyer');
+        check(invoice.supplierGSTIN, 'Supplier', true);
+        check(invoice.buyerGSTIN, 'Buyer', false);
         return issues;
     },
 };
@@ -150,8 +156,24 @@ export const taxTypeRule: ValidationRule = {
     gstLawRef: 'Section 7 of IGST Act 2017 — Interstate Supply',
     execute: (invoice) => {
         const issues: ValidationIssue[] = [];
+
+        // Place of supply — not the buyer's GSTIN — is what legally decides
+        // whether a supply is inter-state (Sections 7/8, IGST Act). When it is
+        // present, RULE_PLACE_OF_SUPPLY performs this check against the correct
+        // determinant, so running here as well produced two critical findings
+        // for a single defect: inflating the issue count and double-deducting
+        // from the score. This rule is now only a fallback for invoices with no
+        // place of supply recorded.
+        if (invoice.placeOfSupply) return issues;
+
         const supplierState = invoice.supplierGSTIN.substring(0, 2);
         const buyerState = invoice.buyerGSTIN.substring(0, 2);
+
+        // With neither a place of supply nor a buyer GSTIN — a B2C or export
+        // invoice — the destination state is unknowable, so asserting the tax
+        // type is wrong would be a guess.
+        if (!buyerState) return issues;
+
         const isSameState = supplierState === buyerState;
 
         invoice.lineItems.forEach((item, index) => {
@@ -236,6 +258,12 @@ export const gstCalculationRule: ValidationRule = {
     gstLawRef: 'Section 15 of CGST Act — Value of Taxable Supply',
     execute: (invoice) => {
         const issues: ValidationIssue[] = [];
+
+        // Under reverse charge the supplier states the applicable rate but
+        // collects no tax, so taxable × rate deliberately does not equal the
+        // amount charged. Asserting a calculation error here flagged every
+        // correct RCM invoice. RULE_REVERSE_CHARGE owns that case.
+        if (invoice.reverseCharge === true) return issues;
 
         invoice.lineItems.forEach((item, index) => {
             const expectedTax = (item.taxableAmount * item.taxRate) / 100;
@@ -376,19 +404,24 @@ export const invoiceNumberRule: ValidationRule = {
             }];
         }
 
-        if (invoice.invoiceNumber.length > 50) {
+        // Rule 46(b) of the CGST Rules caps an invoice number at 16 characters,
+        // and the portal rejects anything longer with RET191115. This check
+        // previously allowed 50 while its own howToFix and law reference both
+        // said 16 — so the most common form of this error (a concatenated
+        // branch/year/sequence) passed silently.
+        if (invoice.invoiceNumber.length > 16) {
             return [{
                 id: 'invoice-number-too-long',
                 ruleId: 'RULE_INVOICE_NUMBER',
-                severity: 'warning',
+                severity: 'critical',
                 category: 'Invoice Number',
                 title: 'Invoice Number Too Long',
-                description: `Invoice number is ${invoice.invoiceNumber.length} characters (max 50)`,
+                description: `Invoice number is ${invoice.invoiceNumber.length} characters (max 16)`,
                 found: `${invoice.invoiceNumber.length} characters`,
-                expected: 'Maximum 50 characters',
-                howToFix: 'Shorten invoice number. GST portal allows max 16 chars in GSTR-1.',
-                impact: 'May be truncated during GSTR-1 filing.',
-                gstLawContext: 'GSTR-1 portal field allows max 16 characters for invoice number.',
+                expected: 'Maximum 16 characters',
+                howToFix: 'Shorten the invoice number to 16 characters or fewer. Concatenated branch/year/sequence numbering is the usual cause.',
+                impact: 'GSTR-1 upload will be rejected with error RET191115.',
+                gstLawContext: 'Rule 46(b) of CGST Rules 2017: invoice number must not exceed 16 characters.',
             }];
         }
 

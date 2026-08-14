@@ -211,16 +211,23 @@ export default function PricingPage() {
                             Multi-client dashboard · Branded reports · Referral dashboard
                         </p>
 
-                        <Link href="/contact" className="block mt-auto mb-8">
-                            <button className="w-full btn-warm-secondary magnetic-btn h-12 text-[15px]" style={{ background: 'white' }}>
-                                Contact Us for CA Pricing
-                            </button>
-                        </Link>
+                        <div className="mt-auto mb-8 space-y-3">
+                            <Link href="/bulk" className="block">
+                                <button className="w-full btn-warm-primary magnetic-btn h-12 text-[15px]">
+                                    Try bulk check — free
+                                </button>
+                            </Link>
+                            <Link href="/contact" className="block">
+                                <button className="w-full btn-warm-secondary magnetic-btn h-12 text-[15px]" style={{ background: 'white' }}>
+                                    Contact Us for CA Pricing
+                                </button>
+                            </Link>
+                        </div>
 
                         <ul className="space-y-3 text-[14px] font-medium" style={{ color: '#9E8A78' }}>
                             <li className="flex items-center gap-3"><Check className="w-4 h-4" style={{ color: 'var(--warm-accent)' }} /> <span style={{ color: 'var(--warm-charcoal)' }}>Multi-GSTIN dashboard</span></li>
                             <li className="flex items-center gap-3"><Check className="w-4 h-4" style={{ color: 'var(--warm-accent)' }} /> <span style={{ color: 'var(--warm-charcoal)' }}>Referral partner tracking</span></li>
-                            <li className="flex items-center gap-3"><Check className="w-4 h-4" style={{ color: 'var(--warm-accent)' }} /> <span style={{ color: 'var(--warm-charcoal)' }}>Bulk CSV upload (coming Week 3)</span></li>
+                            <li className="flex items-center gap-3"><Check className="w-4 h-4" style={{ color: 'var(--warm-accent)' }} /> <span style={{ color: 'var(--warm-charcoal)' }}>Bulk CSV upload — live now, free to try</span></li>
                         </ul>
                     </div>
 

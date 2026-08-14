@@ -15,7 +15,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "GST Invoice Checker Online — Validate GST Invoices in 15 Seconds | InvoiceCheck.in",
-  description: "Free online GST invoice checker. Validate GSTIN, HSN codes, tax calculations & e-invoice compliance before submission. Catch errors that cause Amazon/Flipkart payment holds. 11-point validation for ₹99. Trusted by Indian sellers.",
+  description: "Free online GST invoice checker. Validate GSTIN, HSN codes, tax calculations & e-invoice compliance before submission. Catch errors that cause Amazon/Flipkart payment holds. 15-point validation for ₹99.",
   keywords: [
     "GST invoice checker",
     "GST invoice validator",
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
     url: SITE_URL,
     siteName: SITE_NAME,
     title: "GST Invoice Checker — Catch Errors Before Submission",
-    description: "Validate your GST invoices in 15 seconds. 11-point compliance check covering GSTIN, HSN, tax math, Place of Supply & more. Avoid marketplace payment holds.",
+    description: "Validate your GST invoices in 15 seconds. 15-point compliance check covering GSTIN, HSN, tax math, Place of Supply & more. Avoid marketplace payment holds.",
     images: [
       {
         url: "/og-image.png",
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "GST Invoice Checker — Validate in 15 Seconds | InvoiceCheck.in",
-    description: "Free GST invoice validation tool. Catch errors before Amazon/Flipkart rejects your payment. 11-point check for ₹99.",
+    description: "Free GST invoice validation tool. Catch errors before Amazon/Flipkart rejects your payment. 15-point check for ₹99.",
     images: ["/og-image.png"],
   },
   robots: {
@@ -107,18 +107,25 @@ export default function RootLayout({
               // No aggregateRating: we have no collected reviews. Declaring one
               // is a Google structured-data policy violation and risks a manual
               // action. Add this back only when real reviews exist to back it.
+              // Mirrors the 15 rules in ALL_RULES (lib/services/validationRules.ts).
+              // Keep in step with that registry — this list previously named 11
+              // features, some of which no rule implemented.
               "featureList": [
                 "GSTIN Format Validation",
-                "HSN/SAC Code Verification",
-                "Tax Rate & Calculation Check",
+                "State Code Validation",
+                "Duplicate GSTIN Detection",
+                "Tax Type Logic (CGST/SGST vs IGST)",
+                "GST Rate Validity",
+                "GST Amount Calculation",
+                "CGST/SGST Equal Split",
+                "HSN Code Validation",
+                "Invoice Number Validation",
+                "Invoice Date Validation",
+                "Taxable Amount Sum",
+                "Invoice Total Calculation",
                 "Place of Supply Validation",
-                "E-Invoice Compliance Check",
-                "Reverse Charge Mechanism Check",
-                "ITC Eligibility Assessment",
-                "Invoice Date & Period Validation",
-                "Mandatory Field Completeness Check",
-                "Inter-State vs Intra-State Tax Verification",
-                "Overall Compliance Health Score"
+                "Invoice Type Compliance",
+                "Reverse Charge Mechanism (RCM)"
               ]
             }),
           }}
@@ -135,7 +142,7 @@ export default function RootLayout({
                   "name": "How to check if a GST invoice is correct?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "Use InvoiceCheck.in to validate your GST invoice in 15 seconds. Enter your invoice details (GSTIN, HSN code, tax amounts) and our tool runs 11 compliance checks covering GSTIN format, tax calculations, Place of Supply, and more."
+                    "text": "Use InvoiceCheck.in to validate your GST invoice in 15 seconds. Enter your invoice details (GSTIN, HSN code, tax amounts) and our tool runs 15 compliance checks covering GSTIN format, tax calculations, Place of Supply, and more."
                   }
                 },
                 {

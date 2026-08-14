@@ -103,7 +103,7 @@ export default function LoginPage() {
                                 <ShieldCheck className="w-5 h-5" style={{ color: 'var(--warm-success)' }} />
                             </div>
                             <div>
-                                <p className="font-semibold text-[15px]" style={{ color: 'var(--warm-cream)' }}>11 GST Checks</p>
+                                <p className="font-semibold text-[15px]" style={{ color: 'var(--warm-cream)' }}>15 GST Checks</p>
                                 <p className="text-[13.5px]" style={{ color: '#B8A895' }}>100% accuracy guaranteed</p>
                             </div>
                         </div>
@@ -239,7 +239,7 @@ export default function LoginPage() {
                         </div>
                         <div className="flex items-center gap-3">
                             <ShieldCheck className="w-5 h-5" style={{ color: 'var(--warm-success)' }} />
-                            <span className="text-[14.5px]" style={{ color: 'var(--warm-charcoal)' }}>11 GST checks</span>
+                            <span className="text-[14.5px]" style={{ color: 'var(--warm-charcoal)' }}>15 GST checks</span>
                         </div>
                         <div className="flex items-center gap-3">
                             <Star className="w-5 h-5 fill-current" style={{ color: '#D4A056' }} />
