@@ -104,12 +104,9 @@ export default function RootLayout({
                 "priceCurrency": "INR",
                 "description": "Per invoice validation check"
               },
-              "aggregateRating": {
-                "@type": "AggregateRating",
-                "ratingValue": "4.2",
-                "reviewCount": "50",
-                "bestRating": "5"
-              },
+              // No aggregateRating: we have no collected reviews. Declaring one
+              // is a Google structured-data policy violation and risks a manual
+              // action. Add this back only when real reviews exist to back it.
               "featureList": [
                 "GSTIN Format Validation",
                 "HSN/SAC Code Verification",

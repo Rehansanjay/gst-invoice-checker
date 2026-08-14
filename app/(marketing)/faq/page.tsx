@@ -16,7 +16,7 @@ export default function FAQPage() {
                     <AccordionItem value="item-1">
                         <AccordionTrigger>Is my invoice data safe?</AccordionTrigger>
                         <AccordionContent>
-                            Yes, absolutely. We use bank-grade encryption to process your invoice. We do not store your invoice details permanently unless you create an account. Your data is deleted from our cache after 24 hours.
+                            A free check is processed in memory and is never written to our database — we keep nothing from it. A paid check is different: we store the invoice details so you can re-open, download and email that report later, and so it appears in your dashboard history if you have an account. Data is encrypted in transit and at rest, we never sell it or use it to train AI models, and you can ask us to delete a stored check at any time by emailing privacy@invoicecheck.in. See our Privacy Policy for the full retention position.
                         </AccordionContent>
                     </AccordionItem>
 

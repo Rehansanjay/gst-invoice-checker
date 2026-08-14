@@ -113,8 +113,8 @@ export default function LoginPage() {
                                 <Star className="w-5 h-5 fill-current" style={{ color: '#D4A056' }} />
                             </div>
                             <div>
-                                <p className="font-semibold text-[15px]" style={{ color: 'var(--warm-cream)' }}>Loved by Sellers</p>
-                                <p className="text-[13.5px]" style={{ color: '#B8A895' }}>4.2/5 rating from users</p>
+                                <p className="font-semibold text-[15px]" style={{ color: 'var(--warm-cream)' }}>Grounded in the Act</p>
+                                <p className="text-[13.5px]" style={{ color: '#B8A895' }}>Every issue cites its GST section</p>
                             </div>
                         </div>
                     </div>
@@ -243,7 +243,7 @@ export default function LoginPage() {
                         </div>
                         <div className="flex items-center gap-3">
                             <Star className="w-5 h-5 fill-current" style={{ color: '#D4A056' }} />
-                            <span className="text-[14.5px]" style={{ color: 'var(--warm-charcoal)' }}>4.2/5 rating</span>
+                            <span className="text-[14.5px]" style={{ color: 'var(--warm-charcoal)' }}>Cites the GST section</span>
                         </div>
                     </div>
                 </div>
