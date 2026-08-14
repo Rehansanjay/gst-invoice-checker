@@ -3,15 +3,18 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
-import { Menu, X, User, LogOut, LayoutDashboard, Calculator } from 'lucide-react';
+import { Menu, X, User, LogOut, LayoutDashboard, Calculator, FileSpreadsheet, type LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth-context';
 import { LogoutDialog } from '@/components/LogoutDialog';
 
-const navLinks = [
+// `icon` doubles as the highlight flag — highlighted links get the gold
+// treatment and their own glyph, so a bulk upload is not badged as a calculator.
+const navLinks: { href: string; label: string; icon?: LucideIcon }[] = [
     { href: '/', label: 'Home' },
     { href: '/pricing', label: 'Pricing' },
-    { href: '/gst-penalty-calculator', label: 'Penalty Calc', highlight: true },
+    { href: '/gst-penalty-calculator', label: 'Penalty Calc', icon: Calculator },
+    { href: '/bulk', label: 'Bulk Check', icon: FileSpreadsheet },
     { href: '/guides', label: 'Guides' },
     { href: '/about', label: 'About' },
     { href: '/faq', label: 'FAQ' },
@@ -121,8 +124,8 @@ export default function Navbar() {
                                     background: pathname === link.href ? 'var(--warm-bg-alt)' : 'transparent',
                                 }}
                             >
-                                {link.highlight && <Calculator className="w-3.5 h-3.5" style={{ color: '#B8860B' }} />}
-                                {link.highlight
+                                {link.icon && <link.icon className="w-3.5 h-3.5" style={{ color: '#B8860B' }} />}
+                                {link.icon
                                     ? <span style={{ color: '#8B6914', fontWeight: 600 }}>{link.label}</span>
                                     : link.label}
                             </Link>

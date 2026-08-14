@@ -41,6 +41,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
         // SEO / Free tools (high-value pages for March GST deadline traffic)
         {
+            url: `${SITE_URL}/bulk`,
+            lastModified: CORE_UPDATED,
+            changeFrequency: 'weekly',
+            priority: 0.9,
+        },
+        {
             url: `${SITE_URL}/gst-penalty-calculator`,
             lastModified: CORE_UPDATED,
             changeFrequency: 'monthly',
