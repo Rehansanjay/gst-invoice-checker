@@ -559,7 +559,7 @@ export default function Home() {
               Take control of your GST compliance today
             </h2>
             <p className="text-lg sm:text-xl mb-10" style={{ color: '#B8A895' }}>
-              Join thousands of forward-thinking businesses who never worry about invoice rejections.
+              Check your invoices against the GST rules before the portal checks them for you.
             </p>
 
             <button

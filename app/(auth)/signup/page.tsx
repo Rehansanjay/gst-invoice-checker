@@ -124,7 +124,7 @@ export default function SignupPage() {
                     </h1>
 
                     <p className="text-[1.125rem] mb-12" style={{ color: '#B8A895' }}>
-                        Join thousands of businesses ensuring 100% GST compliance with AI-powered checks.
+                        Catch GSTIN, HSN, tax-type and calculation errors before the portal rejects your filing.
                     </p>
 
                     {/* Features */}
