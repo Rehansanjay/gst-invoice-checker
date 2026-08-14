@@ -66,8 +66,17 @@ export default function PrivacyPage() {
                 <h2>3. Data Retention</h2>
                 <ul>
                     <li>
-                        <strong>Guest users:</strong> Invoice input data is cached for up to 1 hour
-                        for idempotency (to prevent duplicate charges) and then permanently deleted.
+                        <strong>Free checks:</strong> Processed entirely in memory. The invoice you
+                        enter is not written to our database and nothing from that check is retained
+                        once the result is returned to your browser.
+                    </li>
+                    <li>
+                        <strong>Paid checks (without an account):</strong> The invoice details you
+                        submitted and the resulting report are stored, so that you can re-open,
+                        download and email that report, and so the payment can be reconciled. We
+                        retain these until you ask us to remove them — email{' '}
+                        <a href="mailto:privacy@invoicecheck.in">privacy@invoicecheck.in</a> and we
+                        will delete the check.
                     </li>
                     <li>
                         <strong>Registered users:</strong> Validation results are stored in your

@@ -143,7 +143,7 @@ function FAQAccordion() {
   const faqs = [
     {
       q: 'Is my invoice data secure?',
-      a: 'Absolutely. We do not store, share, or analyze your invoice data beyond the 15-second validation window. Once the report is generated, all parsed data is permanently purged from our servers.'
+      a: 'Free checks are processed in memory and never written to our database — nothing about that invoice is kept. If you pay for a full report, we do store the invoice details, because that is what lets you re-open, download and email the report afterwards. We never sell your data or use it to train AI models, and you can ask us to delete a stored check at any time. Our Privacy Policy sets out exactly what is kept and for how long.'
     },
     {
       q: 'Why use this instead of a CA?',
