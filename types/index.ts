@@ -162,6 +162,39 @@ export interface PreviewResult {
   totalCheckCount: number;
 }
 
+/**
+ * One invoice's outcome inside a bulk run. Issues are named but not explained,
+ * matching the single-invoice free tier: knowing WHICH of 200 invoices will be
+ * rejected is the free value; the fixes stay paid. Keeping both surfaces at the
+ * same depth also closes the obvious hole of bulk-uploading a single invoice to
+ * get for free what /check charges for.
+ */
+export interface BulkInvoiceResult {
+  invoiceNumber: string;
+  invoiceDate: string;
+  buyerGSTIN: string;
+  invoiceTotalAmount: number;
+  healthScore: number;
+  riskLevel: 'low' | 'medium' | 'high';
+  criticalCount: number;
+  warningCount: number;
+  issues: LockedIssueSummary[];
+}
+
+export interface BulkCheckResult {
+  totalInvoices: number;
+  cleanInvoices: number;
+  invoicesWithCritical: number;
+  totalIssues: number;
+  /** Combined value of invoices carrying at least one critical issue. */
+  amountAtRisk: number;
+  results: BulkInvoiceResult[];
+  rowErrors: { row: number; message: string }[];
+  /** Invoices beyond the per-batch cap, not validated. */
+  droppedForLimit: number;
+  limit: number;
+}
+
 export const VALID_GST_RATES = [0, 0.25, 3, 5, 12, 18, 28] as const;
 export const VALID_STATE_CODES = [
   '01', '02', '03', '04', '05', '06', '07', '08', '09', '10',

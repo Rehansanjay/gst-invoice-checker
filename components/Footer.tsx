@@ -39,6 +39,11 @@ export default function Footer() {
                                 </Link>
                             </li>
                             <li>
+                                <Link href="/bulk" className="transition-colors" style={{ color: '#9E8A78' }}>
+                                    Bulk Check (CA firms)
+                                </Link>
+                            </li>
+                            <li>
                                 <Link href="/gst-penalty-calculator" className="transition-colors" style={{ color: '#9E8A78' }}>
                                     GST Penalty Calculator
                                 </Link>
