@@ -15,6 +15,7 @@ const navLinks: { href: string; label: string; icon?: LucideIcon }[] = [
     { href: '/pricing', label: 'Pricing' },
     { href: '/gst-penalty-calculator', label: 'Penalty Calc', icon: Calculator },
     { href: '/bulk', label: 'Bulk Check', icon: FileSpreadsheet },
+    { href: '/gst-error-codes', label: 'Error Codes' },
     { href: '/guides', label: 'Guides' },
     { href: '/about', label: 'About' },
     { href: '/faq', label: 'FAQ' },
