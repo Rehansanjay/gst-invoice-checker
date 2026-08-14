@@ -7,7 +7,8 @@
     "dev80": "next dev -p 80",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:validation": "npx tsx tests/false-positives.ts && npx tsx tests/true-positives.ts"
   },
   "dependencies": {
     "@next/third-parties": "^16.1.6",

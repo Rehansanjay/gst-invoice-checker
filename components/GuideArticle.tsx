@@ -99,7 +99,7 @@ export default function GuideArticle({
                         Not sure your invoice passes?
                     </h2>
                     <p className="mb-6" style={{ color: 'var(--warm-charcoal-soft)' }}>
-                        Run it through 11 compliance checks and get a line-by-line report in 15 seconds.
+                        Run it through 15 compliance checks and get a line-by-line report in 15 seconds.
                     </p>
                     <Link
                         href="/check"

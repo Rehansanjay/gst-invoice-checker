@@ -226,7 +226,7 @@ export default function Home() {
               </h1>
 
               <p className="hero-animate-3 text-[1.125rem] sm:text-xl leading-[1.6] mb-10 font-sans" style={{ color: '#B8A895' }}>
-                11-point compliance check that catches errors before marketplaces reject your invoices. Save time, protect your cashflow, skip the CA.
+                15-point compliance check that catches errors before marketplaces reject your invoices. Save time, protect your cashflow, skip the CA.
               </p>
 
               <div className="hero-animate-4 flex flex-col sm:flex-row gap-3 mb-10">
@@ -249,7 +249,7 @@ export default function Home() {
               <div className="hero-animate-5 flex flex-wrap items-center gap-x-5 gap-y-3">
                 {[
                   { icon: <BadgeCheck className="w-[15px] h-[15px]" style={{ color: '#7EC89B' }} />, text: 'GST Act Compliant' },
-                  { icon: <ShieldCheck className="w-[15px] h-[15px]" style={{ color: '#7EC89B' }} />, text: '11 Validation Checks' },
+                  { icon: <ShieldCheck className="w-[15px] h-[15px]" style={{ color: '#7EC89B' }} />, text: '15 Validation Checks' },
                   { icon: <Timer className="w-[15px] h-[15px]" style={{ color: '#C4B5A3' }} />, text: '15-Second Results' },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
@@ -279,22 +279,25 @@ export default function Home() {
                 color: 'var(--warm-success)',
               }}>
                 <ShieldCheck className="w-3 h-3" />
-                Financial Peace of Mind
+                What an Invoice Error Costs
               </span>
               <h2 className="text-[2.25rem] md:text-[3rem] lg:text-[3.5rem] leading-[1.05] mb-5 font-heading" style={{ color: 'var(--warm-charcoal)' }}>
-                Empowering you to file with absolute certainty
+                A wrong tax head is never just a typo
               </h2>
               <p className="text-lg" style={{ color: 'var(--warm-text-secondary)' }}>
-                Eliminate the minor compliance errors that cause massive payment holds, ensuring your working capital never stops flowing.
+                One incorrect field holds up a settlement, costs your buyer their input tax credit, and compounds into a late-filing fee. Here is the exposure a single bad invoice carries.
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 scroll-reveal-stagger">
               {[
-                { value: '₹45,000+', label: 'Payments Unblocked', desc: 'Flowing smoothly from marketplaces', color: 'var(--warm-success)' },
-                { value: '2-7 Days', label: 'Faster Payouts', desc: 'No more cashflow bottlenecks', color: 'var(--warm-success)' },
-                { value: '₹500+', label: 'Saved on CA Fees', desc: 'Per invoice, instantly verified', color: '#B8860B' },
-                { value: '100%', label: 'Absolute Clarity', desc: "Always know you're compliant", color: '#B8860B' },
+                // Framed as the exposure a bad invoice carries, not as results
+                // we have delivered — these are what the error costs, which is
+                // both true and the reason to check before filing.
+                { value: '₹45,000', label: 'Typical Payout at Risk', desc: 'A single held marketplace settlement', color: 'var(--warm-success)' },
+                { value: '2-7 Days', label: 'Typical Hold Duration', desc: 'How long a rejected invoice delays payment', color: 'var(--warm-success)' },
+                { value: '₹500+', label: 'Typical CA Fee', desc: 'Per invoice, checked manually', color: '#B8860B' },
+                { value: '₹50/day', label: 'Late Filing Fee', desc: 'Section 47, until GSTR-1 is filed', color: '#B8860B' },
               ].map((item, i) => (
                 <div key={i} className="scroll-reveal warm-card p-7 hover-glow-border hover:border-warm-success transition-colors cursor-default">
                   <div className="text-[2.25rem] sm:text-[2.5rem] font-heading mb-3" style={{ color: item.color }}>
@@ -336,7 +339,7 @@ export default function Home() {
               {[
                 { title: '15 Seconds', desc: 'Lightning-fast results' },
                 { title: '₹99 Only', desc: '80% cheaper than CA' },
-                { title: '11 Checks', desc: '100% accuracy guaranteed' },
+                { title: '15 Checks', desc: 'Every flag cites its GST section' },
                 { title: 'Instant Fix', desc: 'Step-by-step guidance' },
               ].map((item, i) => (
                 <div key={i} className="scroll-reveal warm-card p-8 text-center flex flex-col items-center justify-center hover-glow-border cursor-default">

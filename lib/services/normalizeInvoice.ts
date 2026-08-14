@@ -38,7 +38,16 @@ function normalizeInvoiceNumber(num: string): string {
     return num.trim().replace(/\s+/g, ' ');
 }
 
-/** Normalize a single line item: round money, recalculate derived fields */
+/**
+ * Normalize a single line item: round money, derive taxable value.
+ *
+ * Tax amounts are PRESERVED as submitted, not re-derived from taxRate.
+ * Re-deriving them silently repaired the exact defect this product exists to
+ * find: a line whose tax does not match its stated rate was rewritten to match
+ * and reported clean (the RET191205 case we publish a page about), and a
+ * reverse-charge line had tax added back onto it, making a correct RCM invoice
+ * impossible to represent. Rounding only.
+ */
 function normalizeLineItem(item: LineItem): LineItem {
     const quantity = Math.max(0, Number(item.quantity) || 0);
     const rate = Math.max(0, Number(item.rate) || 0);
@@ -47,18 +56,11 @@ function normalizeLineItem(item: LineItem): LineItem {
     // Recalculate taxable amount from quantity × rate
     const taxableAmount = roundMoney(quantity * rate);
 
-    // Recalculate tax amounts
-    const totalTax = roundMoney((taxableAmount * taxRate) / 100);
+    const cgst = roundMoney(Math.max(0, Number(item.cgst) || 0));
+    const sgst = roundMoney(Math.max(0, Number(item.sgst) || 0));
+    const igst = roundMoney(Math.max(0, Number(item.igst) || 0));
 
-    let cgst = 0, sgst = 0, igst = 0;
-    if (item.taxType === 'CGST_SGST') {
-        cgst = roundMoney(totalTax / 2);
-        sgst = roundMoney(totalTax / 2);
-    } else {
-        igst = roundMoney(totalTax);
-    }
-
-    const totalAmount = roundMoney(taxableAmount + totalTax);
+    const totalAmount = roundMoney(taxableAmount + cgst + sgst + igst);
 
     return {
         lineNumber: item.lineNumber,
