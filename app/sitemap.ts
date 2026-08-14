@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next';
 import { SITE_URL } from '@/lib/site';
 import { GUIDES } from '@/lib/guides';
+import { GST_ERROR_CODES } from '@/lib/gstErrorCodes';
 
 /**
  * Dates are fixed constants rather than `new Date()`. Stamping every entry with
@@ -16,6 +17,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
         lastModified: new Date(guide.updated),
         changeFrequency: 'monthly',
         priority: 0.7,
+    }));
+
+    const errorCodePages: MetadataRoute.Sitemap = GST_ERROR_CODES.map((e) => ({
+        url: `${SITE_URL}/gst-error-codes/${e.code.toLowerCase()}`,
+        lastModified: new Date(e.lastReviewed),
+        changeFrequency: 'monthly',
+        priority: 0.6,
     }));
 
     return [
@@ -67,6 +75,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
             priority: 0.8,
         },
         ...guidePages,
+        {
+            url: `${SITE_URL}/gst-error-codes`,
+            lastModified: CORE_UPDATED,
+            changeFrequency: 'monthly',
+            priority: 0.8,
+        },
+        ...errorCodePages,
 
         // Marketing
         {

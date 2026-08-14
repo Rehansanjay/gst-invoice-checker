@@ -63,6 +63,11 @@ export default function Footer() {
                         </h4>
                         <ul className="space-y-3 text-sm">
                             <li>
+                                <Link href="/gst-error-codes" className="transition-colors" style={{ color: '#9E8A78' }}>
+                                    GST Error Codes
+                                </Link>
+                            </li>
+                            <li>
                                 <Link href="/guides" className="transition-colors" style={{ color: '#9E8A78' }}>
                                     GST Guides
                                 </Link>
