@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { GST_ERROR_CODES, PREVENTABLE_COUNT } from '@/lib/gstErrorCodes';
-import { SITE_URL } from '@/lib/site';
+import { SITE_URL, OG_IMAGE } from '@/lib/site';
 
 export const metadata: Metadata = {
     title: 'GST Error Codes Explained — GSTR-1 Upload Errors & Fixes',
@@ -14,6 +14,7 @@ export const metadata: Metadata = {
         description:
             'What each GSTR-1 upload error code means, why it happens and how to fix it before you re-upload.',
         url: `${SITE_URL}/gst-error-codes`,
+        images: [OG_IMAGE],
     },
 };
 

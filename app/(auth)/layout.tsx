@@ -1,6 +1,18 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+
+/**
+ * login/signup are client components and cannot export metadata themselves, so
+ * both were inheriting the homepage title verbatim. Set here instead. They are
+ * disallowed in robots.txt, hence noindex rather than a marketing title.
+ */
+export const metadata: Metadata = {
+    title: 'Sign in — InvoiceCheck.in',
+    description: 'Access your InvoiceCheck.in dashboard and validation history.',
+    robots: { index: false, follow: true },
+};
 
 export default function AuthLayout({
     children,
