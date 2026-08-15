@@ -2,15 +2,7 @@
     "crons": [
         {
             "path": "/api/cron/deadline-reminder",
-            "schedule": "0 6 15 3 *"
-        },
-        {
-            "path": "/api/cron/deadline-reminder",
-            "schedule": "0 6 18 3 *"
-        },
-        {
-            "path": "/api/cron/deadline-reminder",
-            "schedule": "0 6 19 3 *"
+            "schedule": "30 3 * * *"
         }
     ]
 }
