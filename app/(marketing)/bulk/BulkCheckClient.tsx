@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Upload, Download, AlertCircle, AlertTriangle, CheckCircle2, Lock, Loader2, FileSpreadsheet } from 'lucide-react';
 import { BulkCheckResult } from '@/types';
+import EmailReportCapture from '@/components/EmailReportCapture';
 import { toast } from 'sonner';
 
 const SEVERITY_DOT = {
@@ -222,6 +223,17 @@ export default function BulkCheckClient() {
                                 </table>
                             </div>
                         </div>
+
+                        <EmailReportCapture
+                            source="bulk"
+                            summary={result}
+                            heading="Email me this exception report"
+                            subheading={
+                                result.invoicesWithCritical > 0
+                                    ? `Send the ${result.invoicesWithCritical} flagged invoice${result.invoicesWithCritical === 1 ? '' : 's'} to your inbox so you can work through them.`
+                                    : 'Send the results to your inbox for your records.'
+                            }
+                        />
 
                         {result.invoicesWithCritical > 0 && (
                             <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center">

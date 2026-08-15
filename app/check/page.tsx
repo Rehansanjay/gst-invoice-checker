@@ -7,6 +7,7 @@ import InvoiceForm from '@/components/InvoiceForm';
 import ReportViewer from '@/components/ReportViewer';
 import ProcessingView, { type ProcessingMode } from '@/components/ProcessingView';
 import CheckResultPreview from '@/components/CheckResultPreview';
+import EmailReportCapture from '@/components/EmailReportCapture';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ParsedInvoice, ValidationResult, PreviewResult } from '@/types';
@@ -447,12 +448,31 @@ function CheckPageInner() {
                 ) : validationResult ? (
                     <ReportViewer result={validationResult} />
                 ) : previewResult ? (
-                    <CheckResultPreview
-                        result={previewResult}
-                        onUnlock={handleUnlockReport}
-                        isProcessing={isProcessing}
-                        invoiceTotal={invoiceDataForPayment?.invoiceTotalAmount}
-                    />
+                    <>
+                        <CheckResultPreview
+                            result={previewResult}
+                            onUnlock={handleUnlockReport}
+                            isProcessing={isProcessing}
+                            invoiceTotal={invoiceDataForPayment?.invoiceTotalAmount}
+                        />
+                        <div className="mx-auto mt-6 w-full max-w-3xl">
+                            {/* Only issue titles are sent — the email carries the
+                                same depth as the free tier, never the fixes. */}
+                            <EmailReportCapture
+                                source="check"
+                                summary={{
+                                    invoiceNumber: invoiceDataForPayment?.invoiceNumber ?? '',
+                                    healthScore: previewResult.healthScore,
+                                    issueTitles: [
+                                        ...(previewResult.revealedIssue ? [previewResult.revealedIssue.title] : []),
+                                        ...previewResult.lockedIssues.map((i) => i.title),
+                                    ],
+                                }}
+                                heading="Email me this result"
+                                subheading="Send the findings to your inbox so you have them to hand."
+                            />
+                        </div>
+                    </>
                 ) : (
                     <>
                         <div className="mb-8 text-center max-w-2xl mx-auto">
