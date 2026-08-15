@@ -11,15 +11,22 @@
 -- ─────────────────────────────────────────────────────────────────────
 
 create table if not exists public.leads (
-    id           uuid primary key default gen_random_uuid(),
-    email        text        not null,
-    source       text        not null check (source in ('bulk', 'check')),
-    detail       text,
-    utm_source   text,
-    utm_campaign text,
-    ip           text,
-    created_at   timestamptz not null default now()
+    id             uuid primary key default gen_random_uuid(),
+    email          text        not null,
+    source         text        not null check (source in ('bulk', 'check')),
+    detail         text,
+    utm_source     text,
+    utm_campaign   text,
+    ip             text,
+    -- Set when someone unsubscribes. The filing-deadline reminder excludes any
+    -- address with a value here, so this column is what makes sending those
+    -- reminders legitimate. Never send to a row where this is non-null.
+    unsubscribed_at timestamptz,
+    created_at     timestamptz not null default now()
 );
+
+-- Existing installs: add the column without recreating the table.
+alter table public.leads add column if not exists unsubscribed_at timestamptz;
 
 -- The list is queried by recency and deduplicated by address.
 create index if not exists leads_created_at_idx on public.leads (created_at desc);
