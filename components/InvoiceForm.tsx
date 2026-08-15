@@ -858,7 +858,8 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
 
             <Alert className="border-amber-200 bg-amber-50/50">
                 <AlertDescription className="text-amber-800 text-xs">
-                    ⚠️ We validate YOUR entered data — not OCR. This ensures 100% accuracy.
+                    ⚠️ We validate the data you enter, not the OCR reading of it — so a
+                    misread scan never becomes a wrong result.
                 </AlertDescription>
             </Alert>
         </div>
