@@ -37,9 +37,9 @@ export const metadata: Metadata = {
     "reverse charge mechanism",
     "ITC eligibility check",
   ].join(", "),
-  icons: {
-    icon: "/invoicecheck-logo.svg",
-  },
+  // Icons come from app/icon.svg, which Next.js wires up automatically.
+  // app/favicon.ico was the stock Next.js icon and took precedence over this
+  // metadata, so the browser tab showed the Next.js logo; it has been removed.
   metadataBase: new URL(SITE_URL),
   alternates: {
     canonical: "/",
@@ -51,20 +51,14 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: "GST Invoice Checker — Catch Errors Before Submission",
     description: "Validate your GST invoices in 15 seconds. 15-point compliance check covering GSTIN, HSN, tax math, Place of Supply & more. Avoid marketplace payment holds.",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "InvoiceCheck.in — GST Invoice Validator for Indian Sellers",
-      },
-    ],
+    // No `images` here on purpose: app/opengraph-image.tsx supplies it and is
+    // inherited by every route without its own. The previous hardcoded
+    // /og-image.png did not exist and returned 404 on every share.
   },
   twitter: {
     card: "summary_large_image",
     title: "GST Invoice Checker — Validate in 15 Seconds | InvoiceCheck.in",
     description: "Free GST invoice validation tool. Catch errors before Amazon/Flipkart rejects your payment. 15-point check for ₹99.",
-    images: ["/og-image.png"],
   },
   robots: {
     index: true,

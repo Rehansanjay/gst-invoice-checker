@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { GST_ERROR_CODES, getErrorCode } from '@/lib/gstErrorCodes';
-import { SITE_NAME, SITE_URL } from '@/lib/site';
+import { SITE_NAME, SITE_URL, OG_IMAGE } from '@/lib/site';
 
 export function generateStaticParams() {
     return GST_ERROR_CODES.map((e) => ({ code: e.code.toLowerCase() }));
@@ -27,6 +27,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
             title,
             description,
             url: `${SITE_URL}/gst-error-codes/${entry.code.toLowerCase()}`,
+        images: [OG_IMAGE],
         },
     };
 }

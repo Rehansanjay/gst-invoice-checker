@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import BulkCheckClient from './BulkCheckClient';
-import { SITE_URL } from '@/lib/site';
+import { SITE_URL, OG_IMAGE } from '@/lib/site';
 
 export const metadata: Metadata = {
     title: 'Bulk GST Invoice Validation for CA Firms — Pre-Filing Check',
@@ -13,6 +13,7 @@ export const metadata: Metadata = {
         description:
             'Validate a whole batch of invoices before GSTR-1. Built for CA practices and high-volume sellers.',
         url: `${SITE_URL}/bulk`,
+        images: [OG_IMAGE],
     },
 };
 

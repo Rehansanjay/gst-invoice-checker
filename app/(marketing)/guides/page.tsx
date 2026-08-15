@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { GUIDES } from '@/lib/guides';
-import { SITE_URL } from '@/lib/site';
+import { SITE_URL, OG_IMAGE } from '@/lib/site';
 
 export const metadata: Metadata = {
     title: 'GST Invoice Guides for Indian Sellers | InvoiceCheck.in',
@@ -14,6 +14,7 @@ export const metadata: Metadata = {
         description:
             'Practical guides on place of supply, marketplace invoice rejections and GSTR-1 late fees.',
         url: `${SITE_URL}/guides`,
+        images: [OG_IMAGE],
     },
 };
 

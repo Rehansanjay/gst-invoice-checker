@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { OG_IMAGE } from '@/lib/site';
 import Link from 'next/link';
 import GuideArticle, { GuideH2, GuideNote } from '@/components/GuideArticle';
 import { getGuide, guideUrl } from '@/lib/guides';
@@ -15,6 +16,7 @@ export const metadata: Metadata = {
         title: guide.metaTitle,
         description: guide.description,
         url: guideUrl(SLUG),
+        images: [OG_IMAGE],
     },
 };
 
