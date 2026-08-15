@@ -42,7 +42,7 @@ export default function GetStartedModal({ open, onClose }: GetStartedModalProps)
                             </div>
                             <h3 className="font-bold text-lg">Quick Check</h3>
                             <p className="text-sm text-muted-foreground">
-                                Pay <span className="font-bold text-primary">₹99</span> per invoice
+                                <span className="font-bold text-primary">Free</span> to run · ₹99 unlocks the fixes
                             </p>
                             <p className="text-xs text-muted-foreground">
                                 No login required • Instant results

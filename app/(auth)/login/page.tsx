@@ -104,7 +104,7 @@ export default function LoginPage() {
                             </div>
                             <div>
                                 <p className="font-semibold text-[15px]" style={{ color: 'var(--warm-cream)' }}>15 GST Checks</p>
-                                <p className="text-[13.5px]" style={{ color: '#B8A895' }}>100% accuracy guaranteed</p>
+                                <p className="text-[13.5px]" style={{ color: '#B8A895' }}>GSTIN, HSN, tax type, totals</p>
                             </div>
                         </div>
 
@@ -211,14 +211,18 @@ export default function LoginPage() {
                             </p>
                         </div>
 
-                        {/* Quick Check Option */}
+                        {/* No-account path. Leads with free, not with the price:
+                            /check runs the validation and names what is wrong
+                            without payment — ₹99 only unlocks the fixes. Asking
+                            for ₹99 here turned away visitors before they had
+                            seen the tool work. */}
                         <div className="mt-6 p-4 rounded-xl text-center" style={{ background: 'var(--warm-bg-alt)' }}>
                             <p className="text-[14px] mb-2" style={{ color: 'var(--warm-charcoal)' }}>
-                                Need a one-time check?
+                                Just checking one invoice?
                             </p>
                             <Link href="/check">
                                 <Button className="w-full btn-warm-secondary bg-white h-11 text-[14px]">
-                                    Quick Check (₹99)
+                                    Check it free — no account needed
                                 </Button>
                             </Link>
                         </div>
@@ -226,9 +230,11 @@ export default function LoginPage() {
 
                     {/* Trust Bar */}
                     <div className="flex items-center justify-center gap-6 mt-6 text-[13px] font-medium" style={{ color: 'var(--warm-text-secondary)' }}>
-                        <span>✅ 500+ invoices checked</span>
-                        <span>✅ Trusted by CAs</span>
-                        <span>✅ 100% secure</span>
+                        {/* Claims here must be checkable. "500+ invoices checked"
+                            and "Trusted by CAs" were neither. */}
+                        <span>✅ 15 compliance checks</span>
+                        <span>✅ Cites the GST section</span>
+                        <span>✅ Free to try</span>
                     </div>
 
                     {/* Mobile: Features */}

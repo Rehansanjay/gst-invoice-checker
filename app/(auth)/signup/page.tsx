@@ -302,9 +302,9 @@ export default function SignupPage() {
 
                     {/* Trust Bar */}
                     <div className="flex items-center justify-center gap-6 mt-6 text-xs text-muted-foreground">
-                        <span>✅ 500+ invoices checked</span>
-                        <span>✅ Trusted by CAs</span>
-                        <span>✅ 100% secure</span>
+                        <span>✅ 15 compliance checks</span>
+                        <span>✅ Cites the GST section</span>
+                        <span>✅ Free to try</span>
                     </div>
                 </div>
             </div>

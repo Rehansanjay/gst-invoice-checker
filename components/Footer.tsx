@@ -44,6 +44,11 @@ export default function Footer() {
                                 </Link>
                             </li>
                             <li>
+                                <Link href="/vendor-invoice-check" className="transition-colors" style={{ color: '#9E8A78' }}>
+                                    Vendor Invoice Check
+                                </Link>
+                            </li>
+                            <li>
                                 <Link href="/gst-penalty-calculator" className="transition-colors" style={{ color: '#9E8A78' }}>
                                     GST Penalty Calculator
                                 </Link>
