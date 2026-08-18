@@ -146,8 +146,8 @@ function FAQAccordion() {
       a: 'Free checks are processed in memory and never written to our database — nothing about that invoice is kept. If you pay for a full report, we do store the invoice details, because that is what lets you re-open, download and email the report afterwards. We never sell your data or use it to train AI models, and you can ask us to delete a stored check at any time. Our Privacy Policy sets out exactly what is kept and for how long.'
     },
     {
-      q: 'Why use this instead of a CA?',
-      a: 'CAs charge upwards of ₹500 per invoice check and usually take 24-48 hours. InvoiceCheck.in runs the exact same statutory validation algorithms in 15 seconds for a fraction of the cost, giving you instant clarity.'
+      q: 'Does this replace my CA?',
+      a: 'No, and it is not meant to. We run 15 mechanical checks on the invoice itself — GSTIN structure, tax head against place of supply, HSN, the arithmetic, invoice numbering and dates. That is the tedious layer, and it is the layer that gets returns rejected on upload. Judgement calls, classification, notices and the return itself are your CA\'s work. Plenty of practices use this on their own client batches for exactly that reason — it clears the mechanical errors before the professional review starts.'
     },
     {
       q: 'What if the government GST portal is down?',
@@ -226,7 +226,7 @@ export default function Home() {
               </h1>
 
               <p className="hero-animate-3 text-[1.125rem] sm:text-xl leading-[1.6] mb-10 font-sans" style={{ color: '#B8A895' }}>
-                15-point compliance check that catches errors before marketplaces reject your invoices. Save time, protect your cashflow, skip the CA.
+                15-point compliance check that catches errors before the portal or the marketplace rejects them. Fix them in minutes, not next month&apos;s amendment.
               </p>
 
               <div className="hero-animate-4 flex flex-col sm:flex-row gap-3 mb-10">
@@ -296,7 +296,10 @@ export default function Home() {
                 // both true and the reason to check before filing.
                 { value: '₹45,000', label: 'Typical Payout at Risk', desc: 'A single held marketplace settlement', color: 'var(--warm-success)' },
                 { value: '2-7 Days', label: 'Typical Hold Duration', desc: 'How long a rejected invoice delays payment', color: 'var(--warm-success)' },
-                { value: '₹500+', label: 'Typical CA Fee', desc: 'Per invoice, checked manually', color: '#B8860B' },
+                // Was "₹500+ Typical CA Fee" — an unsourced claim about what
+                // other people charge, and off-message now that CA practices
+                // are a target customer rather than the competition.
+                { value: '18% p.a.', label: 'Interest on Short Payment', desc: 'Section 50, running from the due date', color: '#B8860B' },
                 { value: '₹50/day', label: 'Late Filing Fee', desc: 'Section 47, until GSTR-1 is filed', color: '#B8860B' },
               ].map((item, i) => (
                 <div key={i} className="scroll-reveal warm-card p-7 hover-glow-border hover:border-warm-success transition-colors cursor-default">
@@ -338,7 +341,7 @@ export default function Home() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 scroll-reveal-stagger">
               {[
                 { title: '15 Seconds', desc: 'Lightning-fast results' },
-                { title: '₹99 Only', desc: '80% cheaper than CA' },
+                { title: '₹99 Only', desc: 'Per invoice, no subscription' },
                 { title: '15 Checks', desc: 'Every flag cites its GST section' },
                 { title: 'Instant Fix', desc: 'Step-by-step guidance' },
               ].map((item, i) => (

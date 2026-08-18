@@ -292,7 +292,7 @@ export default function ReportViewer({ result, invoiceNumber = 'Invoice' }: Repo
                     <h3 className="text-lg font-bold mb-4 text-green-800">💰 ESTIMATED SAVINGS</h3>
                     <p className="mb-2 text-sm font-medium text-green-900">By catching these errors now:</p>
                     <ul className="space-y-2 text-sm text-green-800">
-                        <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Avoided ₹500 CA review fee</li>
+                        <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Checked before it reached the portal</li>
                         <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Prevented 2-7 day payment delay</li>
                         <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Saved potential payment hold</li>
                     </ul>

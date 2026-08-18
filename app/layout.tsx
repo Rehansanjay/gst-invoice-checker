@@ -160,7 +160,7 @@ export default function RootLayout({
                   "name": "What is the cost of GST invoice validation?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "InvoiceCheck.in charges ₹99 per invoice check — 80% cheaper than hiring a CA. Bulk packages are available at discounted rates for businesses with higher volumes."
+                    "text": "InvoiceCheck.in charges ₹99 per invoice check, with no subscription. Bulk packages are available at discounted rates, and CA practices filing for multiple clients can use the batch pre-filing check."
                   }
                 },
                 {
