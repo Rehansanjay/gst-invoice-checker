@@ -37,9 +37,25 @@ export const metadata: Metadata = {
     "reverse charge mechanism",
     "ITC eligibility check",
   ].join(", "),
-  // Icons come from app/icon.svg, which Next.js wires up automatically.
-  // app/favicon.ico was the stock Next.js icon and took precedence over this
-  // metadata, so the browser tab showed the Next.js logo; it has been removed.
+  // Icons are served from /public at STABLE urls, declared explicitly.
+  //
+  // app/icon.svg was previously used, but Next.js emits it with a build hash
+  // (/icon.svg?icon.0541b5af.svg) that changes on every deploy, and Google
+  // wants a stable favicon url. Worse, /favicon.ico — the conventional path
+  // Googlebot requests directly — was returning 404 after the stock Next.js
+  // icon was deleted, leaving nothing at the location Google checks first.
+  //
+  // .ico is listed first: it is the format Google's SERP favicon pipeline
+  // handles most reliably, at 48x48 (Google's base unit). SVG follows for
+  // browsers that prefer a vector tab icon.
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48", type: "image/x-icon" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   metadataBase: new URL(SITE_URL),
   alternates: {
     canonical: "/",
