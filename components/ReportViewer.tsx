@@ -83,24 +83,53 @@ export default function ReportViewer({ result, invoiceNumber = 'Invoice' }: Repo
             const criticals = result.issuesFound.filter(i => i.severity === 'critical');
             const warnings = result.issuesFound.filter(i => i.severity === 'warning');
 
+            /**
+             * Writes one issue with the same depth the on-screen report shows.
+             *
+             * The PDF previously carried only title, description and (for
+             * criticals) the fix — dropping the location, the expected/found
+             * values, the impact and the GST section. That is the content that
+             * makes the report actionable and credible, and the PDF is the
+             * artifact the customer keeps and forwards to their CA, so it was
+             * the wrong place to be thin. Warnings also silently lost their fix.
+             */
+            const addIssue = (
+                issue: typeof result.issuesFound[number],
+                idx: number,
+                colour: [number, number, number]
+            ) => {
+                addLine(`${idx + 1}. ${issue.title}`, 11, 'bold', colour);
+                if (issue.location) addLine(`   ${issue.location}`, 9, 'normal', [110, 110, 110]);
+                addLine(`   ${issue.description}`, 10, 'normal', [60, 60, 60]);
+
+                if (issue.expected !== undefined || issue.found !== undefined) {
+                    addLine(
+                        `   Expected: ${issue.expected ?? '—'}    Found: ${issue.found ?? '—'}`,
+                        10, 'bold', [60, 60, 60]
+                    );
+                }
+                if (issue.howToFix) addLine(`   Fix: ${issue.howToFix}`, 10, 'normal', [21, 128, 61]);
+                if (issue.impact) addLine(`   Impact: ${issue.impact}`, 9, 'normal', [120, 80, 80]);
+                if (issue.gstLawContext) addLine(`   Reference: ${issue.gstLawContext}`, 9, 'normal', [110, 110, 110]);
+                y += 3;
+            };
+
             if (criticals.length > 0) {
                 addLine(`CRITICAL ISSUES (${criticals.length})`, 13, 'bold', [185, 28, 28]);
-                criticals.forEach((issue, idx) => {
-                    addLine(`${idx + 1}. ${issue.title}`, 11, 'bold', [185, 28, 28]);
-                    addLine(`   ${issue.description}`, 10, 'normal', [60, 60, 60]);
-                    if (issue.howToFix) addLine(`   Fix: ${issue.howToFix}`, 10, 'normal', [100, 100, 100]);
-                    y += 2;
-                });
+                criticals.forEach((issue, idx) => addIssue(issue, idx, [185, 28, 28]));
                 addDivider();
             }
 
             if (warnings.length > 0) {
                 addLine(`WARNINGS (${warnings.length})`, 13, 'bold', [161, 98, 7]);
-                warnings.forEach((issue, idx) => {
-                    addLine(`${idx + 1}. ${issue.title}`, 11, 'bold', [161, 98, 7]);
-                    addLine(`   ${issue.description}`, 10, 'normal', [60, 60, 60]);
-                    y += 2;
-                });
+                warnings.forEach((issue, idx) => addIssue(issue, idx, [161, 98, 7]));
+                addDivider();
+            }
+
+            const infos = result.issuesFound.filter(i => i.severity === 'info');
+            if (infos.length > 0) {
+                addLine(`NOTES (${infos.length})`, 13, 'bold', [29, 78, 137]);
+                infos.forEach((issue, idx) => addIssue(issue, idx, [29, 78, 137]));
                 addDivider();
             }
 
@@ -110,6 +139,28 @@ export default function ReportViewer({ result, invoiceNumber = 'Invoice' }: Repo
                 addLine(`• ${check.title}`, 10, 'normal', [60, 60, 60]);
             });
             addDivider();
+
+            // ── Recommended actions ──
+            // Mirrors the on-screen report so the PDF is a complete record on
+            // its own, rather than a summary that only makes sense next to the
+            // web page the reader no longer has open.
+            if (criticals.length > 0 || warnings.length > 0) {
+                addLine('RECOMMENDED ACTIONS', 13, 'bold', [30, 30, 30]);
+                if (criticals.length > 0) {
+                    addLine('Priority 1 — fix before filing:', 10, 'bold', [60, 60, 60]);
+                    criticals.forEach((issue) => {
+                        addLine(`• ${issue.title}${issue.location ? ` (${issue.location})` : ''}`, 10, 'normal', [60, 60, 60]);
+                    });
+                }
+                if (warnings.length > 0) {
+                    addLine('Priority 2 — review:', 10, 'bold', [60, 60, 60]);
+                    warnings.forEach((issue) => {
+                        addLine(`• ${issue.title}`, 10, 'normal', [60, 60, 60]);
+                    });
+                }
+                addLine('• Re-issue or amend the invoice, then validate again before it goes into GSTR-1.', 10, 'normal', [60, 60, 60]);
+                addDivider();
+            }
 
             // ── Footer ──
             doc.setFontSize(8);
