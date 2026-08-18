@@ -19,6 +19,18 @@ export type Guide = {
  */
 export const GUIDES: Guide[] = [
     {
+        slug: 'gst-invoice-mandatory-fields',
+        title: 'What a GST invoice must contain, under Rule 46',
+        metaTitle: 'GST Invoice Mandatory Fields — Rule 46 Checklist',
+        description:
+            'Rule 46 of the CGST Rules sets out every particular a tax invoice must carry. Here is the full list in plain English, the four fields people actually leave off, and what happens to your buyer\'s input tax credit when one is missing.',
+        excerpt:
+            'The complete Rule 46 checklist — and the four particulars that get left off most often, each of which can cost your buyer their input tax credit.',
+        published: '2026-08-18',
+        updated: '2026-08-18',
+        readingMinutes: 7,
+    },
+    {
         slug: 'igst-vs-cgst-sgst-place-of-supply',
         title: 'IGST vs CGST + SGST: how Place of Supply decides your tax type',
         metaTitle: 'IGST vs CGST/SGST — Place of Supply Rules Explained',

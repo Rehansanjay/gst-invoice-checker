@@ -6,7 +6,7 @@ import ScrollRevealWrapper from '@/components/ScrollRevealWrapper';
 
 export const metadata = {
     title: 'GST Invoice Checker Pricing — ₹99 Per Check | InvoiceCheck.in',
-    description: 'Affordable GST invoice validation. Single checks at ₹99 or bulk packs. 80% cheaper than hiring a CA.',
+    description: 'GST invoice validation pricing. Single checks at ₹99, bulk credit packs, and a monthly plan for CA practices filing across multiple clients.',
     alternates: { canonical: '/pricing' },
 };
 
