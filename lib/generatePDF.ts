@@ -34,12 +34,24 @@ export async function generatePDF(validationResult: ValidationResult, invoiceNum
             doc.fontSize(14).text('Issues Found', { underline: true });
             doc.moveDown(0.5);
 
+            // Kept at the same depth as the client-side PDF in ReportViewer, so
+            // the two cannot drift. Note this route (/api/download-report) is
+            // not currently reachable from the UI — the download button uses
+            // the jsPDF path — but leaving it thinner would be a trap for
+            // whoever wires it up later.
             validationResult.issuesFound.forEach((issue, index) => {
                 doc.fontSize(12).fillColor('red').text(`${index + 1}. ${issue.title} (${issue.severity.toUpperCase()})`);
-                doc.fontSize(10).fillColor('black').text(`   Description: ${issue.description}`);
+                doc.fontSize(10).fillColor('black');
+                if (issue.location) doc.text(`   ${issue.location}`);
+                doc.text(`   ${issue.description}`);
+                if (issue.expected !== undefined || issue.found !== undefined) {
+                    doc.text(`   Expected: ${issue.expected ?? '—'}    Found: ${issue.found ?? '—'}`);
+                }
                 if (issue.howToFix) {
                     doc.text(`   Fix: ${issue.howToFix}`, { oblique: true });
                 }
+                if (issue.impact) doc.text(`   Impact: ${issue.impact}`);
+                if (issue.gstLawContext) doc.text(`   Reference: ${issue.gstLawContext}`);
                 doc.moveDown(0.5);
             });
         } else {
