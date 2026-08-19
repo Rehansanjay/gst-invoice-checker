@@ -1,5 +1,4 @@
 import { createBrowserClient } from '@supabase/ssr'
-import { createClient } from '@supabase/supabase-js'
 
 // Build-safe: during Vercel build, env vars may not be available.
 // We use placeholder values so the module loads without crashing.
@@ -7,16 +6,11 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key'
 
-// Client-side (use in components)
+/**
+ * The browser client, and the only Supabase client that belongs in client
+ * components. The service-role client now lives in lib/supabase-admin.ts —
+ * keeping both here meant every client component that imported this file also
+ * constructed the admin client in the browser, giving two GoTrue instances on
+ * one storage key.
+ */
 export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey)
-
-// Admin client for service-role operations (existing API routes use this)
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-// Only warn on server-side — this key is intentionally unavailable in the browser
-if (!serviceRoleKey && typeof window === 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL) {
-    console.error('⚠️ CRITICAL: SUPABASE_SERVICE_ROLE_KEY missing — admin operations will use anon key (insecure)')
-}
-export const supabaseAdmin = createClient(
-    supabaseUrl,
-    serviceRoleKey || supabaseAnonKey
-)

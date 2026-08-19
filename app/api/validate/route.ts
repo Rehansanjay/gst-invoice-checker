@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { validateInvoice } from '@/lib/services/validationService';
 import { ParsedInvoice } from '@/types';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { z } from 'zod';
 import { invoiceDataSchema } from '@/lib/schemas';
 
