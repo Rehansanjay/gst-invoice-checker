@@ -3,25 +3,37 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
-import { Menu, X, User, LogOut, LayoutDashboard, Calculator, FileSpreadsheet, type LucideIcon } from 'lucide-react';
+import { Menu, X, User, LogOut, LayoutDashboard, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth-context';
 import { LogoutDialog } from '@/components/LogoutDialog';
 
-// `icon` doubles as the highlight flag — highlighted links get the gold
-// treatment and their own glyph, so a bulk upload is not badged as a calculator.
-const navLinks: { href: string; label: string; icon?: LucideIcon }[] = [
-    { href: '/', label: 'Home' },
-    { href: '/pricing', label: 'Pricing' },
-    { href: '/gst-penalty-calculator', label: 'Penalty Calc', icon: Calculator },
-    { href: '/bulk', label: 'Bulk Check', icon: FileSpreadsheet },
-    { href: '/verify-invoice', label: 'Verify Invoice' },
-    { href: '/gst-error-codes', label: 'Error Codes' },
-    { href: '/guides', label: 'Guides' },
-    { href: '/about', label: 'About' },
-    { href: '/faq', label: 'FAQ' },
-    { href: '/contact', label: 'Contact' },
+/**
+ * Grouped rather than flat. Ten top-level links with two competing gold
+ * highlights read as clutter and gave no sense of which pages matter — every
+ * new page added over time made the bar worse. Three menus keep the tools
+ * discoverable while leaving the header quiet.
+ *
+ * About / FAQ / Contact are intentionally absent: they live in the footer,
+ * which is where people look for them, and they were taking header space from
+ * the pages that actually do something.
+ */
+type NavItem = { href: string; label: string; desc?: string };
+
+const TOOLS: NavItem[] = [
+    { href: '/check', label: 'Check an invoice', desc: 'One invoice, 15 compliance checks' },
+    { href: '/bulk', label: 'Bulk check', desc: 'A whole batch before you file' },
+    { href: '/verify-invoice', label: 'Verify an invoice', desc: 'Is an invoice you received genuine?' },
+    { href: '/gst-penalty-calculator', label: 'Penalty calculator', desc: 'What a late return costs' },
 ];
+
+const RESOURCES: NavItem[] = [
+    { href: '/guides', label: 'GST guides', desc: 'Place of supply, Rule 46, late fees' },
+    { href: '/gst-error-codes', label: 'Error codes', desc: 'Every GSTR-1 upload error, explained' },
+];
+
+/** Flattened for the mobile sheet and for active-state matching. */
+const ALL_NAV = [...TOOLS, ...RESOURCES, { href: '/pricing', label: 'Pricing' }];
 
 export default function Navbar() {
     const pathname = usePathname();
@@ -31,6 +43,7 @@ export default function Navbar() {
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const [openMenu, setOpenMenu] = useState<'tools' | 'resources' | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
 
     const handleLogout = () => {
@@ -73,6 +86,7 @@ export default function Navbar() {
     useEffect(() => {
         setMobileOpen(false);
         setUserMenuOpen(false);
+        setOpenMenu(null);
     }, [pathname]);
 
     // Don't show navbar on auth pages or check page (focused flows)
@@ -113,25 +127,31 @@ export default function Navbar() {
 
                     {/* Desktop Nav */}
                     <nav className="hidden md:flex items-center gap-1">
-                        {navLinks.map((link) => (
-                            <Link
-                                key={link.href}
-                                href={link.href}
-                                className="text-sm px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5"
-                                style={{
-                                    color: pathname === link.href
-                                        ? 'var(--warm-charcoal)'
-                                        : 'var(--warm-text-secondary)',
-                                    fontWeight: pathname === link.href ? 600 : 400,
-                                    background: pathname === link.href ? 'var(--warm-bg-alt)' : 'transparent',
-                                }}
-                            >
-                                {link.icon && <link.icon className="w-3.5 h-3.5" style={{ color: '#B8860B' }} />}
-                                {link.icon
-                                    ? <span style={{ color: '#8B6914', fontWeight: 600 }}>{link.label}</span>
-                                    : link.label}
-                            </Link>
-                        ))}
+                        <NavMenu
+                            label="Tools"
+                            items={TOOLS}
+                            pathname={pathname}
+                            open={openMenu === 'tools'}
+                            onToggle={() => setOpenMenu(openMenu === 'tools' ? null : 'tools')}
+                        />
+                        <NavMenu
+                            label="Resources"
+                            items={RESOURCES}
+                            pathname={pathname}
+                            open={openMenu === 'resources'}
+                            onToggle={() => setOpenMenu(openMenu === 'resources' ? null : 'resources')}
+                        />
+                        <Link
+                            href="/pricing"
+                            className="text-sm px-3 py-2 rounded-lg transition-colors"
+                            style={{
+                                color: pathname === '/pricing' ? 'var(--warm-charcoal)' : 'var(--warm-text-secondary)',
+                                fontWeight: pathname === '/pricing' ? 600 : 400,
+                                background: pathname === '/pricing' ? 'var(--warm-bg-alt)' : 'transparent',
+                            }}
+                        >
+                            Pricing
+                        </Link>
 
                         <div className="w-px h-5 mx-2" style={{ background: 'var(--warm-border)' }} />
 
@@ -233,21 +253,33 @@ export default function Navbar() {
                 {mobileOpen && (
                     <div className="md:hidden" style={{ borderTop: '1px solid var(--warm-border)', background: 'var(--warm-bg)' }}>
                         <nav className="container mx-auto px-4 py-4 flex flex-col gap-1">
-                            {navLinks.map((link) => (
-                                <Link
-                                    key={link.href}
-                                    href={link.href}
-                                    className="text-sm py-2.5 px-3 rounded-lg transition-colors"
-                                    style={{
-                                        color: pathname === link.href
-                                            ? 'var(--warm-charcoal)'
-                                            : 'var(--warm-text-secondary)',
-                                        fontWeight: pathname === link.href ? 600 : 400,
-                                        background: pathname === link.href ? 'var(--warm-bg-alt)' : 'transparent',
-                                    }}
-                                >
-                                    {link.label}
-                                </Link>
+                            {/* Mobile keeps a flat list — a dropdown inside a
+                                dropdown is worse than a little scrolling — but
+                                headings preserve the same grouping. */}
+                            <p className="px-3 pt-1 pb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--warm-text-secondary)' }}>
+                                Tools
+                            </p>
+                            {ALL_NAV.map((link) => (
+                                <div key={link.href}>
+                                    {link.href === '/guides' && (
+                                        <p className="px-3 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--warm-text-secondary)' }}>
+                                            Resources
+                                        </p>
+                                    )}
+                                    <Link
+                                        href={link.href}
+                                        className="block text-sm py-2.5 px-3 rounded-lg transition-colors"
+                                        style={{
+                                            color: pathname === link.href
+                                                ? 'var(--warm-charcoal)'
+                                                : 'var(--warm-text-secondary)',
+                                            fontWeight: pathname === link.href ? 600 : 400,
+                                            background: pathname === link.href ? 'var(--warm-bg-alt)' : 'transparent',
+                                        }}
+                                    >
+                                        {link.label}
+                                    </Link>
+                                </div>
                             ))}
 
                             <div className="my-2" style={{ borderTop: '1px solid var(--warm-border)' }} />
@@ -303,5 +335,93 @@ export default function Navbar() {
                 )}
             </header>
         </>
+    );
+}
+
+/**
+ * A grouped header menu. Opens on click rather than hover so it behaves the
+ * same on touch, and closes on outside click, Escape, or route change.
+ */
+function NavMenu({
+    label,
+    items,
+    pathname,
+    open,
+    onToggle,
+}: {
+    label: string;
+    items: NavItem[];
+    pathname: string;
+    open: boolean;
+    onToggle: () => void;
+}) {
+    const ref = useRef<HTMLDivElement>(null);
+    const containsCurrent = items.some((i) => pathname === i.href);
+
+    useEffect(() => {
+        if (!open) return;
+        const onDown = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) onToggle();
+        };
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onToggle(); };
+        document.addEventListener('mousedown', onDown);
+        document.addEventListener('keydown', onKey);
+        return () => {
+            document.removeEventListener('mousedown', onDown);
+            document.removeEventListener('keydown', onKey);
+        };
+    }, [open, onToggle]);
+
+    return (
+        <div className="relative" ref={ref}>
+            <button
+                type="button"
+                onClick={onToggle}
+                aria-expanded={open}
+                aria-haspopup="true"
+                className="text-sm px-3 py-2 rounded-lg transition-colors flex items-center gap-1"
+                style={{
+                    color: containsCurrent ? 'var(--warm-charcoal)' : 'var(--warm-text-secondary)',
+                    fontWeight: containsCurrent ? 600 : 400,
+                    background: containsCurrent ? 'var(--warm-bg-alt)' : 'transparent',
+                }}
+            >
+                {label}
+                <ChevronDown
+                    className="w-3.5 h-3.5 transition-transform"
+                    style={{ transform: open ? 'rotate(180deg)' : 'none' }}
+                />
+            </button>
+
+            {open && (
+                <div
+                    className="absolute left-0 mt-2 w-72 rounded-xl shadow-lg py-2 z-50"
+                    style={{ background: 'white', border: '1px solid var(--warm-border)' }}
+                >
+                    {items.map((item) => (
+                        <Link
+                            key={item.href}
+                            href={item.href}
+                            className="block px-4 py-2.5 transition-colors hover:bg-[var(--warm-bg-alt)]"
+                        >
+                            <span
+                                className="block text-sm"
+                                style={{
+                                    color: 'var(--warm-charcoal)',
+                                    fontWeight: pathname === item.href ? 600 : 500,
+                                }}
+                            >
+                                {item.label}
+                            </span>
+                            {item.desc && (
+                                <span className="block text-xs mt-0.5" style={{ color: 'var(--warm-text-secondary)' }}>
+                                    {item.desc}
+                                </span>
+                            )}
+                        </Link>
+                    ))}
+                </div>
+            )}
+        </div>
     );
 }
