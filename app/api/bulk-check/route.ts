@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { validateInvoice } from '@/lib/services/validationService';
 import { parseBulkCSV } from '@/lib/services/bulkParse';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { detectRootCauses } from '@/lib/services/bulkRootCause';
 import { BulkCheckResult, BulkInvoiceResult, LockedIssueSummary } from '@/types';
 
 /**
@@ -100,6 +101,10 @@ export async function POST(request: NextRequest) {
             return a.healthScore - b.healthScore;
         });
 
+        // Group repeating defects by their likely upstream source, so the
+        // report reads as a diagnosis rather than a list of symptoms.
+        const rootCauses = detectRootCauses(results);
+
         const payload: BulkCheckResult = {
             totalInvoices: results.length,
             cleanInvoices,
@@ -107,6 +112,7 @@ export async function POST(request: NextRequest) {
             totalIssues,
             amountAtRisk: Math.round(amountAtRisk * 100) / 100,
             results,
+            rootCauses,
             rowErrors,
             droppedForLimit,
             limit: MAX_INVOICES,
