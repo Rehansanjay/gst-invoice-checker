@@ -55,6 +55,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
             priority: 0.9,
         },
         {
+            url: `${SITE_URL}/verify-invoice`,
+            lastModified: CORE_UPDATED,
+            changeFrequency: 'monthly',
+            priority: 0.9,
+        },
+        {
             url: `${SITE_URL}/vendor-invoice-check`,
             lastModified: CORE_UPDATED,
             changeFrequency: 'monthly',
