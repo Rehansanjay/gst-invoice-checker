@@ -157,6 +157,58 @@ export default function BulkCheckClient() {
                             </div>
                         )}
 
+                        {/* Root causes come before the invoice list: if twelve
+                            invoices share one bad customer record, that is one
+                            fix, and reading twelve rows first is wasted effort. */}
+                        {result.rootCauses?.length > 0 && (
+                            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 sm:p-8">
+                                <h2 className="mb-1 font-bold text-amber-900">
+                                    {result.rootCauses.length === 1
+                                        ? '1 defect is repeating — fix it once'
+                                        : `${result.rootCauses.length} defects are repeating — fix each once`}
+                                </h2>
+                                <p className="mb-5 text-sm text-amber-800">
+                                    These appear on several invoices for the same reason. Correcting
+                                    the source fixes all of them, including next month&apos;s.
+                                </p>
+
+                                <div className="space-y-3">
+                                    {result.rootCauses.map((rc) => (
+                                        <div
+                                            key={rc.id}
+                                            className="rounded-lg border border-amber-200 bg-white p-4"
+                                        >
+                                            <div className="mb-1 flex flex-wrap items-center gap-2">
+                                                <span
+                                                    className={`h-2 w-2 shrink-0 rounded-full ${SEVERITY_DOT[rc.severity]}`}
+                                                />
+                                                <span className="font-semibold text-slate-900">
+                                                    {rc.issueTitle}
+                                                </span>
+                                                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                                                    {rc.scope === 'counterparty' ? 'Customer record' : 'Template or setting'}
+                                                </span>
+                                                <span className="ml-auto text-sm font-semibold text-slate-700">
+                                                    {rc.invoiceCount} invoices · {formatINR(rc.amountAffected)}
+                                                </span>
+                                            </div>
+
+                                            {rc.key && (
+                                                <p className="mb-1 font-mono text-xs text-slate-500">{rc.key}</p>
+                                            )}
+                                            <p className="text-sm text-slate-600">{rc.hint}</p>
+                                            <p className="mt-2 text-xs text-slate-400">
+                                                Affected: {rc.invoiceNumbers.slice(0, 6).join(', ')}
+                                                {rc.invoiceNumbers.length > 6
+                                                    ? ` and ${rc.invoiceNumbers.length - 6} more`
+                                                    : ''}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Exception report */}
                         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
                             <div className="border-b border-slate-200 px-6 py-4">

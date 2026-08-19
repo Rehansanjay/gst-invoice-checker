@@ -181,6 +181,36 @@ export interface BulkInvoiceResult {
   issues: LockedIssueSummary[];
 }
 
+/**
+ * A defect that repeats across invoices because its source is upstream —
+ * a wrong GSTIN in a customer master, or a template setting — rather than a
+ * one-off data entry mistake.
+ *
+ * Suggested by a practitioner reviewing the exception report: "these stem from
+ * master data mismatches". Twelve invoices carrying the same wrong tax head for
+ * the same buyer is one problem and one fix, not twelve of each, and reporting
+ * it as twelve is the wrong output.
+ */
+export interface BulkRootCause {
+  id: string;
+  /**
+   * counterparty — every affected invoice is to the same buyer GSTIN.
+   * systemic    — spread across several buyers, so it looks like a template
+   *               or configuration setting rather than one bad record.
+   */
+  scope: 'counterparty' | 'systemic';
+  /** The buyer GSTIN for counterparty scope; empty for systemic. */
+  key: string;
+  /** Issue title with any "— Line N" suffix removed. */
+  issueTitle: string;
+  category: string;
+  severity: 'critical' | 'warning' | 'info';
+  invoiceCount: number;
+  invoiceNumbers: string[];
+  amountAffected: number;
+  hint: string;
+}
+
 export interface BulkCheckResult {
   totalInvoices: number;
   cleanInvoices: number;
@@ -189,6 +219,8 @@ export interface BulkCheckResult {
   /** Combined value of invoices carrying at least one critical issue. */
   amountAtRisk: number;
   results: BulkInvoiceResult[];
+  /** Repeating defects traced to a shared upstream source, worst first. */
+  rootCauses: BulkRootCause[];
   rowErrors: { row: number; message: string }[];
   /** Invoices beyond the per-batch cap, not validated. */
   droppedForLimit: number;
