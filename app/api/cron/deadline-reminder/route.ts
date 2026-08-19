@@ -92,13 +92,15 @@ export async function GET(request: NextRequest) {
   const supabase = getSupabase();
   const recipients = new Set<string>();
 
-  // Registered, confirmed users.
+  // Registered users. The table is `users` — an earlier version of this job
+  // queried a `profiles` table that does not exist in the schema and filtered
+  // on an `email_confirmed` column that does not exist either, so the query
+  // always failed and no registered user ever received a reminder.
   const { data: users, error: usersError } = await supabase
-    .from('profiles')
-    .select('email')
-    .eq('email_confirmed', true);
+    .from('users')
+    .select('email');
 
-  if (usersError) console.error('Failed to fetch profiles:', usersError.message);
+  if (usersError) console.error('Failed to fetch users:', usersError.message);
   for (const u of users ?? []) if (u.email) recipients.add(String(u.email).toLowerCase());
 
   // Captured leads who have not unsubscribed. Tolerates the leads migration
