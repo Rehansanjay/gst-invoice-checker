@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { processInvoiceCheck } from '@/lib/services/checkProcessingService';
 
 export async function POST(request: NextRequest) {

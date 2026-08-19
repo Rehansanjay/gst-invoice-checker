@@ -1,4 +1,4 @@
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { validateInvoice } from '@/lib/services/validationService';
 import { sendEmailReport } from '@/lib/emailService';
 
