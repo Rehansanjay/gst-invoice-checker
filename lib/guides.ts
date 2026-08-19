@@ -19,6 +19,18 @@ export type Guide = {
  */
 export const GUIDES: Guide[] = [
     {
+        slug: 'how-to-check-fake-gst-invoice',
+        title: 'How to check whether a GST invoice is genuine',
+        metaTitle: 'How to Check if a GST Invoice is Fake — 6 Checks',
+        description:
+            'Received an invoice you are not sure about? Six checks that separate a genuine GST invoice from a fabricated one — GSTIN, mandatory fields, tax rate, HSN, invoice numbering, and whether the supplier actually filed. What to do if it fails.',
+        excerpt:
+            'Six checks that separate a genuine GST invoice from a fabricated one — and what a fake almost always gets wrong.',
+        published: '2026-08-19',
+        updated: '2026-08-19',
+        readingMinutes: 8,
+    },
+    {
         slug: 'gst-invoice-mandatory-fields',
         title: 'What a GST invoice must contain, under Rule 46',
         metaTitle: 'GST Invoice Mandatory Fields — Rule 46 Checklist',
