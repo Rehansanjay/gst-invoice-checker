@@ -81,7 +81,7 @@ export default function OgImage() {
                         before the portal does
                     </div>
                     <div style={{ color: '#B8A895', fontSize: '28px', marginTop: '24px' }}>
-                        15 compliance checks · GSTIN, HSN, tax type, place of supply
+                        16 compliance checks · GSTIN, HSN, tax type, place of supply
                     </div>
                 </div>
 

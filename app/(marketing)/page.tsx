@@ -147,7 +147,7 @@ function FAQAccordion() {
     },
     {
       q: 'Does this replace my CA?',
-      a: 'No, and it is not meant to. We run 15 mechanical checks on the invoice itself — GSTIN structure, tax head against place of supply, HSN, the arithmetic, invoice numbering and dates. That is the tedious layer, and it is the layer that gets returns rejected on upload. Judgement calls, classification, notices and the return itself are your CA\'s work. Plenty of practices use this on their own client batches for exactly that reason — it clears the mechanical errors before the professional review starts.'
+      a: 'No, and it is not meant to. We run 16 mechanical checks on the invoice itself — GSTIN structure, tax head against place of supply, HSN, the arithmetic, invoice numbering and dates. That is the tedious layer, and it is the layer that gets returns rejected on upload. Judgement calls, classification, notices and the return itself are your CA\'s work. Plenty of practices use this on their own client batches for exactly that reason — it clears the mechanical errors before the professional review starts.'
     },
     {
       q: 'What if the government GST portal is down?',
@@ -226,7 +226,7 @@ export default function Home() {
               </h1>
 
               <p className="hero-animate-3 text-[1.125rem] sm:text-xl leading-[1.6] mb-10 font-sans" style={{ color: '#B8A895' }}>
-                15-point compliance check that catches errors before the portal or the marketplace rejects them. Fix them in minutes, not next month&apos;s amendment.
+                16-point compliance check that catches errors before the portal or the marketplace rejects them. Fix them in minutes, not next month&apos;s amendment.
               </p>
 
               <div className="hero-animate-4 flex flex-col sm:flex-row gap-3 mb-10">
@@ -249,7 +249,7 @@ export default function Home() {
               <div className="hero-animate-5 flex flex-wrap items-center gap-x-5 gap-y-3">
                 {[
                   { icon: <BadgeCheck className="w-[15px] h-[15px]" style={{ color: '#7EC89B' }} />, text: 'GST Act Compliant' },
-                  { icon: <ShieldCheck className="w-[15px] h-[15px]" style={{ color: '#7EC89B' }} />, text: '15 Validation Checks' },
+                  { icon: <ShieldCheck className="w-[15px] h-[15px]" style={{ color: '#7EC89B' }} />, text: '16 Validation Checks' },
                   { icon: <Timer className="w-[15px] h-[15px]" style={{ color: '#C4B5A3' }} />, text: '15-Second Results' },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
@@ -342,7 +342,7 @@ export default function Home() {
               {[
                 { title: '15 Seconds', desc: 'Lightning-fast results' },
                 { title: '₹99 Only', desc: 'Per invoice, no subscription' },
-                { title: '15 Checks', desc: 'Every flag cites its GST section' },
+                { title: '16 Checks', desc: 'Every flag cites its GST section' },
                 { title: 'Instant Fix', desc: 'Step-by-step guidance' },
               ].map((item, i) => (
                 <div key={i} className="scroll-reveal warm-card p-8 text-center flex flex-col items-center justify-center hover-glow-border cursor-default">
@@ -395,7 +395,7 @@ export default function Home() {
                 {
                   step: '2',
                   title: 'Get Instant Report',
-                  desc: 'We run 11 validation checks and generate a detailed report.',
+                  desc: 'We run 16 validation checks and generate a detailed report.',
                   icon: <FileCheck className="w-5 h-5" />
                 },
                 {

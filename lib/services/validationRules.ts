@@ -787,6 +787,90 @@ export const reverseChargeRule: ValidationRule = {
     },
 };
 
+
+// ─── RULE 16: Invoice-Level Tax Rounding ───────────────────────────
+/**
+ * GSTN recomputes tax on the taxable value aggregated per rate slab, not line
+ * by line. Software that rounds each line's tax and then sums those rounded
+ * figures produces a total that drifts from what the portal calculates, and the
+ * upload is rejected with RET191205 even though every individual line looks
+ * correct when checked on its own.
+ *
+ * Raised by a practitioner on CAclubindia: "Apply rounding AT INVOICE LEVEL,
+ * not line level. GSTN computes tax on taxable value at invoice level. Summing
+ * rounded line-level taxes = rounding error."
+ *
+ * This rule deliberately stays silent whenever any single line fails its own
+ * check — RULE_GST_CALCULATION owns that case, and reporting both would
+ * describe one defect twice. It fires only in the gap the practitioner
+ * identified: every line reconciles, the slab total does not.
+ */
+export const invoiceLevelTaxRule: ValidationRule = {
+    id: 'RULE_INVOICE_LEVEL_TAX',
+    name: 'Invoice-Level Tax Rounding',
+    category: 'GST Calculation',
+    severityWeight: 8,
+    gstLawRef: 'GSTR-1 aggregates taxable value per rate; tax is computed on that total',
+    execute: (invoice) => {
+        const issues: ValidationIssue[] = [];
+
+        // Under reverse charge the supplier collects no tax, so there is
+        // nothing to reconcile. RULE_REVERSE_CHARGE owns that case.
+        if (invoice.reverseCharge === true) return issues;
+        if (invoice.lineItems.length < 2) return issues;
+
+        const TOLERANCE = 1;
+
+        // If any single line is already wrong, the line-level rule is reporting
+        // it and this one must not pile on.
+        const aLineIsWrong = invoice.lineItems.some((item) => {
+            const expected = (item.taxableAmount * item.taxRate) / 100;
+            const actual = item.cgst + item.sgst + item.igst;
+            return Math.abs(expected - actual) > TOLERANCE;
+        });
+        if (aLineIsWrong) return issues;
+
+        // Group by rate slab, which is how GSTR-1 reports.
+        const slabs = new Map<number, { taxable: number; declared: number; lines: number }>();
+        for (const item of invoice.lineItems) {
+            const slab = slabs.get(item.taxRate) ?? { taxable: 0, declared: 0, lines: 0 };
+            slab.taxable += item.taxableAmount;
+            slab.declared += item.cgst + item.sgst + item.igst;
+            slab.lines += 1;
+            slabs.set(item.taxRate, slab);
+        }
+
+        for (const [rate, slab] of slabs) {
+            if (slab.lines < 2) continue;
+
+            const aggregateTaxable = Math.round(slab.taxable * 100) / 100;
+            const expected = Math.round(((aggregateTaxable * rate) / 100) * 100) / 100;
+            const declared = Math.round(slab.declared * 100) / 100;
+            const difference = Math.round(Math.abs(expected - declared) * 100) / 100;
+
+            if (difference > TOLERANCE) {
+                issues.push({
+                    id: `invoice-level-tax-${rate}`,
+                    ruleId: 'RULE_INVOICE_LEVEL_TAX',
+                    severity: 'critical',
+                    category: 'GST Calculation',
+                    title: `Tax Total Drifts at ${rate}% — Rounding Applied Per Line`,
+                    description: `Each line at ${rate}% reconciles on its own, but the slab total does not. Taxable ₹${aggregateTaxable.toFixed(2)} × ${rate}% = ₹${expected.toFixed(2)}, while the lines declare ₹${declared.toFixed(2)} in total — a difference of ₹${difference.toFixed(2)} across ${slab.lines} lines.`,
+                    location: `${slab.lines} lines at ${rate}%`,
+                    expected: `₹${expected.toFixed(2)}`,
+                    found: `₹${declared.toFixed(2)}`,
+                    difference,
+                    howToFix: `Compute tax once on the aggregated taxable value for the ${rate}% slab (₹${aggregateTaxable.toFixed(2)} × ${rate}% = ₹${expected.toFixed(2)}) and round there, rather than rounding each line and summing the results.`,
+                    impact: 'GSTR-1 upload will be rejected with RET191205, even though every line looks correct when checked individually.',
+                    gstLawContext: 'The portal computes tax on taxable value aggregated per rate slab. Rounding at line level and summing produces a different figure from rounding once at slab level.',
+                });
+            }
+        }
+
+        return issues;
+    },
+};
+
 // ─── APPEND NEW RULES TO REGISTRY ──────────────────────────────────
 // Done here (after declarations) to avoid "used before declaration" TS errors
-ALL_RULES.push(placeOfSupplyRule, invoiceTypeRule, reverseChargeRule);
+ALL_RULES.push(placeOfSupplyRule, invoiceTypeRule, reverseChargeRule, invoiceLevelTaxRule);
