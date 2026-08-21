@@ -15,7 +15,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "GST Invoice Checker Online — Validate GST Invoices in 15 Seconds | InvoiceCheck.in",
-  description: "Free online GST invoice checker. Validate GSTIN, HSN codes, tax calculations & e-invoice compliance before submission. Catch errors that cause Amazon/Flipkart payment holds. 15-point validation for ₹99.",
+  description: "Free online GST invoice checker. Validate GSTIN, HSN codes, tax calculations & e-invoice compliance before submission. Catch errors that cause Amazon/Flipkart payment holds. 16-point validation for ₹99.",
   keywords: [
     "GST invoice checker",
     "GST invoice validator",
@@ -66,7 +66,7 @@ export const metadata: Metadata = {
     url: SITE_URL,
     siteName: SITE_NAME,
     title: "GST Invoice Checker — Catch Errors Before Submission",
-    description: "Validate your GST invoices in 15 seconds. 15-point compliance check covering GSTIN, HSN, tax math, Place of Supply & more. Avoid marketplace payment holds.",
+    description: "Validate your GST invoices in 15 seconds. 16-point compliance check covering GSTIN, HSN, tax math, Place of Supply & more. Avoid marketplace payment holds.",
     // No `images` here on purpose: app/opengraph-image.tsx supplies it and is
     // inherited by every route without its own. The previous hardcoded
     // /og-image.png did not exist and returned 404 on every share.
@@ -74,7 +74,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "GST Invoice Checker — Validate in 15 Seconds | InvoiceCheck.in",
-    description: "Free GST invoice validation tool. Catch errors before Amazon/Flipkart rejects your payment. 15-point check for ₹99.",
+    description: "Free GST invoice validation tool. Catch errors before Amazon/Flipkart rejects your payment. 16-point check for ₹99.",
   },
   robots: {
     index: true,
@@ -117,7 +117,7 @@ export default function RootLayout({
               // No aggregateRating: we have no collected reviews. Declaring one
               // is a Google structured-data policy violation and risks a manual
               // action. Add this back only when real reviews exist to back it.
-              // Mirrors the 15 rules in ALL_RULES (lib/services/validationRules.ts).
+              // Mirrors the 16 rules in ALL_RULES (lib/services/validationRules.ts).
               // Keep in step with that registry — this list previously named 11
               // features, some of which no rule implemented.
               "featureList": [
@@ -135,7 +135,8 @@ export default function RootLayout({
                 "Invoice Total Calculation",
                 "Place of Supply Validation",
                 "Invoice Type Compliance",
-                "Reverse Charge Mechanism (RCM)"
+                "Reverse Charge Mechanism (RCM)",
+                "Invoice-Level Tax Rounding"
               ]
             }),
           }}
@@ -152,7 +153,7 @@ export default function RootLayout({
                   "name": "How to check if a GST invoice is correct?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "Use InvoiceCheck.in to validate your GST invoice in 15 seconds. Enter your invoice details (GSTIN, HSN code, tax amounts) and our tool runs 15 compliance checks covering GSTIN format, tax calculations, Place of Supply, and more."
+                    "text": "Use InvoiceCheck.in to validate your GST invoice in 15 seconds. Enter your invoice details (GSTIN, HSN code, tax amounts) and our tool runs 16 compliance checks covering GSTIN format, tax calculations, Place of Supply, and more."
                   }
                 },
                 {

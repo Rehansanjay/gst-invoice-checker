@@ -117,7 +117,7 @@ export default function VendorInvoiceCheckPage() {
                         What gets checked
                     </h2>
                     <p className="mb-4" style={{ color: 'var(--warm-charcoal-soft)' }}>
-                        The same 15 statutory checks we run on outgoing invoices, applied to the ones
+                        The same 16 statutory checks we run on outgoing invoices, applied to the ones
                         you receive. Upload a CSV of vendor invoices — from your ERP, your purchase
                         register, or a GSTR-2B export — and get back a list of which ones are defective
                         and why.
