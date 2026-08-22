@@ -47,7 +47,7 @@ export default function PricingPage() {
                         Pay-as-you-go or save big with bulk credits.
                     </p>
                     <p className="mt-3 text-[14px] font-medium" style={{ color: '#9E8A78' }}>
-                        CA firm? Ask about our bulk plan — <span className="font-bold" style={{ color: 'var(--warm-accent)' }}>₹4,999/mo for 100+ checks</span> with multi-client dashboard.
+                        CA firm? The practice pack is <span className="font-bold" style={{ color: 'var(--warm-accent)' }}>₹4,999 for 250 checks</span> — ₹20 each, and you can buy it right here.
                     </p>
                 </div>
 
@@ -58,10 +58,10 @@ export default function PricingPage() {
                     <div className="warm-card hover-glow-border p-8 flex flex-col">
                         <h3 className="text-xl font-bold font-heading mb-2" style={{ color: 'var(--warm-charcoal)' }}>Starter Pack</h3>
                         <div className="text-[2.5rem] font-bold font-heading mb-1" style={{ color: 'var(--warm-charcoal)' }}>
-                            ₹599
+                            ₹399
                         </div>
                         <p className="text-[14px] font-semibold mb-4" style={{ color: 'var(--warm-success)' }}>
-                            ₹60 / check (Save 40%)
+                            ₹40 / check (Save 60%)
                         </p>
                         <p className="text-[14px] mb-8" style={{ color: 'var(--warm-text-secondary)' }}>
                             10 Credits. Good for small sellers.
@@ -69,7 +69,7 @@ export default function PricingPage() {
 
                         <PackagePurchaseButton
                             packageType="pack_10"
-                            price={599}
+                            price={399}
                             credits={10}
                             title="Starter Pack"
                             className="w-full btn-warm-secondary magnetic-btn mb-8 h-12"
@@ -88,18 +88,18 @@ export default function PricingPage() {
                         </div>
                         <h3 className="text-xl font-bold font-heading mb-2" style={{ color: 'var(--warm-charcoal)' }}>Growth Pack</h3>
                         <div className="text-[2.5rem] font-bold font-heading mb-1" style={{ color: 'var(--warm-charcoal)' }}>
-                            ₹1,999
+                            ₹1,499
                         </div>
                         <p className="text-[14px] font-semibold mb-4" style={{ color: 'var(--warm-success)' }}>
-                            ₹40 / check (Save 60%)
+                            ₹30 / check (Save 70%)
                         </p>
                         <p className="text-[14px] mb-8" style={{ color: 'var(--warm-text-secondary)' }}>
-                            50 Credits. For growing businesses.
+                             50 Credits. For growing businesses.
                         </p>
 
                         <PackagePurchaseButton
                             packageType="pack_50"
-                            price={1999}
+                            price={1499}
                             credits={50}
                             title="Growth Pack"
                             className="w-full btn-warm-primary magnetic-btn mb-8 h-12 text-[15px]"
@@ -115,18 +115,18 @@ export default function PricingPage() {
                     <div className="warm-card hover-glow-border p-8 flex flex-col">
                         <h3 className="text-xl font-bold font-heading mb-2" style={{ color: 'var(--warm-charcoal)' }}>Power Pack</h3>
                         <div className="text-[2.5rem] font-bold font-heading mb-1" style={{ color: 'var(--warm-charcoal)' }}>
-                            ₹2,999
+                            ₹2,499
                         </div>
                         <p className="text-[14px] font-semibold mb-4" style={{ color: 'var(--warm-success)' }}>
-                            ₹30 / check (Save 70%)
+                            ₹25 / check (Save 75%)
                         </p>
                         <p className="text-[14px] mb-8" style={{ color: 'var(--warm-text-secondary)' }}>
-                            100 Credits. For high volume.
+                             100 Credits. For high volume.
                         </p>
 
                         <PackagePurchaseButton
                             packageType="pack_100"
-                            price={2999}
+                            price={2499}
                             credits={100}
                             title="Power Pack"
                             className="w-full btn-warm-secondary magnetic-btn mb-8 h-12"
@@ -204,30 +204,61 @@ export default function PricingPage() {
 
                         <div className="flex items-end gap-2 mb-2">
                             <span className="text-[2.75rem] font-black font-heading leading-none" style={{ color: 'var(--warm-charcoal)' }}>₹4,999</span>
-                            <span className="text-[15px] font-medium mb-1" style={{ color: 'var(--warm-text-secondary)' }}>/month</span>
+                            <span className="text-[15px] font-medium mb-1" style={{ color: 'var(--warm-text-secondary)' }}>for 250 checks</span>
                         </div>
-                        <p className="text-[14px] font-semibold mb-2" style={{ color: 'var(--warm-success)' }}>100+ checks/month · ₹50/check</p>
+                        <p className="text-[14px] font-semibold mb-2" style={{ color: 'var(--warm-success)' }}>250 checks · ₹20/check — the lowest rate here</p>
                         <p className="text-[14px] mb-8" style={{ color: 'var(--warm-text-secondary)' }}>
-                            Multi-client dashboard · Branded reports · Referral dashboard
+                            Bulk CSV upload · Dashboard history · PDF exports
                         </p>
 
+                        {/*
+                          Was a contact form. A CA who wanted to pay ₹4,999
+                          literally could not, which had been true for weeks.
+
+                          250 credits rather than the 100 the copy used to
+                          promise: at ₹4,999 that would have been ₹50 a check,
+                          double the ₹2,499 pack sitting beside it on this same
+                          page. The ladder now descends properly and the top
+                          tier is the best rate, which is what a top tier is for.
+                        */}
                         <div className="mt-auto mb-8 space-y-3">
+                            <PackagePurchaseButton
+                                packageType="practice_250"
+                                price={4999}
+                                credits={250}
+                                title="CA Practice"
+                                className="w-full btn-warm-primary magnetic-btn h-12 text-[15px]"
+                            />
+                            <p className="text-[12px] text-center" style={{ color: 'var(--warm-text-secondary)' }}>
+                                One-off payment, not a subscription. Credits do not expire, and nothing
+                                renews automatically — buy again when you need more.
+                            </p>
                             <Link href="/bulk" className="block">
-                                <button className="w-full btn-warm-primary magnetic-btn h-12 text-[15px]">
+                                <button className="w-full btn-warm-secondary magnetic-btn h-12 text-[15px]" style={{ background: 'white' }}>
                                     Try bulk check — free
                                 </button>
                             </Link>
-                            <Link href="/contact" className="block">
-                                <button className="w-full btn-warm-secondary magnetic-btn h-12 text-[15px]" style={{ background: 'white' }}>
-                                    Contact Us for CA Pricing
-                                </button>
-                            </Link>
                         </div>
 
+                        {/*
+                          These bullets used to promise a multi-GSTIN dashboard,
+                          referral partner tracking and branded reports. None of
+                          the three is built.
+
+                          That was survivable while this tier sat behind a
+                          contact form — nobody could buy it, so the copy was
+                          something you would talk through on a call. With a
+                          working Buy button beside it, the same three lines
+                          become a promise taken with someone's money. They are
+                          replaced with what the tier actually delivers today.
+
+                          Put them back the moment they exist, not before.
+                        */}
                         <ul className="space-y-3 text-[14px] font-medium" style={{ color: '#9E8A78' }}>
-                            <li className="flex items-center gap-3"><Check className="w-4 h-4" style={{ color: 'var(--warm-accent)' }} /> <span style={{ color: 'var(--warm-charcoal)' }}>Multi-GSTIN dashboard</span></li>
-                            <li className="flex items-center gap-3"><Check className="w-4 h-4" style={{ color: 'var(--warm-accent)' }} /> <span style={{ color: 'var(--warm-charcoal)' }}>Referral partner tracking</span></li>
-                            <li className="flex items-center gap-3"><Check className="w-4 h-4" style={{ color: 'var(--warm-accent)' }} /> <span style={{ color: 'var(--warm-charcoal)' }}>Bulk CSV upload — live now, free to try</span></li>
+                            <li className="flex items-center gap-3"><Check className="w-4 h-4" style={{ color: 'var(--warm-accent)' }} /> <span style={{ color: 'var(--warm-charcoal)' }}>250 credits, no expiry</span></li>
+                            <li className="flex items-center gap-3"><Check className="w-4 h-4" style={{ color: 'var(--warm-accent)' }} /> <span style={{ color: 'var(--warm-charcoal)' }}>Bulk CSV upload — one file, a whole client&apos;s books</span></li>
+                            <li className="flex items-center gap-3"><Check className="w-4 h-4" style={{ color: 'var(--warm-accent)' }} /> <span style={{ color: 'var(--warm-charcoal)' }}>Dashboard history and PDF exports</span></li>
+                            <li className="flex items-center gap-3"><Check className="w-4 h-4" style={{ color: 'var(--warm-accent)' }} /> <span style={{ color: 'var(--warm-charcoal)' }}>All 16 statutory checks, each citing its section</span></li>
                         </ul>
                     </div>
 

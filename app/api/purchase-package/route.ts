@@ -7,7 +7,7 @@ import { checkRateLimit } from '@/lib/rateLimit';
 
 const purchaseSchema = z.object({
     userId: z.string().uuid(), // Still validate format if needed, but we'll use session ID
-    packageType: z.enum(['pack_10', 'pack_50', 'pack_100']),
+    packageType: z.enum(['pack_10', 'pack_50', 'pack_100', 'practice_250']),
     couponCode: z.string().optional(),
 });
 
@@ -50,6 +50,11 @@ export async function POST(request: NextRequest) {
             pack_10: { price: 399, credits: 10 },
             pack_50: { price: 1499, credits: 50 },
             pack_100: { price: 2499, credits: 100 },
+            // The practice tier. 250 checks at Rs 4,999 works out at Rs 20 each,
+            // which keeps the ladder descending: 39.90, 29.98, 24.99, 20.00.
+            // Selling 100 checks at this price would have been Rs 50 each,
+            // double the pack sitting beside it on the same page.
+            practice_250: { price: 4999, credits: 250 },
         };
 
         const pkg = packages[packageType];

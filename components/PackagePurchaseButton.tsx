@@ -9,7 +9,7 @@ import { Loader2, CreditCard, Tag } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface PackagePurchaseButtonProps {
-    packageType: 'pack_10' | 'pack_50' | 'pack_100';
+    packageType: 'pack_10' | 'pack_50' | 'pack_100' | 'practice_250';
     price: number;
     credits: number;
     title: string;
