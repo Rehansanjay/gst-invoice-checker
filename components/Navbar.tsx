@@ -25,6 +25,7 @@ const TOOLS: NavItem[] = [
     { href: '/bulk', label: 'Bulk check', desc: 'A whole batch before you file' },
     { href: '/verify-invoice', label: 'Verify an invoice', desc: 'Is an invoice you received genuine?' },
     { href: '/gst-penalty-calculator', label: 'Penalty calculator', desc: 'What a late return costs' },
+    { href: '/unpaid-invoice', label: 'Unpaid invoice interest', desc: 'What a late payment owes you' },
 ];
 
 const RESOURCES: NavItem[] = [
