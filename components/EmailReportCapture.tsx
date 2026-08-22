@@ -22,7 +22,7 @@ export default function EmailReportCapture({
     heading,
     subheading,
 }: {
-    source: 'bulk' | 'check';
+    source: 'bulk' | 'check' | 'unpaid';
     summary: unknown;
     heading?: string;
     subheading?: string;

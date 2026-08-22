@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { checkRateLimit } from '@/lib/rateLimit';
-import { sendBulkSummaryEmail, sendCheckSummaryEmail, notifyNewLead } from '@/lib/leadService';
+import { sendBulkSummaryEmail, sendCheckSummaryEmail, sendUnpaidSummaryEmail, notifyNewLead } from '@/lib/leadService';
 
 /**
  * Email capture for the FREE tools. Distinct from /api/email-report, which
@@ -44,6 +44,23 @@ const checkSummarySchema = z.object({
     issueTitles: z.array(z.string().max(200)).max(50),
 });
 
+/**
+ * The delayed-payment tool. Carries the letter template so the attachment is
+ * built from the same computation the visitor saw, rather than recomputed here
+ * against a Bank Rate that may have moved between the two requests.
+ */
+const unpaidSummarySchema = z.object({
+    principal: z.string().max(40),
+    interest: z.string().max(40),
+    total: z.string().max(40),
+    monthlyAccrual: z.string().max(40),
+    daysOverdue: z.number().int().min(0).max(100000),
+    interestStartsOn: z.string().max(20),
+    computedTo: z.string().max(20),
+    letterText: z.string().max(60000),
+    letterFilename: z.string().max(120),
+});
+
 const schema = z.discriminatedUnion('source', [
     z.object({
         source: z.literal('bulk'),
@@ -56,6 +73,13 @@ const schema = z.discriminatedUnion('source', [
         source: z.literal('check'),
         email: z.string().email().max(200),
         summary: checkSummarySchema,
+        utm_source: z.string().max(64).optional().nullable(),
+        utm_campaign: z.string().max(64).optional().nullable(),
+    }),
+    z.object({
+        source: z.literal('unpaid'),
+        email: z.string().email().max(200),
+        summary: unpaidSummarySchema,
         utm_source: z.string().max(64).optional().nullable(),
         utm_campaign: z.string().max(64).optional().nullable(),
     }),
@@ -86,6 +110,9 @@ export async function POST(request: NextRequest) {
         try {
             if (data.source === 'bulk') {
                 await sendBulkSummaryEmail(email, data.summary as never);
+            } else if (data.source === 'unpaid') {
+                const { letterText, letterFilename, ...summary } = data.summary;
+                await sendUnpaidSummaryEmail(email, summary, letterText, letterFilename);
             } else {
                 await sendCheckSummaryEmail(email, data.summary);
             }
@@ -97,9 +124,14 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const detail = data.source === 'bulk'
-            ? `${data.summary.invoicesWithCritical} of ${data.summary.totalInvoices} invoices flagged, ₹${data.summary.amountAtRisk} at risk.`
-            : `Invoice ${data.summary.invoiceNumber || '—'} scored ${data.summary.healthScore}/100 with ${data.summary.issueTitles.length} issue(s).`;
+        let detail: string;
+        if (data.source === 'bulk') {
+            detail = `${data.summary.invoicesWithCritical} of ${data.summary.totalInvoices} invoices flagged, ₹${data.summary.amountAtRisk} at risk.`;
+        } else if (data.source === 'unpaid') {
+            detail = `₹${data.summary.principal} unpaid for ${data.summary.daysOverdue} days; interest computed ₹${data.summary.interest}.`;
+        } else {
+            detail = `Invoice ${data.summary.invoiceNumber || '—'} scored ${data.summary.healthScore}/100 with ${data.summary.issueTitles.length} issue(s).`;
+        }
 
         // Best-effort persistence. The `leads` table ships as a migration that
         // has to be applied manually (it defines RLS), so treat its absence as

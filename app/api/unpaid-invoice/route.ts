@@ -4,6 +4,7 @@ import { computeInterest, formatPaise, MAX_AGREED_DAYS } from '@/lib/msmeInteres
 import { readUdyam } from '@/lib/udyam';
 import { currentRate, isSeriesStale, bpsToPercent, STATUTORY_MULTIPLIER } from '@/lib/bankRate';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { buildDemandLetter, letterFilename } from '@/lib/demandLetter';
 
 /**
  * Delayed-payment interest under section 16 of the MSMED Act 2006.
@@ -91,8 +92,21 @@ export async function POST(request: NextRequest) {
 
         const rate = currentRate();
 
+        // Built here, from the computation just performed, and returned with
+        // it. Generating it later in a second request would risk composing a
+        // letter against a Bank Rate that moved in between, so the figures in
+        // the letter and the figures on screen could silently disagree.
+        const letterText = buildDemandLetter({
+            computed: result,
+            udyam: udyam.wellFormed ? udyam.normalised : undefined,
+            writtenAgreement: input.writtenAgreement,
+            agreedDays: input.agreedDays,
+        });
+
         return NextResponse.json({
             ok: true,
+            letterText,
+            letterFilename: letterFilename(result),
             interestStartsOn: result.interestStartsOn,
             computedTo: result.computedTo,
             daysOverdue: result.daysOverdue,

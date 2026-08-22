@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Loader2, Info, ExternalLink, TrendingUp } from 'lucide-react';
+import { Loader2, Info, ExternalLink, TrendingUp, FileText, Download, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import EmailReportCapture from '@/components/EmailReportCapture';
 
 /**
  * The four-field calculator.
@@ -34,6 +35,8 @@ interface Rest {
 
 interface Success {
     ok: true;
+    letterText: string;
+    letterFilename: string;
     interestStartsOn: string;
     computedTo: string;
     daysOverdue: number;
@@ -73,6 +76,31 @@ export default function UnpaidInvoiceClient() {
     const [busy, setBusy] = useState(false);
     const [outcome, setOutcome] = useState<Outcome | null>(null);
     const [showSchedule, setShowSchedule] = useState(false);
+    const [copied, setCopied] = useState(false);
+
+    const downloadLetter = () => {
+        if (!outcome?.ok) return;
+        const blob = new Blob([outcome.letterText], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = outcome.letterFilename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
+    const copyLetter = async () => {
+        if (!outcome?.ok) return;
+        try {
+            await navigator.clipboard.writeText(outcome.letterText);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2500);
+        } catch {
+            toast.error('Could not copy. Use the download button instead.');
+        }
+    };
 
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -384,6 +412,59 @@ export default function UnpaidInvoiceClient() {
                                 </div>
                             )}
                         </div>
+
+                        {/*
+                          The letter is free, and that is a compliance decision
+                          rather than a pricing one: charging for a drafted
+                          document is what most clearly engages s.29 of the
+                          Advocates Act. It downloads as plain text with gaps
+                          still in it, so it reads as a draft the user finishes
+                          — never as a notice issued by us.
+                        */}
+                        <div className="rounded-xl p-6" style={{ background: 'var(--warm-bg-alt)', border: '1px solid var(--warm-border)' }}>
+                            <div className="flex items-start gap-3 mb-3">
+                                <FileText className="h-5 w-5 shrink-0 mt-0.5" style={{ color: 'var(--warm-accent)' }} />
+                                <div>
+                                    <h3 className="font-bold" style={{ color: 'var(--warm-charcoal)' }}>
+                                        A letter template, free
+                                    </h3>
+                                    <p className="text-sm mt-1" style={{ color: 'var(--warm-charcoal-soft)' }}>
+                                        Sets out the sections, your figures and the computation. It has gaps in
+                                        square brackets for you to fill in. Read it through, change whatever does
+                                        not match your facts, and send it in your own name.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                <Button type="button" onClick={downloadLetter} className="btn-warm-primary">
+                                    <Download className="mr-2 h-4 w-4" /> Download template
+                                </Button>
+                                <Button type="button" onClick={copyLetter} className="btn-warm-secondary">
+                                    {copied ? <><Check className="mr-2 h-4 w-4" /> Copied</> : <><Copy className="mr-2 h-4 w-4" /> Copy text</>}
+                                </Button>
+                            </div>
+                            <p className="text-xs mt-3" style={{ color: 'var(--warm-text-secondary)' }}>
+                                Not a legal notice, and not drafted by a lawyer. If the amount matters to you,
+                                have an advocate or a chartered accountant look at it before you send it.
+                            </p>
+                        </div>
+
+                        <EmailReportCapture
+                            source="unpaid"
+                            heading="Email me the computation and the template"
+                            subheading="The figures above, with the letter template attached as a text file."
+                            summary={{
+                                principal: outcome.principal,
+                                interest: outcome.interest,
+                                total: outcome.total,
+                                monthlyAccrual: outcome.monthlyAccrual,
+                                daysOverdue: outcome.daysOverdue,
+                                interestStartsOn: outcome.interestStartsOn,
+                                computedTo: outcome.computedTo,
+                                letterText: outcome.letterText,
+                                letterFilename: outcome.letterFilename,
+                            }}
+                        />
 
                         <div className="text-xs space-y-2" style={{ color: 'var(--warm-text-secondary)' }}>
                             {outcome.rate.sourceUrl && (
