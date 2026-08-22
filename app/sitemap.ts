@@ -67,6 +67,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
             priority: 0.8,
         },
         {
+            // Ships alone, without the guide cluster that would normally
+            // surround it. Thirteen pages here are already stuck at
+            // "Discovered — currently not indexed", so the constraint is crawl
+            // budget, not page count: adding more thin pages to a domain in
+            // that state makes it worse. One tool page, then links to it.
+            url: `${SITE_URL}/unpaid-invoice`,
+            lastModified: CORE_UPDATED,
+            changeFrequency: 'monthly',
+            priority: 0.9,
+        },
+        {
             url: `${SITE_URL}/gst-penalty-calculator`,
             lastModified: CORE_UPDATED,
             changeFrequency: 'monthly',

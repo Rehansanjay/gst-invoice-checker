@@ -25,7 +25,7 @@ const FROM = 'InvoiceCheck.in <noreply@invoicecheck.in>';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://invoicecheck.in';
 
-export type LeadSource = 'bulk' | 'check';
+export type LeadSource = 'bulk' | 'check' | 'unpaid';
 
 function formatINR(value: number): string {
     return new Intl.NumberFormat('en-IN', {
@@ -33,14 +33,25 @@ function formatINR(value: number): string {
     }).format(value);
 }
 
-const shell = (body: string) => `<!DOCTYPE html>
+const GST_FOOTER =
+    'General information about Indian GST, not tax advice. Confirm with your CA before filing.';
+
+/**
+ * The delayed-payment tool needs its own footer. The GST wording points at a
+ * CA and at filing, neither of which fits a letter template about the MSMED
+ * Act — and the disclaimer that matters there is about legal advice, not tax.
+ */
+const MSME_FOOTER =
+    'Figures computed from what you entered. Not legal advice, and InvoiceCheck.in is not a law firm.';
+
+const shell = (body: string, footer: string = GST_FOOTER) => `<!DOCTYPE html>
 <html><head><meta charset="utf-8"></head>
 <body style="font-family:-apple-system,Segoe UI,Arial,sans-serif;line-height:1.6;color:#281E15;max-width:640px;margin:0 auto;padding:24px;">
 ${body}
 <hr style="border:none;border-top:1px solid #E8E0D8;margin:32px 0 16px;">
 <p style="font-size:12px;color:#9E8A78;">
-  InvoiceCheck.in — GST invoice validation.<br>
-  General information about Indian GST, not tax advice. Confirm with your CA before filing.
+  InvoiceCheck.in<br>
+  ${footer}
 </p>
 </body></html>`;
 
@@ -153,6 +164,71 @@ export async function sendCheckSummaryEmail(
             ? `${summary.issueTitles.length} issue(s) on invoice ${summary.invoiceNumber || ''}`.trim()
             : `Invoice ${summary.invoiceNumber || ''} passed all checks`.trim(),
         html: shell(body),
+    });
+}
+
+/**
+ * Sends the delayed-payment computation, with the letter template attached.
+ *
+ * The template goes out as a .txt attachment rather than inline HTML on
+ * purpose. Inline, it would read as a letter from us; as a plain file with
+ * bracketed gaps it reads as a draft the recipient completes and sends
+ * themselves, which is what it is. See lib/demandLetter.ts.
+ */
+export async function sendUnpaidSummaryEmail(
+    email: string,
+    summary: {
+        principal: string;
+        interest: string;
+        total: string;
+        monthlyAccrual: string;
+        daysOverdue: number;
+        interestStartsOn: string;
+        computedTo: string;
+    },
+    letterText: string,
+    letterFilename: string
+) {
+    const body = `
+      <h1 style="font-size:22px;margin:0 0 8px;">Your delayed-payment computation</h1>
+      <p style="color:#52402F;">
+        Payment fell due on <strong>${summary.interestStartsOn}</strong>.
+        <strong>${summary.daysOverdue} days</strong> had elapsed as at ${summary.computedTo}.
+      </p>
+      <table style="border-collapse:collapse;margin:20px 0;">
+        <tr><td style="padding:4px 24px 4px 0;color:#9E8A78;">Invoice amount</td>
+            <td style="padding:4px 0;font-weight:600;">₹${summary.principal}</td></tr>
+        <tr><td style="padding:4px 24px 4px 0;color:#9E8A78;">Interest computed</td>
+            <td style="padding:4px 0;font-weight:600;color:#9E542F;">₹${summary.interest}</td></tr>
+        <tr><td style="padding:4px 24px 4px 0;color:#9E8A78;">Total</td>
+            <td style="padding:4px 0;font-weight:600;">₹${summary.total}</td></tr>
+      </table>
+      <p style="color:#52402F;">
+        At the current balance and rate this adds about
+        <strong>₹${summary.monthlyAccrual}</strong> a month, compounding with monthly rests.
+      </p>
+      <h2 style="font-size:16px;margin:24px 0 8px;">The attached template</h2>
+      <p style="color:#52402F;">
+        A letter template is attached as a text file. It has gaps in square brackets
+        for you to fill in. Read it through, change anything that does not match your
+        facts, and send it in your own name — it is a starting point, not a legal
+        notice, and it was not drafted by a lawyer.
+      </p>
+      <p style="font-size:13px;color:#9E8A78;margin-top:24px;">
+        References to the Facilitation Council are filed at
+        <a href="https://odr.msme.gov.in" style="color:#9E542F;">odr.msme.gov.in</a>.
+        The MSME Samadhaan portal stopped accepting new filings on 15 October 2025.
+      </p>`;
+
+    await getResend().emails.send({
+        from: FROM,
+        to: email,
+        subject: `Interest computed on your unpaid invoice: ₹${summary.interest}`,
+        html: shell(body, MSME_FOOTER),
+        attachments: [{
+            filename: letterFilename,
+            content: Buffer.from(letterText, 'utf8').toString('base64'),
+        }],
     });
 }
 
