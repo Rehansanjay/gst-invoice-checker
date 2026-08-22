@@ -233,6 +233,53 @@ export async function sendUnpaidSummaryEmail(
 }
 
 /**
+ * Sends the paid interest computation certificate.
+ *
+ * Deliberately plain. The customer has already bought; an email that carries
+ * on selling to someone who just paid reads badly, and there is nothing to
+ * upsell them to. It confirms what they have, and gets out of the way.
+ */
+export async function sendComputationCertificate(
+    email: string,
+    summary: { reference: string; total: number; interest: number; computedTo: string },
+    pdf: Buffer,
+    filename: string
+) {
+    const rupees = (paise: number) =>
+        new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })
+            .format(paise / 100);
+
+    const body = `
+      <h1 style="font-size:22px;margin:0 0 8px;">Your interest computation</h1>
+      <p style="color:#52402F;">
+        Attached as a PDF, reference <strong>${summary.reference}</strong>, computed to
+        ${summary.computedTo}.
+      </p>
+      <table style="border-collapse:collapse;margin:20px 0;">
+        <tr><td style="padding:4px 24px 4px 0;color:#9E8A78;">Interest to date</td>
+            <td style="padding:4px 0;font-weight:600;color:#9E542F;">₹${rupees(summary.interest)}</td></tr>
+        <tr><td style="padding:4px 24px 4px 0;color:#9E8A78;">Total</td>
+            <td style="padding:4px 0;font-weight:600;">₹${rupees(summary.total)}</td></tr>
+      </table>
+      <p style="color:#52402F;">
+        It sets out the calculation month by month, names the Bank Rate it used and where
+        that came from, and projects the sum forward at 30, 60 and 90 days. It is the
+        enclosure the letter template refers to.
+      </p>
+      <p style="font-size:13px;color:#9E8A78;margin-top:24px;">
+        Keep the reference — quote it if you need to ask us anything about this computation.
+      </p>`;
+
+    await getResend().emails.send({
+        from: FROM,
+        to: email,
+        subject: `Interest computation ${summary.reference} — ₹${rupees(summary.total)} total`,
+        html: shell(body, MSME_FOOTER),
+        attachments: [{ filename, content: pdf.toString('base64') }],
+    });
+}
+
+/**
  * Notifies us that a lead came in. Sent regardless of whether the `leads` table
  * exists, so no lead is lost while the migration is still unapplied.
  */
