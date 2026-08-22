@@ -26,6 +26,7 @@ import {
     currentRate,
     bpsToPercent,
     isSeriesStale,
+    coverageStartOf,
 } from '../lib/bankRate';
 
 let pass = 0, fail = 0;
@@ -74,6 +75,13 @@ ok('the refusal points at the RBI archive',
     (coverageGapFor(d('2025-09-01'), d('2026-08-01')) ?? '').includes('rbi.org.in'));
 
 // ─── Series integrity ─────────────────────────────────────────────────
+
+// COVERAGE_STARTS_ON is declared as a literal so it can be referenced before
+// the series is initialised. That makes it a second source of truth, so it
+// must be checked against the series it claims to describe.
+ok('COVERAGE_STARTS_ON matches the oldest row in the series',
+    COVERAGE_STARTS_ON === coverageStartOf(BANK_RATE_SERIES),
+    { constant: COVERAGE_STARTS_ON, derived: coverageStartOf(BANK_RATE_SERIES) });
 
 const open = BANK_RATE_SERIES.filter((p) => p.effectiveTo === null);
 ok('exactly one rate is open-ended', open.length === 1, open.length);

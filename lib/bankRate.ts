@@ -57,9 +57,17 @@ export interface BankRatePeriod {
 export const STATUTORY_MULTIPLIER = 3;
 
 /**
- * Earliest date the series can be trusted for. Periods starting before this
- * are refused, not estimated.
+ * Earliest date a series can be trusted for: the start of its oldest row.
+ *
+ * Derived rather than declared, so extending coverage is a matter of adding a
+ * verified row and nothing else. A separate constant would be a second place
+ * to update and therefore a place to forget.
  */
+export function coverageStartOf(series: readonly BankRatePeriod[] = BANK_RATE_SERIES): string {
+    return series.reduce((earliest, p) => (p.effectiveFrom < earliest ? p.effectiveFrom : earliest), '9999-12-31');
+}
+
+/** Coverage start for the shipped series. Periods before this are refused. */
 export const COVERAGE_STARTS_ON = '2026-01-01';
 
 /**
@@ -97,7 +105,7 @@ export function toISODate(date: Date): string {
  */
 export function bankRateBpsOn(date: Date, series: readonly BankRatePeriod[] = BANK_RATE_SERIES): number | null {
     const iso = toISODate(date);
-    if (iso < COVERAGE_STARTS_ON) return null;
+    if (iso < coverageStartOf(series)) return null;
 
     for (const period of series) {
         const startedYet = iso >= period.effectiveFrom;
@@ -120,14 +128,19 @@ export function statutoryRateBpsOn(date: Date, series: readonly BankRatePeriod[]
  * Called first by the interest engine so a partially-computable claim fails
  * cleanly rather than returning a figure covering only part of the span.
  */
-export function coverageGapFor(from: Date, to: Date): string | null {
+export function coverageGapFor(
+    from: Date,
+    to: Date,
+    series: readonly BankRatePeriod[] = BANK_RATE_SERIES,
+): string | null {
     const fromISO = toISODate(from);
     const toISO = toISODate(to);
+    const start = coverageStartOf(series);
 
-    if (fromISO < COVERAGE_STARTS_ON) {
-        return `Our verified Bank Rate series starts on ${COVERAGE_STARTS_ON}. This period begins on ${fromISO}, so we cannot compute it without publishing a rate we have not checked at source. The RBI rate archive is at rbi.org.in.`;
+    if (fromISO < start) {
+        return `Our verified Bank Rate series starts on ${start}. This period begins on ${fromISO}, so we cannot compute it without publishing a rate we have not checked at source. The RBI rate archive is at rbi.org.in.`;
     }
-    if (bankRateBpsOn(to) === null) {
+    if (bankRateBpsOn(to, series) === null) {
         return `We do not hold a Bank Rate covering ${toISO}. The series may need updating.`;
     }
     return null;
