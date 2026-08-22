@@ -17,6 +17,7 @@ const CREDITS_MAP: Record<string, number> = {
     pack_10: 10,
     pack_50: 50,
     pack_100: 100,
+    practice_250: 250,
 };
 
 // ── Server-Side Price Validation ─────────────────────────────────────
