@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:validation": "npx tsx tests/false-positives.ts && npx tsx tests/true-positives.ts && npx tsx tests/deadlines.ts && npx tsx tests/root-causes.ts && npx tsx tests/invoice-level-tax.ts && npx tsx tests/check-count.ts && npx tsx tests/bank-rate.ts && npx tsx tests/msme-interest.ts"
+    "test:validation": "npx tsx tests/false-positives.ts && npx tsx tests/true-positives.ts && npx tsx tests/deadlines.ts && npx tsx tests/root-causes.ts && npx tsx tests/invoice-level-tax.ts && npx tsx tests/check-count.ts && npx tsx tests/bank-rate.ts && npx tsx tests/msme-interest.ts && npx tsx tests/udyam.ts"
   },
   "dependencies": {
     "@next/third-parties": "^16.1.6",

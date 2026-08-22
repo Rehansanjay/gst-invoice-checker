@@ -212,6 +212,38 @@ const paidLate = computeInterest({
 ok('paying earlier accrues less interest',
     paidEarly.ok && paidLate.ok && paidEarly.interestPaise < paidLate.interestPaise);
 
+// ─── Calendar dates, not instants ─────────────────────────────────────
+// Regression: todayIST() carries a time of day, and feeding that into a day
+// count rounded it up. A claim to 22 Aug reported 175 days instead of 174 and
+// the closing period printed "2026-08-01 → 2026-08-22, 22 days", which is
+// visibly not 22 days. Anyone checking the schedule would catch it instantly.
+
+const midnight = computeInterest({
+    principalPaise: 30_000_000, acceptanceDate: d('2026-02-13'),
+    writtenAgreement: false, asOf: d('2026-08-22'),
+});
+for (const clock of ['T09:30:00Z', 'T14:30:00Z', 'T23:59:59Z']) {
+    const withTime = computeInterest({
+        principalPaise: 30_000_000,
+        acceptanceDate: new Date('2026-02-13' + clock),
+        writtenAgreement: false,
+        asOf: new Date('2026-08-22' + clock),
+    });
+    ok(`a time of day (${clock}) does not change the result`,
+        midnight.ok && withTime.ok && withTime.totalPaise === midnight.totalPaise,
+        { midnight: midnight.ok && midnight.totalPaise, withTime: withTime.ok && withTime.totalPaise });
+}
+if (midnight.ok) {
+    ok('2026-03-01 to 2026-08-22 is 174 days', midnight.daysOverdue === 174, midnight.daysOverdue);
+    ok('computedTo agrees with the day count', midnight.computedTo === '2026-08-22');
+    const last = midnight.schedule[midnight.schedule.length - 1];
+    ok('the closing stub is 21 days, matching its printed dates', last?.days === 21, last?.days);
+    ok('every period length matches its own printed dates',
+        midnight.schedule.every((s) =>
+            s.days === Math.round((Date.parse(s.periodEnd) - Date.parse(s.periodStart)) / 86_400_000)),
+        midnight.schedule.map((s) => `${s.periodStart}→${s.periodEnd}=${s.days}`));
+}
+
 // ─── Date helpers ─────────────────────────────────────────────────────
 
 ok('addMonths clamps 31 Jan to 28 Feb in a common year',

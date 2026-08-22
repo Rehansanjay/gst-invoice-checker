@@ -126,6 +126,23 @@ function addDays(date: Date, days: number): Date {
     return new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
 }
 
+/**
+ * Drops the time of day, keeping the calendar date.
+ *
+ * Every date here is a calendar date — a day of acceptance, a day of payment.
+ * None is an instant. But `todayIST()` returns a shifted timestamp that still
+ * carries a time, and mixing that into a day count rounds it up: a claim
+ * running to 22 August reported 175 days rather than 174, and the closing
+ * period rendered as "1 Aug to 22 Aug, 22 days", which is visibly not 22 days.
+ *
+ * Normalising at the boundary keeps the arithmetic and the printed schedule
+ * telling the same story, which matters more here than usual — the schedule is
+ * meant to be checkable by the recipient's accountant.
+ */
+function atMidnightUTC(date: Date): Date {
+    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+}
+
 function daysBetween(from: Date, to: Date): number {
     return Math.round((to.getTime() - from.getTime()) / (24 * 60 * 60 * 1000));
 }
@@ -149,9 +166,9 @@ function daysBetween(from: Date, to: Date): number {
 export function interestStartDate(input: ClaimInput): Date {
     if (input.writtenAgreement && typeof input.agreedDays === 'number') {
         const agreed = Math.min(Math.max(input.agreedDays, 0), MAX_AGREED_DAYS);
-        return addDays(input.acceptanceDate, agreed + 1);
+        return addDays(atMidnightUTC(input.acceptanceDate), agreed + 1);
     }
-    return addDays(input.acceptanceDate, DEFAULT_PERIOD_DAYS + 1);
+    return addDays(atMidnightUTC(input.acceptanceDate), DEFAULT_PERIOD_DAYS + 1);
 }
 
 /** Interest for one period, rounded to whole paise. */
@@ -181,7 +198,7 @@ export function computeInterest(
     }
 
     const start = interestStartDate(input);
-    const end = input.paidOn ?? input.asOf ?? todayIST();
+    const end = atMidnightUTC(input.paidOn ?? input.asOf ?? todayIST());
 
     if (daysBetween(start, end) <= 0) {
         return {
