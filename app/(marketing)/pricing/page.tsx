@@ -238,6 +238,11 @@ export default function PricingPage() {
                                     Try bulk check — free
                                 </button>
                             </Link>
+                            <p className="text-[12px] text-center" style={{ color: 'var(--warm-text-secondary)' }}>
+                                <Link href="/ca-case-studies" className="underline underline-offset-2" style={{ color: 'var(--warm-accent)' }}>
+                                    See how practices use it
+                                </Link>
+                            </p>
                         </div>
 
                         {/*

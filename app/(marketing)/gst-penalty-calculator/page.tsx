@@ -506,6 +506,26 @@ function GstPenaltyCalculatorInner() {
                     </div>
                 </div>
 
+                {/*
+                  The sibling calculator. This page prices what YOU owe the
+                  department for filing late; that one prices what a customer
+                  owes YOU for paying late. Anyone reaching for one has the
+                  other on their mind soon enough.
+                */}
+                <div className="max-w-3xl mx-auto mt-10 rounded-xl p-6" style={{ border: '1px solid var(--warm-border)' }}>
+                    <h2 className="mb-2 text-lg font-bold" style={{ color: 'var(--warm-charcoal)' }}>
+                        The other direction
+                    </h2>
+                    <p className="text-sm" style={{ color: 'var(--warm-charcoal-soft)' }}>
+                        This works out what a late return costs you. If a customer has been late
+                        paying <em>you</em>, section 16 of the MSMED Act 2006 provides for compound
+                        interest at three times the RBI Bank Rate.{' '}
+                        <Link href="/unpaid-invoice" className="font-semibold underline underline-offset-2" style={{ color: 'var(--warm-accent)' }}>
+                            Work out what an unpaid invoice has accrued
+                        </Link>.
+                    </p>
+                </div>
+
             </div>
         </div>
     );

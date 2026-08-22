@@ -59,6 +59,11 @@ export default function Footer() {
                                 </Link>
                             </li>
                             <li>
+                                <Link href="/unpaid-invoice" className="transition-colors" style={{ color: '#9E8A78' }}>
+                                    Unpaid Invoice Interest
+                                </Link>
+                            </li>
+                            <li>
                                 <Link href="/faq" className="transition-colors" style={{ color: '#9E8A78' }}>
                                     FAQ
                                 </Link>

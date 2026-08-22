@@ -169,6 +169,28 @@ export default function VendorInvoiceCheckPage() {
                     </div>
                 </div>
 
+                {/*
+                  The reciprocal of this page. This one speaks to the buyer,
+                  worried about credit on a supplier's defective invoice; that
+                  one speaks to the supplier who has not been paid at all.
+                  Same relationship, opposite end, and the natural next thought
+                  for anyone whose payables are already on their mind.
+                */}
+                <div className="mt-10 rounded-xl p-6" style={{ border: '1px solid var(--warm-border)' }}>
+                    <h2 className="mb-2 text-lg font-bold" style={{ color: 'var(--warm-charcoal)' }}>
+                        On the other side of the same relationship
+                    </h2>
+                    <p className="text-sm" style={{ color: 'var(--warm-charcoal-soft)' }}>
+                        If you are the one waiting to be paid, section 16 of the MSMED Act 2006
+                        provides for compound interest at three times the RBI Bank Rate on payments
+                        delayed beyond the period allowed.{' '}
+                        <Link href="/unpaid-invoice" className="font-semibold underline underline-offset-2" style={{ color: 'var(--warm-accent)' }}>
+                            Work out what a late payment has accrued
+                        </Link>{' '}
+                        — free, and no sign-up.
+                    </p>
+                </div>
+
                 <p className="mt-10 text-xs" style={{ color: 'var(--warm-text-secondary)' }}>
                     General information about Indian GST, not tax advice. Input tax credit conditions
                     are set out in Section 16 of the CGST Act and change by notification — confirm the
