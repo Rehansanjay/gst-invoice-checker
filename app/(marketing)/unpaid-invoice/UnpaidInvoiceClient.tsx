@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Loader2, Info, ExternalLink, TrendingUp, FileText, Download, Copy, Check } from 'lucide-react';
+import { Loader2, Info, ExternalLink, TrendingUp, FileText, Download, Copy, Check, FileCheck2 } from 'lucide-react';
 import { toast } from 'sonner';
 import EmailReportCapture from '@/components/EmailReportCapture';
 
@@ -21,6 +21,76 @@ import EmailReportCapture from '@/components/EmailReportCapture';
  * advice is reserved to enrolled advocates under s.29 of the Advocates Act.
  * The distinction is not decorative — it is why this page can exist.
  */
+
+interface RazorpayResponse {
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+}
+
+interface RazorpayOptions {
+    key: string;
+    amount: number;
+    currency: string;
+    name: string;
+    description: string;
+    order_id: string;
+    prefill: { email: string };
+    theme: { color: string };
+    handler: (response: RazorpayResponse) => void;
+    modal: { ondismiss: () => void };
+}
+
+type RazorpayConstructor = new (options: RazorpayOptions) => { open: () => void };
+
+/**
+ * Reads the checkout constructor off `window`, typed.
+ *
+ * `Window.Razorpay` is already declared globally as `any` by
+ * components/PackagePurchaseButton.tsx, and TypeScript will not accept a
+ * second declaration with a narrower type. Widening that file's declaration
+ * would retype every call site in it for no benefit here, so the cast is
+ * confined to this one accessor and the options object above stays checked.
+ */
+function razorpayCheckout(): RazorpayConstructor | null {
+    const ctor = (window as unknown as { Razorpay?: unknown }).Razorpay;
+    return typeof ctor === 'function' ? (ctor as RazorpayConstructor) : null;
+}
+
+const RAZORPAY_SRC = 'https://checkout.razorpay.com/v1/checkout.js';
+
+/**
+ * Loads the checkout script on demand, resolving once it is usable.
+ *
+ * Imperative rather than a <Script strategy="lazyOnload"> tag, which did not
+ * reliably inject at all — the tag never reached the DOM and window.Razorpay
+ * stayed undefined. components/PackagePurchaseButton.tsx already loads it this
+ * way and that path works.
+ *
+ * It also happens to be the better trade: almost everyone who runs the
+ * calculator will not buy, and they now pay nothing for a payment script they
+ * never touch.
+ */
+function loadRazorpay(): Promise<RazorpayConstructor | null> {
+    return new Promise((resolve) => {
+        const already = razorpayCheckout();
+        if (already) { resolve(already); return; }
+
+        const existing = document.querySelector<HTMLScriptElement>(`script[src="${RAZORPAY_SRC}"]`);
+        if (existing) {
+            existing.addEventListener('load', () => resolve(razorpayCheckout()), { once: true });
+            existing.addEventListener('error', () => resolve(null), { once: true });
+            return;
+        }
+
+        const el = document.createElement('script');
+        el.src = RAZORPAY_SRC;
+        el.async = true;
+        el.onload = () => resolve(razorpayCheckout());
+        el.onerror = () => resolve(null);
+        document.body.appendChild(el);
+    });
+}
 
 interface Rest {
     periodStart: string;
@@ -77,6 +147,9 @@ export default function UnpaidInvoiceClient() {
     const [outcome, setOutcome] = useState<Outcome | null>(null);
     const [showSchedule, setShowSchedule] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [buyerEmail, setBuyerEmail] = useState('');
+    const [buying, setBuying] = useState(false);
+    const [bought, setBought] = useState<string | null>(null);
 
     const downloadLetter = () => {
         if (!outcome?.ok) return;
@@ -89,6 +162,85 @@ export default function UnpaidInvoiceClient() {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+    };
+
+    /**
+     * The paid certificate.
+     *
+     * The numbers stay free and ungated — they are the hook, and a half-hidden
+     * figure kills both trust and sharing. What is sold is the document: the
+     * calculation set out with its source and its date, projected forward, in
+     * a form that can be attached to a filing rather than screenshotted.
+     */
+    const buyCertificate = async () => {
+        if (!outcome?.ok) return;
+        if (!buyerEmail.trim()) { toast.error('Enter the email to send it to.'); return; }
+
+        setBuying(true);
+        try {
+            const orderRes = await fetch('/api/unpaid-invoice/order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: buyerEmail.trim() }),
+            });
+            const order = await orderRes.json();
+            if (!orderRes.ok) {
+                toast.error(order.reason || order.error || 'Could not start the payment.');
+                return;
+            }
+
+            const Checkout = await loadRazorpay();
+            if (!Checkout) {
+                toast.error('Payment could not load. Check your connection and try again.');
+                return;
+            }
+
+            const rzp = new Checkout({
+                key: order.razorpayKeyId,
+                amount: order.amount * 100,
+                currency: 'INR',
+                name: 'InvoiceCheck.in',
+                description: 'Interest computation certificate',
+                order_id: order.orderId,
+                prefill: { email: buyerEmail.trim() },
+                theme: { color: '#9E542F' },
+                handler: async (response: RazorpayResponse) => {
+                    setBuying(true);
+                    try {
+                        const res = await fetch('/api/unpaid-invoice/deliver', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                razorpayOrderId: response.razorpay_order_id,
+                                razorpayPaymentId: response.razorpay_payment_id,
+                                razorpaySignature: response.razorpay_signature,
+                                email: buyerEmail.trim(),
+                                claim: {
+                                    amountRupees: Number(amount),
+                                    acceptanceDate,
+                                    writtenAgreement,
+                                    agreedDays: writtenAgreement ? Number(agreedDays) : undefined,
+                                    paidOn: stillUnpaid ? null : (paidOn || null),
+                                    udyam: udyam || null,
+                                },
+                            }),
+                        });
+                        const data = await res.json();
+                        if (!res.ok) { toast.error(data.error || 'Delivery failed.'); return; }
+                        setBought(data.reference);
+                        toast.success('Sent — check your inbox.');
+                    } finally {
+                        setBuying(false);
+                    }
+                },
+                modal: { ondismiss: () => setBuying(false) },
+            });
+            rzp.open();
+        } catch {
+            toast.error('Something went wrong. Please try again.');
+        } finally {
+            setBuying(false);
+        }
     };
 
     const copyLetter = async () => {
@@ -449,6 +601,77 @@ export default function UnpaidInvoiceClient() {
                             </p>
                         </div>
 
+                        {/*
+                          The paid tier. Placed AFTER the free letter, not
+                          before it: someone who has just been handed something
+                          useful for nothing is in a different frame from
+                          someone who has hit a wall. Nothing above this is
+                          gated, and nothing here repeats a figure they have
+                          already seen — what is sold is the document, its
+                          provenance and the forward projection.
+                        */}
+                        {bought ? (
+                            <div className="rounded-xl p-6" style={{ background: 'var(--warm-cream)', border: '1px solid var(--warm-success)' }}>
+                                <div className="flex items-start gap-3">
+                                    <Check className="h-5 w-5 shrink-0 mt-0.5" style={{ color: 'var(--warm-success)' }} />
+                                    <div>
+                                        <h3 className="font-bold" style={{ color: 'var(--warm-charcoal)' }}>
+                                            Sent to {buyerEmail}
+                                        </h3>
+                                        <p className="text-sm mt-1" style={{ color: 'var(--warm-charcoal-soft)' }}>
+                                            Reference <strong>{bought}</strong>. Keep it — quote it if you need to ask us
+                                            anything about this computation. If it has not arrived in a few minutes, check
+                                            your spam folder.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="rounded-xl p-6" style={{ background: 'var(--warm-cream)', border: '1px solid var(--warm-border)' }}>
+                                <div className="flex items-start gap-3 mb-4">
+                                    <FileCheck2 className="h-5 w-5 shrink-0 mt-0.5" style={{ color: 'var(--warm-accent)' }} />
+                                    <div>
+                                        <h3 className="font-bold" style={{ color: 'var(--warm-charcoal)' }}>
+                                            The computation as a document — ₹299
+                                        </h3>
+                                        <p className="text-sm mt-1" style={{ color: 'var(--warm-charcoal-soft)' }}>
+                                            The figures above are yours free. This is them set out as something you can
+                                            attach to a reference to the Facilitation Council, rather than a screenshot.
+                                        </p>
+                                    </div>
+                                </div>
+                                <ul className="mb-4 space-y-1.5 text-sm" style={{ color: 'var(--warm-charcoal-soft)' }}>
+                                    {[
+                                        'Month by month, with the rate in force during each period',
+                                        'The Bank Rate printed with its source and the date it was checked',
+                                        'Projected forward at 30, 60 and 90 days',
+                                        'A reference number, so a query is about one specific computation',
+                                    ].map((f) => (
+                                        <li key={f} className="flex items-start gap-2">
+                                            <span style={{ color: 'var(--warm-success)' }}>✓</span> {f}
+                                        </li>
+                                    ))}
+                                </ul>
+                                <div className="flex flex-col sm:flex-row gap-2">
+                                    <input
+                                        type="email" value={buyerEmail} onChange={(e) => setBuyerEmail(e.target.value)}
+                                        placeholder="Where should we send it?"
+                                        aria-label="Email for the computation certificate"
+                                        className="flex-1 rounded-lg px-3.5 py-2.5 text-base outline-none"
+                                        style={{ background: 'var(--warm-bg-alt)', border: '1.5px solid var(--warm-border)', color: 'var(--warm-charcoal)' }}
+                                    />
+                                    <Button type="button" onClick={buyCertificate} disabled={buying} className="btn-warm-primary">
+                                        {buying
+                                            ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Working</>
+                                            : <>Get it — ₹299</>}
+                                    </Button>
+                                </div>
+                                <p className="text-xs mt-3" style={{ color: 'var(--warm-text-secondary)' }}>
+                                    One payment, one document. Still a computation, not advice on your legal position.
+                                </p>
+                            </div>
+                        )}
+
                         <EmailReportCapture
                             source="unpaid"
                             heading="Email me the computation and the template"
@@ -497,5 +720,6 @@ export default function UnpaidInvoiceClient() {
                 )}
             </div>
         </div>
+
     );
 }
