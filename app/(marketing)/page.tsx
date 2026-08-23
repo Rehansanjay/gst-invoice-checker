@@ -137,10 +137,18 @@ function InteractiveFeatureTabs() {
 }
 
 /* ── 4. FAQ Accordion ──────────────────────────────────── */
-function FAQAccordion() {
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
 
-  const faqs = [
+/**
+ * Hoisted to module scope so the FAQPage structured data further down is
+ * generated from the same array the accordion renders.
+ *
+ * The schema used to live in app/layout.tsx, which put it on every page of the
+ * site — /terms and /privacy included, neither of which shows an FAQ. Google
+ * asks that FAQPage markup describe content actually visible on the page
+ * carrying it, and it was also colliding with the real FAQPage on /faq. It
+ * belongs here, where these answers genuinely render.
+ */
+const HOMEPAGE_FAQS: { q: string; a: string }[] = [
     {
       q: 'Is my invoice data secure?',
       a: 'Free checks are processed in memory and never written to our database — nothing about that invoice is kept. If you pay for a full report, we do store the invoice details, because that is what lets you re-open, download and email the report afterwards. We never sell your data or use it to train AI models, and you can ask us to delete a stored check at any time. Our Privacy Policy sets out exactly what is kept and for how long.'
@@ -157,11 +165,14 @@ function FAQAccordion() {
       q: 'Does this integrate with Tally or Zoho?',
       a: 'Not directly yet. We are building our API to plug directly into major ERPs. For now, you can instantly check any generated invoice PDF before you upload it to your buyer marketplace.'
     }
-  ];
+];
+
+function FAQAccordion() {
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
     <div className="max-w-3xl mx-auto space-y-3">
-      {faqs.map((faq, i) => (
+      {HOMEPAGE_FAQS.map((faq, i) => (
         <div key={i} className="rounded-2xl overflow-hidden hover-glow-border" style={{ background: 'white', border: '1px solid var(--warm-border)' }}>
           <button
             onClick={() => setOpenIndex(openIndex === i ? null : i)}
@@ -292,6 +303,26 @@ export default function Home() {
         untouched; the choice is the first thing you meet on scroll, and on
         mobile — where the mockup is hidden — that is barely below the fold.
       */}
+      {/*
+        Generated from HOMEPAGE_FAQS, the same array the accordion below
+        renders, so the two cannot drift apart. Restating the questions here
+        is how structured data quietly stops matching the page it describes.
+      */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: HOMEPAGE_FAQS.map((f) => ({
+              '@type': 'Question',
+              name: f.q,
+              acceptedAnswer: { '@type': 'Answer', text: f.a },
+            })),
+          }),
+        }}
+      />
+
       <AudienceSplit />
 
       {/* ═══════════════ OPTIMISTIC IMPACT SECTION ═══════════════ */}

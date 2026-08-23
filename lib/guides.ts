@@ -19,6 +19,30 @@ export type Guide = {
  */
 export const GUIDES: Guide[] = [
     {
+        slug: 'msme-delayed-payment-odr-portal',
+        title: 'How to file a delayed-payment claim on the MSME ODR Portal',
+        metaTitle: 'MSME Delayed Payment — Filing on the ODR Portal',
+        description:
+            'Samadhaan stopped accepting new delayed-payment filings on 15 October 2025. Where references go now, what the Facilitation Council needs from you, and what is recoverable under Sections 15 to 18 of the MSMED Act.',
+        excerpt:
+            'The Samadhaan portal no longer takes new cases. Where a delayed-payment reference is filed now, and what you need before you start.',
+        published: '2026-08-23',
+        updated: '2026-08-23',
+        readingMinutes: 9,
+    },
+    {
+        slug: 'msme-45-day-payment-rule',
+        title: 'The 45-day payment rule, and what it costs a buyer to ignore',
+        metaTitle: 'MSME 45-Day Payment Rule — Section 15 and 43B(h)',
+        description:
+            'Section 15 of the MSMED Act sets the payment window at 15 days, or up to 45 with a written agreement. Section 16 charges three times the RBI Bank Rate compounded monthly. And the deduction disallowance moved to Section 37(2)(g) in April 2026.',
+        excerpt:
+            'Fifteen days, or forty-five with an agreement. What accrues after that, and why the buyer’s tax position is the part that actually moves the payment.',
+        published: '2026-08-23',
+        updated: '2026-08-23',
+        readingMinutes: 8,
+    },
+    {
         slug: 'how-to-check-fake-gst-invoice',
         title: 'How to check whether a GST invoice is genuine',
         metaTitle: 'How to Check if a GST Invoice is Fake — 6 Checks',

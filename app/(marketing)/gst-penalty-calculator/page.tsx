@@ -507,6 +507,65 @@ function GstPenaltyCalculatorInner() {
                 </div>
 
                 {/*
+                  Added because this page served 295 words to a crawler — the
+                  calculator widget and little else. These are the questions
+                  people arrive with, answered where they land.
+                */}
+                <div className="max-w-3xl mx-auto mt-16">
+                    <h2 className="text-2xl font-bold mb-4 font-heading" style={{ color: 'var(--warm-charcoal)' }}>
+                        Which section applies to what
+                    </h2>
+                    <p className="mb-4" style={{ color: 'var(--warm-charcoal-soft)' }}>
+                        Late filing is charged under two provisions at once. Section 47 imposes a
+                        daily late fee, and Section 50 charges interest at 18% a year on any tax that
+                        was paid late. They are separate liabilities and both run until the return is
+                        filed and the tax discharged — a common surprise is discovering the late fee
+                        was capped while the interest was not.
+                    </p>
+                    <p className="mb-4" style={{ color: 'var(--warm-charcoal-soft)' }}>
+                        Using the wrong tax head is not a filing delay, it is a short payment. Where
+                        IGST is charged on what was actually an intrastate supply, or the reverse, the
+                        department treats the correct head as underpaid. That falls under Section 73
+                        where there was no fraud — penalty of 10% of the tax or ₹10,000, whichever is
+                        higher, with interest running from the original due date rather than from
+                        when the error was found.
+                    </p>
+                    <p className="mb-6" style={{ color: 'var(--warm-charcoal-soft)' }}>
+                        A missing or wrong HSN code sits under Section 122 as an incorrect invoice.
+                        Claiming input tax credit you were not eligible for engages Sections 16(2) and
+                        17(5): the credit is reversed and interest runs on it, and it is one of the
+                        most common reasons a business receives a notice at all.
+                    </p>
+
+                    <h2 className="text-2xl font-bold mb-4 font-heading" style={{ color: 'var(--warm-charcoal)' }}>
+                        Paying before a notice costs far less
+                    </h2>
+                    <p className="mb-4" style={{ color: 'var(--warm-charcoal-soft)' }}>
+                        The penalty is not fixed at the moment the error happens — it depends on when
+                        you deal with it. Under Section 73(5), tax and interest paid voluntarily
+                        through DRC-03 before a show cause notice is issued attracts no penalty at
+                        all. Once a notice has issued, paying before the order still reduces it.
+                    </p>
+                    <p className="mb-6" style={{ color: 'var(--warm-charcoal-soft)' }}>
+                        The practical consequence is that the expensive outcome is usually not the
+                        error itself but the months between making it and noticing. That is the whole
+                        argument for checking invoices before they are filed rather than after a
+                        notice arrives.
+                    </p>
+
+                    <h2 className="text-2xl font-bold mb-4 font-heading" style={{ color: 'var(--warm-charcoal)' }}>
+                        What this calculator is
+                    </h2>
+                    <p className="mb-6" style={{ color: 'var(--warm-charcoal-soft)' }}>
+                        An estimate of exposure, computed from the figures you enter against the rates
+                        those sections set. It is not a demand, not an assessment, and not advice on
+                        your position — the department computes its own figure and the facts of a
+                        particular case can change which section applies. Use it to understand the
+                        order of magnitude, and confirm anything that matters with your CA.
+                    </p>
+                </div>
+
+                {/*
                   The sibling calculator. This page prices what YOU owe the
                   department for filing late; that one prices what a customer
                   owes YOU for paying late. Anyone reaching for one has the
