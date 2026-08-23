@@ -16,7 +16,7 @@ import { SITE_URL, OG_IMAGE } from '@/lib/site';
 export const metadata: Metadata = {
     title: 'Check Vendor Invoices Before You Claim ITC — InvoiceCheck.in',
     description:
-        'Validate supplier invoices before claiming input tax credit. Catch invalid GSTINs, wrong tax heads, short HSN codes and tax that does not reconcile — the defects that cost you ITC under Section 16. Upload a batch free.',
+        'Check supplier invoices before you claim input tax credit. Catch the GSTIN, tax head and HSN defects that cost you ITC under Section 16.',
     alternates: { canonical: '/vendor-invoice-check' },
     openGraph: {
         type: 'website',

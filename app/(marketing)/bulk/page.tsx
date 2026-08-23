@@ -6,7 +6,7 @@ import { SITE_URL, OG_IMAGE } from '@/lib/site';
 export const metadata: Metadata = {
     title: 'Bulk GST Invoice Validation for CA Firms — Pre-Filing Check',
     description:
-        'Upload a Tally, Zoho, Busy or GSTR-1 export and validate up to 100 invoices at once. Find every invoice that will be rejected before you file GSTR-1, with a worst-first exception report.',
+        'Upload a Tally, Zoho or Busy export and check 100 invoices at once. Find what GSTR-1 will reject before you file it. Free, worst-first.',
     alternates: { canonical: '/bulk' },
     openGraph: {
         type: 'website',

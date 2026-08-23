@@ -6,7 +6,7 @@ import { SITE_URL, OG_IMAGE } from '@/lib/site';
 export const metadata: Metadata = {
     title: 'GST Error Codes Explained — GSTR-1 Upload Errors & Fixes',
     description:
-        `Every common GSTR-1 JSON upload error code explained in plain English, with causes and step-by-step fixes. RET191113, RET191150, RET191175, RET191205 and more — ${GST_ERROR_CODES.length} codes covered.`,
+        `Every GSTR-1 upload error code in plain English, with causes and fixes. RET191113, RET191150, RET191205 and ${GST_ERROR_CODES.length - 3} more.`,
     alternates: { canonical: '/gst-error-codes' },
     openGraph: {
         type: 'website',

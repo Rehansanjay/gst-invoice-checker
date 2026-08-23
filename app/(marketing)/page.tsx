@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { useScrollReveal } from '@/lib/useScrollReveal';
 import {
-  CheckCircle2, Clock, ArrowRight, Zap, ShieldCheck,
+  CheckCircle2, Clock, Zap, ShieldCheck,
   Calculator, FileCheck, ArrowUpRight,
   Sparkles, BadgeCheck, Scale, FileWarning, Receipt,
   Building2, CheckCircle, AlertCircle, RefreshCcw,
@@ -14,6 +13,7 @@ import {
 import Link from 'next/link';
 import GetStartedModal from '@/components/GetStartedModal';
 import LoggedInHome from '@/components/LoggedInHome';
+import AudienceSplit from '@/components/AudienceSplit';
 
 /* ── 1. Premium Hero Mockup ──────────────────────────── */
 function HeroMockup() {
@@ -187,7 +187,6 @@ function FAQAccordion() {
 export default function Home() {
   const [showModal, setShowModal] = useState(false);
   const { user, loading } = useAuth();
-  const router = useRouter();
   const scrollRef = useScrollReveal();
 
   if (!loading && user) {
@@ -229,21 +228,37 @@ export default function Home() {
                 16-point compliance check that catches errors before the portal or the marketplace rejects them. Fix them in minutes, not next month&apos;s amendment.
               </p>
 
-              <div className="hero-animate-4 flex flex-col sm:flex-row gap-3 mb-10">
-                <button
-                  onClick={() => user ? router.push('/dashboard') : setShowModal(true)}
-                  className="btn-warm-primary magnetic-btn text-[15px] px-7 py-3.5 flex items-center justify-center gap-2"
+              {/*
+                One button, not two.
+
+                This hero previously offered "Start Checking — Free" beside
+                "Which tool do I need?", which asks a cold visitor to decide
+                between starting and orienting before they know what the site
+                even does. With seven tools behind it, orienting is the only
+                honest first step — so the choice is removed and everyone is
+                sent to the same place.
+
+                Nothing is lost by dropping the dashboard branch: a logged-in
+                user is returned LoggedInHome further up and never reaches this
+                markup, so `user ? 'Go to Dashboard'` could not render.
+
+                A real anchor rather than a scroll handler — it works without
+                JavaScript and survives a right-click. Full width below sm, so
+                it is a comfortable target on a phone rather than a pill
+                floating in the middle of the screen.
+              */}
+              <div className="hero-animate-4 mb-10">
+                <a
+                  href="#where-you-fit"
+                  className="btn-warm-primary magnetic-btn text-[15px] px-7 py-4 w-full sm:w-auto inline-flex items-center justify-center gap-2"
                 >
-                  {user ? 'Go to Dashboard' : 'Start Checking — Free'}
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="btn-warm-secondary magnetic-btn text-[15px] px-7 py-3.5"
-                  style={{ borderColor: 'rgba(250, 248, 246, 0.15)', color: 'var(--warm-cream)' }}
-                >
-                  See How It Works
-                </button>
+                  Show me which tool I need
+                  <ChevronDown className="w-4 h-4" />
+                </a>
+                <p className="mt-3 text-[13.5px] leading-snug max-w-sm" style={{ color: '#9E8A78' }}>
+                  Seven tools, free to run. The two boxes just below tell you which one
+                  is yours — and what you need to have ready.
+                </p>
               </div>
 
               <div className="hero-animate-5 flex flex-wrap items-center gap-x-5 gap-y-3">
@@ -267,6 +282,17 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/*
+        Sits immediately under the hero, deliberately.
+
+        Replacing the hero with two doors would have stripped the H1 and the
+        copy this page actually ranks on, from the most-crawled page on a
+        domain where thirteen others cannot get indexed at all. The hero stays
+        untouched; the choice is the first thing you meet on scroll, and on
+        mobile — where the mockup is hidden — that is barely below the fold.
+      */}
+      <AudienceSplit />
 
       {/* ═══════════════ OPTIMISTIC IMPACT SECTION ═══════════════ */}
       <section className="py-24 md:py-32" style={{ background: 'var(--warm-bg)' }}>
@@ -341,7 +367,7 @@ export default function Home() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 scroll-reveal-stagger">
               {[
                 { title: '15 Seconds', desc: 'Lightning-fast results' },
-                { title: '₹99 Only', desc: 'Per invoice, no subscription' },
+                { title: 'Free to run', desc: '₹99 only if you want the fixes' },
                 { title: '16 Checks', desc: 'Every flag cites its GST section' },
                 { title: 'Instant Fix', desc: 'Step-by-step guidance' },
               ].map((item, i) => (

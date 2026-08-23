@@ -19,7 +19,7 @@ import { SITE_URL, OG_IMAGE } from '@/lib/site';
 export const metadata: Metadata = {
     title: 'Verify a GST Invoice — Check if an Invoice is Genuine',
     description:
-        'Received an invoice you are not sure about? Check the GSTIN, tax calculation, HSN code and invoice format in seconds. A fabricated GST invoice usually fails at least one of these checks.',
+        'Not sure about an invoice you were given? Check its GSTIN, tax, HSN and format in seconds. A fake GST invoice usually fails one of them.',
     alternates: { canonical: '/verify-invoice' },
     openGraph: {
         type: 'website',

@@ -6,7 +6,7 @@ import { SITE_URL, OG_IMAGE } from '@/lib/site';
 export const metadata: Metadata = {
     title: 'GST Invoice Guides for Indian Sellers | InvoiceCheck.in',
     description:
-        'Practical guides on GST invoicing: place of supply and tax heads, marketplace invoice rejections, GSTR-1 late fees and compliance deadlines. Written for sellers and CA firms.',
+        'Practical GST invoicing guides: place of supply, tax heads, marketplace rejections and GSTR-1 late fees. For sellers and CA firms.',
     alternates: { canonical: '/guides' },
     openGraph: {
         type: 'website',

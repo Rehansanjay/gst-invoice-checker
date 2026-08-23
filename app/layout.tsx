@@ -14,8 +14,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "GST Invoice Checker Online — Validate GST Invoices in 15 Seconds | InvoiceCheck.in",
-  description: "Free online GST invoice checker. Validate GSTIN, HSN codes, tax calculations & e-invoice compliance before submission. Catch errors that cause Amazon/Flipkart payment holds. 16-point validation for ₹99.",
+  title: "GST Invoice Checker — Validate in 15 Seconds | InvoiceCheck.in",
+  description: "Free GST invoice checker. Validate GSTIN, HSN, tax heads and totals before the portal or a marketplace rejects them. 16 checks, no sign-up.",
   keywords: [
     "GST invoice checker",
     "GST invoice validator",
@@ -74,7 +74,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "GST Invoice Checker — Validate in 15 Seconds | InvoiceCheck.in",
-    description: "Free GST invoice validation tool. Catch errors before Amazon/Flipkart rejects your payment. 16-point check for ₹99.",
+    description: "Free GST invoice validation tool. Catch errors before Amazon/Flipkart rejects your payment. 16 checks, free to run.",
   },
   robots: {
     index: true,
@@ -161,7 +161,7 @@ export default function RootLayout({
                   "name": "What is the cost of GST invoice validation?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "InvoiceCheck.in charges ₹99 per invoice check, with no subscription. Bulk packages are available at discounted rates, and CA practices filing for multiple clients can use the batch pre-filing check."
+                    "text": "Running a check is free — the tool validates the invoice and names every problem it finds without payment. ₹99 unlocks the full report for that invoice, with the corrected values and how to fix each issue. Bulk credit packs and a CA practice pack bring the per-invoice cost down."
                   }
                 },
                 {
