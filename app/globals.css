@@ -515,3 +515,36 @@
     /* Prevents iOS auto-zoom on focus */
   }
 }
+/* ── Scroll cue at the foot of the audience split ────────────────────
+   A small downward nudge, not a bounce. It is a hint that the page
+   continues, and anything more insistent reads as a demand.
+
+   Guarded for reduced motion. Note the rest of this stylesheet has no
+   such guard — the hero entrance, the float and the marquee all run
+   regardless of the setting. Worth fixing, but that is a sweep across
+   every animation here rather than something to bolt on beside a new
+   one, so this guards only what it adds. */
+@keyframes scrollCueNudge {
+
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.55;
+  }
+
+  50% {
+    transform: translateY(5px);
+    opacity: 1;
+  }
+}
+
+.scroll-cue-arrow {
+  animation: scrollCueNudge 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-cue-arrow {
+    animation: none;
+    opacity: 0.8;
+  }
+}

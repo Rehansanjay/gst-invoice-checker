@@ -19,9 +19,9 @@ import UnpaidInvoiceClient from './UnpaidInvoiceClient';
  */
 
 export const metadata: Metadata = {
-    title: 'Unpaid Invoice Interest Calculator — MSMED Act Section 16 | InvoiceCheck.in',
+    title: 'Unpaid Invoice Interest Calculator — MSMED Act s.16',
     description:
-        'Work out the interest accrued on a late payment to a micro or small enterprise. Three times the RBI Bank Rate, compounded monthly, computed period by period under section 16 of the MSMED Act 2006. Free, no sign-up.',
+        'What a late payment owes you under MSMED Act section 16 — three times the RBI Bank Rate, compounded monthly. Free, no sign-up.',
     alternates: { canonical: '/unpaid-invoice' },
     openGraph: {
         type: 'website',

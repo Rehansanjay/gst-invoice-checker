@@ -483,7 +483,7 @@ function GstPenaltyCalculatorInner() {
                         </div>
                         <div className="text-center md:text-left flex-1">
                             <h3 className="text-[1.5rem] font-bold font-heading mb-2">
-                                {audience === 'ca' ? 'Validate Client Invoices — ₹99/check' : 'Prevent This Entirely — ₹99/check'}
+                                {audience === 'ca' ? 'Validate Client Invoices — free to run' : 'Prevent This Entirely — free to run'}
                             </h3>
                             <p className="text-[15px] opacity-90 mb-6">
                                 {audience === 'ca'

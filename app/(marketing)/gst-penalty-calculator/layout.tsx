@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
     title: 'GST Penalty Calculator — Free Tool | InvoiceCheck.in',
     description:
-        'Calculate your GST penalty and interest exposure instantly. Covers late filing (Section 47/50), wrong tax type (Section 73), missing HSN (Section 122), and ITC mismatch. Free tool — no signup required.',
+        'What a late return costs in fee and interest. Covers Sections 47, 50, 73 and 122 — late filing, wrong tax head, missing HSN, ITC mismatch. Free.',
     keywords: [
         'GST penalty calculator',
         'GST late filing penalty India',
