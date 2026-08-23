@@ -44,6 +44,7 @@ const ISSUING: Tool[] = [
     { href: '/bulk', name: 'Check a whole batch', detail: 'A CSV from Tally, Zoho or Busy — worst first' },
     { href: '/gst-penalty-calculator', name: 'Late return calculator', detail: 'What a missed GSTR-1 or 3B costs' },
     { href: '/gst-error-codes', name: 'GSTR-1 error codes', detail: 'Every rejection code, and what triggers it' },
+    { href: '/invoice-number-check', name: 'Invoice number check', detail: 'Sixteen characters and the Rule 46(b) limits' },
 ];
 
 const RECEIVING: Tool[] = [

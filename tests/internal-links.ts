@@ -68,7 +68,22 @@ for (const route of [...new Set(sitemapRoutes)]) {
     for (const file of sources) {
         if (file.includes(ownDir)) continue;
         const text = read(file);
-        const pattern = new RegExp(`href=["'\`]/${route}(\\?[^"'\`]*)?["'\`]|href=\\{\`/${route}`, 'g');
+        // Three shapes, all of which render a real anchor:
+        //   href="/route"          JSX attribute
+        //   href={`/route...`}     template literal
+        //   href: '/route'         object property, used by the nav and the
+        //                          homepage audience split, which build their
+        //                          links from data arrays
+        //
+        // The third was missing, so links from Navbar.tsx and AudienceSplit.tsx
+        // were not counted at all — the check undercounted every tool page and
+        // only failed once a page happened to sit right on the threshold.
+        const pattern = new RegExp(
+            `href=["'\`]/${route}(\\?[^"'\`]*)?["'\`]`
+            + `|href=\\{\`/${route}`
+            + `|href:\\s*['"\`]/${route}['"\`]`,
+            'g',
+        );
         inbound += (text.match(pattern) ?? []).length;
     }
     ok(`/${route} has at least ${MIN_INBOUND} inbound internal links (has ${inbound})`,

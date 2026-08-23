@@ -26,6 +26,7 @@ const TOOLS: NavItem[] = [
     { href: '/verify-invoice', label: 'Verify an invoice', desc: 'Is an invoice you received genuine?' },
     { href: '/gst-penalty-calculator', label: 'Penalty calculator', desc: 'What a late return costs' },
     { href: '/unpaid-invoice', label: 'Unpaid invoice interest', desc: 'What a late payment owes you' },
+    { href: '/invoice-number-check', label: 'Invoice number check', desc: 'Sixteen characters, Rule 46(b)' },
 ];
 
 const RESOURCES: NavItem[] = [

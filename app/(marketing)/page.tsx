@@ -231,12 +231,12 @@ export default function Home() {
               </div>
 
               <h1 className="hero-animate-2 text-[2.75rem] sm:text-[3.5rem] lg:text-[4.25rem] leading-[1.05] mb-6 font-heading" style={{ color: 'var(--warm-cream)' }}>
-                Validate Your GST Invoices{' '}
+                Check Your Invoices{' '}
                 <span style={{ color: 'var(--warm-accent)' }}>in 15 Seconds</span>
               </h1>
 
               <p className="hero-animate-3 text-[1.125rem] sm:text-xl leading-[1.6] mb-10 font-sans" style={{ color: '#B8A895' }}>
-                16-point compliance check that catches errors before the portal or the marketplace rejects them. Fix them in minutes, not next month&apos;s amendment.
+                A 16-point GST compliance check that catches errors before the portal or the marketplace rejects them. Fix them in minutes, not next month&apos;s amendment.
               </p>
 
               {/*
