@@ -141,49 +141,15 @@ export default function RootLayout({
             }),
           }}
         />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "FAQPage",
-              "mainEntity": [
-                {
-                  "@type": "Question",
-                  "name": "How to check if a GST invoice is correct?",
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "Use InvoiceCheck.in to validate your GST invoice in 15 seconds. Enter your invoice details (GSTIN, HSN code, tax amounts) and our tool runs 16 compliance checks covering GSTIN format, tax calculations, Place of Supply, and more."
-                  }
-                },
-                {
-                  "@type": "Question",
-                  "name": "What is the cost of GST invoice validation?",
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "Running a check is free — the tool validates the invoice and names every problem it finds without payment. ₹99 unlocks the full report for that invoice, with the corrected values and how to fix each issue. Bulk credit packs and a CA practice pack bring the per-invoice cost down."
-                  }
-                },
-                {
-                  "@type": "Question",
-                  "name": "Why do Amazon and Flipkart reject GST invoices?",
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "Marketplaces reject invoices for errors like incorrect GSTIN, wrong HSN codes, tax calculation mismatches, missing mandatory fields, or Place of Supply issues. These rejections can hold your payments for 2-7 days."
-                  }
-                },
-                {
-                  "@type": "Question",
-                  "name": "What does the GST invoice checker validate?",
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "Our tool validates 11 parameters: GSTIN format, HSN/SAC codes, tax rate accuracy, CGST/SGST/IGST calculations, Place of Supply, invoice numbering, date validity, mandatory fields, reverse charge applicability, ITC eligibility, and overall compliance score."
-                  }
-                }
-              ]
-            }),
-          }}
-        />
+        {/*
+          The FAQPage schema that lived here has moved to the homepage.
+
+          A root layout renders on every route, so this was declaring /terms,
+          /privacy, /pricing and everything else to be an FAQ page carrying
+          questions none of them display. Google asks that FAQPage markup
+          describe content visible on the page that carries it, and it was
+          additionally colliding with the genuine FAQPage on /faq.
+        */}
       </head>
       <body
         className={`${inter.variable} antialiased`}

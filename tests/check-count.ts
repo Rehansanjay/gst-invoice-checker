@@ -26,6 +26,13 @@ const COPY_LOCATIONS = [
     'app/(auth)/signup/page.tsx',
     'app/opengraph-image.tsx',
     'components/Navbar.tsx',
+    // Added after the FAQ was found still advertising "11+ critical
+    // parameters" — it had never been on this list, so the 11 → 15 → 16 sweep
+    // walked straight past it. It now derives the number from ALL_RULES
+    // instead of restating it, but it stays listed so a hardcoded count
+    // reintroduced here is caught.
+    'app/(marketing)/faq/page.tsx',
+    'components/AudienceSplit.tsx',
 ];
 
 let pass = 0, fail = 0;

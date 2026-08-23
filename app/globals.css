@@ -519,11 +519,10 @@
    A small downward nudge, not a bounce. It is a hint that the page
    continues, and anything more insistent reads as a demand.
 
-   Guarded for reduced motion. Note the rest of this stylesheet has no
-   such guard — the hero entrance, the float and the marquee all run
-   regardless of the setting. Worth fixing, but that is a sweep across
-   every animation here rather than something to bolt on beside a new
-   one, so this guards only what it adds. */
+   Reduced motion is now handled site-wide by the sweep at the foot of
+   this file. The rule below stays because it does something the sweep
+   cannot: it settles the arrow at a legible resting opacity, rather than
+   wherever a collapsed animation happens to leave it. */
 @keyframes scrollCueNudge {
 
   0%,
@@ -546,5 +545,45 @@
   .scroll-cue-arrow {
     animation: none;
     opacity: 0.8;
+  }
+}
+
+/* ── Reduced motion, site-wide ───────────────────────────────────────
+   Every animation here previously ran regardless of the setting: the
+   hero entrance, the mockup's check-slide, the logo marquee, the pulse
+   glow and the smooth scroll.
+
+   Note what this does NOT do. `animation: none` would be wrong — several
+   keyframes here start from opacity 0 with fill-mode `both`, so
+   switching them off leaves the element stuck on its first frame, which
+   is invisible. Collapsing the duration instead lets each one land on
+   its finished state immediately.
+
+   The !important flags are deliberate and conventional for this pattern:
+   they have to beat per-element inline `style={{ animation: ... }}`,
+   which app/(marketing)/page.tsx uses in two places. */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  /* Shown on load rather than on scroll. The base state is opacity 0 and
+     the class that clears it is applied by an IntersectionObserver, so
+     collapsing the transition alone would still leave a reduced-motion
+     reader waiting on a scroll effect to see the page at all. */
+  .scroll-reveal {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
