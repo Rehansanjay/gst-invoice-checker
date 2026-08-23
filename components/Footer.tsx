@@ -64,6 +64,11 @@ export default function Footer() {
                                 </Link>
                             </li>
                             <li>
+                                <Link href="/invoice-number-check" className="transition-colors" style={{ color: '#9E8A78' }}>
+                                    Invoice Number Check
+                                </Link>
+                            </li>
+                            <li>
                                 <Link href="/faq" className="transition-colors" style={{ color: '#9E8A78' }}>
                                     FAQ
                                 </Link>

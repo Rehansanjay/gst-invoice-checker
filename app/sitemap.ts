@@ -72,6 +72,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
             // "Discovered — currently not indexed", so the constraint is crawl
             // budget, not page count: adding more thin pages to a domain in
             // that state makes it worse. One tool page, then links to it.
+            // Built against measured demand rather than a guess: roughly 160
+            // impressions a month across "invoice number check" and its
+            // variants, with no page targeting any of them until now.
+            url: `${SITE_URL}/invoice-number-check`,
+            lastModified: CORE_UPDATED,
+            changeFrequency: 'monthly',
+            priority: 0.9,
+        },
+        {
             url: `${SITE_URL}/unpaid-invoice`,
             lastModified: CORE_UPDATED,
             changeFrequency: 'monthly',

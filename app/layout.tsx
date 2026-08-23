@@ -14,8 +14,14 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "GST Invoice Checker — Validate in 15 Seconds | InvoiceCheck.in",
-  description: "Free GST invoice checker. Validate GSTIN, HSN, tax heads and totals before the portal or a marketplace rejects them. 16 checks, no sign-up.",
+  // Leads with "invoice check" rather than "GST invoice checker".
+  // Search Console shows roughly 88% of impressions come from queries with
+  // no "GST" or "tax" in them at all — "invoice check" alone is the single
+  // biggest term. GST stays in the description, the H1 subhead and the
+  // schema, so the page is no less clearly about Indian GST; it simply
+  // stops aiming the title at the smaller share of the demand.
+  title: "Invoice Check Online — Free GST Invoice Checker",
+  description: "Free online invoice checker for Indian GST. Validate GSTIN, HSN, tax heads and totals before the portal rejects them. 16 checks, no sign-up.",
   keywords: [
     "GST invoice checker",
     "GST invoice validator",
