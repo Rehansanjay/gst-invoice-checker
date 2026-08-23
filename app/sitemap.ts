@@ -83,12 +83,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
             changeFrequency: 'monthly',
             priority: 0.9,
         },
-        {
-            url: `${SITE_URL}/ca-case-studies`,
-            lastModified: CORE_UPDATED,
-            changeFrequency: 'weekly',
-            priority: 0.7,
-        },
+        // /ca-case-studies is deliberately absent. It carries
+        // `robots: { index: false }` until there is a real case study on it,
+        // and listing a noindexed URL in the sitemap sends Google two
+        // contradictory instructions about the same page. Add it back in the
+        // same change that lifts the noindex.
 
         // Guides
         {
