@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ALL_RULES } from '@/lib/services/validationRules';
+import AffiliateSuggestion from '@/components/AffiliateSuggestion';
 
 /**
  * Content below the tool, and the metadata for the page.
@@ -170,6 +171,20 @@ export default function CheckLayout({ children }: { children: React.ReactNode })
                                     </li>
                                 ))}
                             </ul>
+                        </div>
+
+                        {/*
+                          Renders nothing until a real tracking URL is set in
+                          lib/affiliates.ts, so this is inert until the
+                          programme approves. Placed here rather than beside the
+                          results: someone mid-check is working, and a
+                          recommendation lands better once they have their
+                          answer.
+                        */}
+                        <div className="mt-6">
+                            <AffiliateSuggestion
+                                intro="Most of what the checker flags is a data-entry problem rather than a filing one. Software that enforces the fields at entry stops it recurring."
+                            />
                         </div>
 
                         <p className="mt-8 text-xs" style={{ color: 'var(--warm-text-secondary)' }}>
