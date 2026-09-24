@@ -32,7 +32,8 @@ const COPY_LOCATIONS = [
     // instead of restating it, but it stays listed so a hardcoded count
     // reintroduced here is caught.
     'app/(marketing)/faq/page.tsx',
-    'components/AudienceSplit.tsx',
+    // AudienceSplit was replaced by the tool grid, which reads lib/tools.ts.
+    'lib/tools.ts',
 ];
 
 let pass = 0, fail = 0;

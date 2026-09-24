@@ -158,7 +158,7 @@ export default function RootLayout({
         */}
       </head>
       <body
-        className={`${inter.variable} antialiased`}
+        className={`${inter.variable} font-sans antialiased`}
       >
         <AuthProvider>
           {children}
