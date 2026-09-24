@@ -1,152 +1,102 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useAuth } from '@/lib/auth-context';
-import { useScrollReveal } from '@/lib/useScrollReveal';
-import {
-  CheckCircle2, Clock, Zap, ShieldCheck,
-  Calculator, FileCheck, ArrowUpRight,
-  Sparkles, BadgeCheck, Scale, FileWarning, Receipt,
-  Building2, CheckCircle, AlertCircle, RefreshCcw,
-  ChevronDown, ArrowRightCircle, Target, Database, FileText, Timer
-} from 'lucide-react';
+import { useState } from 'react';
 import Link from 'next/link';
-import GetStartedModal from '@/components/GetStartedModal';
+import {
+  Sparkles, ShieldCheck, BookOpen, Timer, ChevronDown, ArrowRight,
+  Search, ListChecks, Wrench, BellRing,
+} from 'lucide-react';
+import { useAuth } from '@/lib/auth-context';
+import { WATCH_PRICE_RUPEES } from '@/lib/watch';
 import LoggedInHome from '@/components/LoggedInHome';
-import AudienceSplit from '@/components/AudienceSplit';
 import InvoiceVerifier from '@/components/InvoiceVerifier';
+import ToolDirectory from '@/components/ToolDirectory';
+import SectionHeading from '@/components/SectionHeading';
 
-/* ── 3. Interactive Feature Tabs ───────────────────────── */
-function InteractiveFeatureTabs() {
-  const [activeTab, setActiveTab] = useState(0);
-
-  const tabs = [
-    {
-      id: 0,
-      title: 'Identity Verification',
-      icon: <Target className="w-4 h-4" />,
-      desc: 'Validating GSTIN format, checksum and state code, and supplier/buyer mismatches.',
-      checks: ['15-character GSTIN format', 'GSTIN checksum and state code', 'Distinct Supplier/Buyer match']
-    },
-    {
-      id: 1,
-      title: 'Tax & Compliance',
-      icon: <FileText className="w-4 h-4" />,
-      desc: 'Ensuring correct tax types based on Place of Supply and HSN rules.',
-      checks: ['IGST vs CGST/SGST routing', 'HSN Code validity', 'Reverse Charge (RCM) applicability']
-    },
-    {
-      id: 2,
-      title: 'Math Accuracy',
-      icon: <Calculator className="w-4 h-4" />,
-      desc: 'Recalculating every line item to ensure sub-totals match tax rates exactly.',
-      checks: ['Line item recalculation', 'Tax rate verification per HSN', 'Invoice total rounding checks']
-    }
-  ];
-
-  return (
-    <div className="grid lg:grid-cols-2 gap-10 items-center">
-      <div className="space-y-3">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`w-full text-left p-6 rounded-2xl transition-all duration-300 ${activeTab === tab.id ? 'hover-glow-border shadow-lg' : 'hover:bg-warm-bg-alt'}`}
-            style={{
-              background: activeTab === tab.id ? 'white' : 'transparent',
-              border: `1px solid ${activeTab === tab.id ? 'var(--warm-border)' : 'transparent'}`
-            }}
-          >
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: activeTab === tab.id ? '#FEF3E2' : 'var(--warm-bg-alt)', color: activeTab === tab.id ? 'var(--warm-accent)' : 'var(--warm-charcoal)' }}>
-                {tab.icon}
-              </div>
-              <h3 className="text-[1.15rem] font-bold font-heading" style={{ color: 'var(--warm-charcoal)' }}>{tab.title}</h3>
-            </div>
-            <p className="text-[14px] leading-relaxed ml-11" style={{ color: 'var(--warm-text-secondary)' }}>
-              {tab.desc}
-            </p>
-          </button>
-        ))}
-      </div>
-
-      <div className="relative h-[320px] rounded-3xl p-8 overflow-hidden shadow-xl" style={{ background: 'var(--warm-charcoal)' }}>
-        <div className="absolute inset-0 opacity-[0.05]" style={{ background: 'radial-gradient(circle at top right, var(--warm-accent), transparent 70%)' }} />
-
-        {tabs.map((tab) => (
-          <div
-            key={tab.id}
-            className={`absolute inset-8 transition-all duration-500 flex flex-col justify-center ${activeTab === tab.id ? 'opacity-100 translate-y-0 z-10' : 'opacity-0 translate-y-8 z-0'}`}
-          >
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6" style={{ background: 'rgba(250, 248, 246, 0.1)', color: 'var(--warm-cream)' }}>
-              {tab.icon}
-            </div>
-            <h4 className="text-2xl font-heading mb-4" style={{ color: 'var(--warm-cream)' }}>{tab.title} Auditing</h4>
-            <ul className="space-y-4">
-              {tab.checks.map((check, i) => (
-                <li key={i} className="flex items-center gap-3">
-                  <CheckCircle2 className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--warm-accent)' }} />
-                  <span className="text-[15px]" style={{ color: '#B8A895' }}>{check}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* ── 4. FAQ Accordion ──────────────────────────────────── */
+/*
+ * Homepage, reorganised (Sep 2026).
+ *
+ * It was nine sections and ~8,700px: the same pitch four times, headings in
+ * five sizes with mixed alignment, and several claims that were not true
+ * ("guaranteed compliance", a "₹45,000 typical payout at risk", a mandatory
+ * GST audit above ₹5 crore that was withdrawn in 2021). Now six sections,
+ * each with one job:
+ *
+ *   1. Hero — the H1 the page ranks on, plus the instant verifier.
+ *   2. Every tool, grouped by the visitor's side of the invoice.
+ *   3. Vendor GST Watch — the early-access test, where it can be seen.
+ *   4. How it works, in three steps.
+ *   5. FAQ, which also feeds the FAQPage structured data.
+ *   6. One closing call to action.
+ *
+ * No scroll-reveal here: content hidden until an observer fires shows as
+ * blank to anyone scrolling fast, and to crawlers and screenshots.
+ */
 
 /**
- * Hoisted to module scope so the FAQPage structured data further down is
- * generated from the same array the accordion renders.
- *
- * The schema used to live in app/layout.tsx, which put it on every page of the
- * site — /terms and /privacy included, neither of which shows an FAQ. Google
- * asks that FAQPage markup describe content actually visible on the page
- * carrying it, and it was also colliding with the real FAQPage on /faq. It
- * belongs here, where these answers genuinely render.
+ * Hoisted to module scope so the FAQPage structured data below is generated
+ * from the same array the accordion renders, and the two cannot drift.
  */
 const HOMEPAGE_FAQS: { q: string; a: string }[] = [
-    {
-      q: 'Is my invoice data secure?',
-      a: 'Free checks are processed in memory and never written to our database — nothing about that invoice is kept. If you pay for a full report, we do store the invoice details, because that is what lets you re-open, download and email the report afterwards. We never sell your data or use it to train AI models, and you can ask us to delete a stored check at any time. Our Privacy Policy sets out exactly what is kept and for how long.'
-    },
-    {
-      q: 'Does this replace my CA?',
-      a: 'No, and it is not meant to. We run 16 mechanical checks on the invoice itself — GSTIN structure, tax head against place of supply, HSN, the arithmetic, invoice numbering and dates. That is the tedious layer, and it is the layer that gets returns rejected on upload. Judgement calls, classification, notices and the return itself are your CA\'s work. It is built to clear the mechanical errors before the professional review starts.'
-    },
-    {
-      q: 'What if the government GST portal is down?',
-      a: 'Nothing here depends on it. Every check runs on the invoice itself — GSTIN structure and checksum, tax arithmetic, HSN, numbering and dates — so it works whether the portal is up or not. The one thing only the portal can tell you is whether a GSTIN is currently active, and we link you to the portal search for that.'
-    },
-    {
-      q: 'Does this integrate with Tally or Zoho?',
-      a: 'Not directly. You can check any invoice you have generated before you upload it to your buyer or marketplace, or run a whole batch at once on the bulk page.'
-    }
+  {
+    q: 'Is my invoice data secure?',
+    a: 'Free checks are processed in memory and never written to our database — nothing about that invoice is kept. The GSTIN and e-invoice QR checks at the top of this page run entirely in your browser, so nothing is uploaded at all. If you pay for a full report, we do store the invoice details, because that is what lets you re-open, download and email the report afterwards. We never sell your data or use it to train AI models, and you can ask us to delete a stored check at any time.',
+  },
+  {
+    q: 'Does this replace my CA?',
+    a: 'No, and it is not meant to. We run 16 mechanical checks on the invoice itself — GSTIN structure, tax head against place of supply, HSN, the arithmetic, invoice numbering and dates. That is the tedious layer, and it is the layer that gets returns rejected on upload. Judgement calls, classification, notices and the return itself are your CA\'s work. It is built to clear the mechanical errors before the professional review starts.',
+  },
+  {
+    q: 'What if the government GST portal is down?',
+    a: 'Nothing here depends on it. Every check runs on the invoice itself — GSTIN structure and checksum, tax arithmetic, HSN, numbering and dates — so it works whether the portal is up or not. The one thing only the portal can tell you is whether a GSTIN is currently active, and we link you to the portal search for that.',
+  },
+  {
+    q: 'Does this integrate with Tally or Zoho?',
+    a: 'Not directly. You can check any invoice you have generated before you upload it to your buyer or marketplace, or run a whole batch at once on the bulk page.',
+  },
+];
+
+const STEPS = [
+  {
+    icon: Search,
+    title: 'Check what you have',
+    body: 'Paste a GSTIN, upload the QR from an e-invoice, or enter a whole invoice. No sign-up.',
+  },
+  {
+    icon: ListChecks,
+    title: 'See what is wrong, and why',
+    body: 'Every problem names the rule it breaks, so you can check it yourself or show your CA.',
+  },
+  {
+    icon: Wrench,
+    title: 'Fix it, or chase it',
+    body: 'Correct your own invoice before you file, or ask the supplier before you pay them.',
+  },
 ];
 
 function FAQAccordion() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <div className="max-w-3xl mx-auto space-y-3">
+    <div className="mx-auto max-w-3xl space-y-3">
       {HOMEPAGE_FAQS.map((faq, i) => (
-        <div key={i} className="rounded-2xl overflow-hidden hover-glow-border" style={{ background: 'white', border: '1px solid var(--warm-border)' }}>
+        <div key={faq.q} className="overflow-hidden rounded-2xl" style={{ background: '#fff', border: '1px solid var(--warm-border)' }}>
           <button
             onClick={() => setOpenIndex(openIndex === i ? null : i)}
-            className="w-full px-6 py-5 flex items-center justify-between text-left"
+            aria-expanded={openIndex === i}
+            className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
           >
-            <span className="font-bold text-[15px]" style={{ color: 'var(--warm-charcoal)' }}>{faq.q}</span>
-            <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${openIndex === i ? 'rotate-180' : ''}`} style={{ color: 'var(--warm-text-secondary)' }} />
+            <span className="text-[16px] font-semibold" style={{ color: 'var(--warm-charcoal)' }}>{faq.q}</span>
+            <ChevronDown
+              className={`h-5 w-5 shrink-0 transition-transform duration-300 ${openIndex === i ? 'rotate-180' : ''}`}
+              style={{ color: 'var(--warm-text-secondary)' }}
+            />
           </button>
           <div className={`accordion-content ${openIndex === i ? 'open' : ''}`}>
             <div className="accordion-inner">
-              <div className="px-6 pb-6 text-[14.5px] leading-relaxed" style={{ color: 'var(--warm-text-secondary)' }}>
+              <p className="px-6 pb-6 text-[15px] leading-relaxed" style={{ color: 'var(--warm-charcoal-soft)' }}>
                 {faq.a}
-              </div>
+              </p>
             </div>
           </div>
         </div>
@@ -155,133 +105,25 @@ function FAQAccordion() {
   );
 }
 
-/* ── Main Page ────────────────────────────────────────── */
+/** Shared section frame: one padding scale and one container width for every section. */
+function Section({ children, tone = 'bg', id }: { children: React.ReactNode; tone?: 'bg' | 'alt' | 'dark'; id?: string }) {
+  const background = tone === 'dark' ? 'var(--warm-charcoal)' : tone === 'alt' ? 'var(--warm-cream-dark)' : 'var(--warm-bg)';
+  return (
+    <section id={id} className="py-16 md:py-24 scroll-mt-20" style={{ background }}>
+      <div className="container mx-auto max-w-6xl px-5 sm:px-6 lg:px-8">{children}</div>
+    </section>
+  );
+}
+
 export default function Home() {
-  const [showModal, setShowModal] = useState(false);
   const { user, loading } = useAuth();
-  const scrollRef = useScrollReveal();
 
   if (!loading && user) {
     return <LoggedInHome />;
   }
 
   return (
-    <div ref={scrollRef} className="min-h-screen flex flex-col" style={{ background: 'var(--warm-bg)' }}>
-      <GetStartedModal open={showModal} onClose={() => setShowModal(false)} />
-
-      {/* ═══════════════ HERO ═══════════════ */}
-      <section className="relative overflow-hidden" style={{ background: 'var(--warm-charcoal)' }}>
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full opacity-[0.12]" style={{ background: 'radial-gradient(circle, #9E542F 0%, transparent 70%)' }} />
-          <div className="absolute -bottom-48 -left-24 w-[400px] h-[400px] rounded-full opacity-[0.08]" style={{ background: 'radial-gradient(circle, #C4B5A3 0%, transparent 70%)' }} />
-        </div>
-
-        <div className="container mx-auto px-5 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-20 items-center pt-10 pb-16 md:py-28 lg:py-36">
-            {/* Copy */}
-            <div className="max-w-xl">
-              <div className="hero-animate-1 mb-5 sm:mb-8">
-                <span className="pill-badge text-xs hover-glow-border cursor-default" style={{
-                  background: 'rgba(250, 248, 246, 0.06)',
-                  borderColor: 'rgba(250, 248, 246, 0.12)',
-                  color: '#C4B5A3',
-                }}>
-                  {/*
-                    Was "Trusted by Indian sellers & CA firms". No CA firm uses
-                    it and nobody has paid, so the badge now says only what is
-                    true of every visitor's first minute here.
-                  */}
-                  <Sparkles className="w-3 h-3" style={{ color: '#D4A056' }} />
-                  Free · No sign-up needed
-                </span>
-              </div>
-
-              <h1 className="hero-animate-2 text-[2.75rem] sm:text-[3.5rem] lg:text-[4.25rem] leading-[1.05] mb-6 font-heading" style={{ color: 'var(--warm-cream)' }}>
-                Check Your Invoices{' '}
-                <span style={{ color: 'var(--warm-accent)' }}>in 15 Seconds</span>
-              </h1>
-
-              <p className="hero-animate-3 text-[1.125rem] sm:text-xl leading-[1.6] mb-6 sm:mb-10 font-sans" style={{ color: '#B8A895' }}>
-                A 16-point GST compliance check that catches errors before the portal or the marketplace rejects them. Fix them in minutes, not next month&apos;s amendment.
-              </p>
-
-              {/*
-                One button, not two.
-
-                This hero previously offered "Start Checking — Free" beside
-                "Which tool do I need?", which asks a cold visitor to decide
-                between starting and orienting before they know what the site
-                even does. With seven tools behind it, orienting is the only
-                honest first step — so the choice is removed and everyone is
-                sent to the same place.
-
-                Nothing is lost by dropping the dashboard branch: a logged-in
-                user is returned LoggedInHome further up and never reaches this
-                markup, so `user ? 'Go to Dashboard'` could not render.
-
-                A real anchor rather than a scroll handler — it works without
-                JavaScript and survives a right-click. Full width below sm, so
-                it is a comfortable target on a phone rather than a pill
-                floating in the middle of the screen.
-              */}
-              {/*
-                The instant verifier (right column) is now the first action;
-                this link is the way to the other tools. It stays a real
-                anchor so it works without JavaScript.
-              */}
-              <div className="hero-animate-4 mb-0 sm:mb-10">
-                <a
-                  href="#where-you-fit"
-                  className="text-[15px] font-semibold inline-flex items-center gap-1.5 underline-offset-4 hover:underline"
-                  style={{ color: '#C4B5A3' }}
-                >
-                  Or see all seven tools and which one fits you
-                  <ChevronDown className="w-4 h-4" />
-                </a>
-              </div>
-
-              <div className="hero-animate-5 hidden sm:flex flex-wrap items-center gap-x-5 gap-y-3">
-                {[
-                  { icon: <BadgeCheck className="w-[15px] h-[15px]" style={{ color: '#7EC89B' }} />, text: 'GST Act Compliant' },
-                  { icon: <ShieldCheck className="w-[15px] h-[15px]" style={{ color: '#7EC89B' }} />, text: '16 Validation Checks' },
-                  { icon: <Timer className="w-[15px] h-[15px]" style={{ color: '#C4B5A3' }} />, text: '15-Second Results' },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
-                    {item.icon}
-                    <span className="text-[13px] font-medium" style={{ color: '#9E8A78' }}>{item.text}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/*
-              Instant verifier, where an empty animated mockup used to be.
-              Most visitors search "invoice check" / "invoice number check"
-              holding an invoice they received, and 73% were leaving the
-              homepage in about 13 seconds. Visible at every width: on a
-              phone it sits right under the H1.
-            */}
-            <div id="verify" className="hero-animate-6">
-              <InvoiceVerifier />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/*
-        Sits immediately under the hero, deliberately.
-
-        Replacing the hero with two doors would have stripped the H1 and the
-        copy this page actually ranks on, from the most-crawled page on a
-        domain where thirteen others cannot get indexed at all. The hero stays
-        untouched; the choice is the first thing you meet on scroll, and on
-        mobile — where the mockup is hidden — that is barely below the fold.
-      */}
-      {/*
-        Generated from HOMEPAGE_FAQS, the same array the accordion below
-        renders, so the two cannot drift apart. Restating the questions here
-        is how structured data quietly stops matching the page it describes.
-      */}
+    <div className="flex min-h-screen flex-col" style={{ background: 'var(--warm-bg)' }}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -297,322 +139,157 @@ export default function Home() {
         }}
       />
 
-      <AudienceSplit />
-
-      {/* ═══════════════ OPTIMISTIC IMPACT SECTION ═══════════════ */}
-      <section className="py-24 md:py-32" style={{ background: 'var(--warm-bg)' }}>
-        <div className="container mx-auto px-5 sm:px-6 lg:px-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="scroll-reveal mb-14 text-center max-w-3xl mx-auto">
-              <span className="pill-badge mb-5 text-[12px] hover-glow-border" style={{
-                background: '#E8F5EE',
-                borderColor: '#C8E6D4',
-                color: 'var(--warm-success)',
-              }}>
-                <ShieldCheck className="w-3 h-3" />
-                What an Invoice Error Costs
-              </span>
-              <h2 className="text-[2.25rem] md:text-[3rem] lg:text-[3.5rem] leading-[1.05] mb-5 font-heading" style={{ color: 'var(--warm-charcoal)' }}>
-                A wrong tax head is never just a typo
-              </h2>
-              <p className="text-lg" style={{ color: 'var(--warm-text-secondary)' }}>
-                One incorrect field holds up a settlement, costs your buyer their input tax credit, and compounds into a late-filing fee. Here is the exposure a single bad invoice carries.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 scroll-reveal-stagger">
-              {[
-                // Framed as the exposure a bad invoice carries, not as results
-                // we have delivered — these are what the error costs, which is
-                // both true and the reason to check before filing.
-                { value: '₹45,000', label: 'Typical Payout at Risk', desc: 'A single held marketplace settlement', color: 'var(--warm-success)' },
-                { value: '2-7 Days', label: 'Typical Hold Duration', desc: 'How long a rejected invoice delays payment', color: 'var(--warm-success)' },
-                // Was "₹500+ Typical CA Fee" — an unsourced claim about what
-                // other people charge, and off-message now that CA practices
-                // are a target customer rather than the competition.
-                { value: '18% p.a.', label: 'Interest on Short Payment', desc: 'Section 50, running from the due date', color: '#B8860B' },
-                { value: '₹50/day', label: 'Late Filing Fee', desc: 'Section 47, until GSTR-1 is filed', color: '#B8860B' },
-              ].map((item, i) => (
-                <div key={i} className="scroll-reveal warm-card p-7 hover-glow-border hover:border-warm-success transition-colors cursor-default">
-                  <div className="text-[2.25rem] sm:text-[2.5rem] font-heading mb-3" style={{ color: item.color }}>
-                    {item.value}
-                  </div>
-                  <p className="font-bold text-[15px]" style={{ color: 'var(--warm-charcoal)' }}>{item.label}</p>
-                  <p className="text-[13px] mt-1.5" style={{ color: 'var(--warm-text-secondary)' }}>{item.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="section-divider" />
-
-      {/* ═══════════════ THE SOLUTION ═══════════════ */}
-      <section className="py-24 md:py-32" style={{ background: 'var(--warm-bg)' }}>
-        <div className="container mx-auto px-5 sm:px-6 lg:px-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="scroll-reveal text-center mb-16 max-w-2xl mx-auto">
-              <span className="pill-badge mb-6 text-[12px] hover-glow-border" style={{
-                background: '#E8F5EE',
-                borderColor: '#C8E6D4',
-                color: 'var(--warm-success)',
-              }}>
-                <CheckCircle2 className="w-3 h-3" />
-                Instant Verification
-              </span>
-              <h2 className="text-[2.25rem] md:text-[3rem] lg:text-[3.5rem] leading-[1.05] mb-5 font-heading" style={{ color: 'var(--warm-charcoal)' }}>
-                Your proactive defense against compliance risks
-              </h2>
-              <p className="text-lg" style={{ color: 'var(--warm-text-secondary)' }}>
-                Identify and resolve invoice discrepancies instantly, long before they reach your buyers or the government.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 scroll-reveal-stagger">
-              {[
-                { title: '15 Seconds', desc: 'Lightning-fast results' },
-                { title: 'Free to run', desc: '₹99 only if you want the fixes' },
-                { title: '16 Checks', desc: 'Every flag cites its GST section' },
-                { title: 'Instant Fix', desc: 'Step-by-step guidance' },
-              ].map((item, i) => (
-                <div key={i} className="scroll-reveal warm-card p-8 text-center flex flex-col items-center justify-center hover-glow-border cursor-default">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-5 transition-transform duration-300 hover:scale-110" style={{ background: '#E8F5EE', color: 'var(--warm-success)' }}>
-                    <CheckCircle className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-2xl font-heading mb-2" style={{ color: 'var(--warm-charcoal)' }}>{item.title}</h3>
-                  <p className="text-[14px]" style={{ color: 'var(--warm-text-secondary)' }}>{item.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="section-divider" />
-
-      {/* ═══════════════ HOW IT WORKS ═══════════════ */}
-      <section id="how-it-works" className="py-24 md:py-32" style={{ background: 'var(--warm-cream-dark)' }}>
-        <div className="container mx-auto px-5 sm:px-6 lg:px-8">
-          <div className="max-w-5xl mx-auto">
-            <div className="scroll-reveal text-center mb-16">
-              <span className="pill-badge mb-6 text-[12px] inline-flex hover-glow-border" style={{
-                background: '#F0EBE5',
-                borderColor: '#E8E0D8',
-                color: 'var(--warm-charcoal-soft)',
-              }}>
-                <Zap className="w-3 h-3" />
-                Seamless Workflow
-              </span>
-              <h2 className="text-[2.25rem] md:text-[3rem] lg:text-[3.5rem] leading-[1.05] mb-5 font-heading" style={{ color: 'var(--warm-charcoal)' }}>
-                Three simple steps to flawless compliance
-              </h2>
-              <p className="text-[1.0625rem]" style={{ color: 'var(--warm-text-secondary)' }}>
-                From raw invoice data to complete confidence in under a minute.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 relative scroll-reveal-stagger">
-              {/* Connecting Line */}
-              <div className="hidden md:block absolute top-[44px] left-[calc(16.67%+32px)] right-[calc(16.67%+32px)] h-[1px]" style={{ background: 'var(--warm-text-secondary)', opacity: 0.3 }} />
-
-              {[
-                {
-                  step: '1',
-                  title: 'Enter Invoice Details',
-                  desc: 'Fill a simple form with your invoice data (takes 30 seconds).',
-                  icon: <Receipt className="w-5 h-5" />
-                },
-                {
-                  step: '2',
-                  title: 'Get Instant Report',
-                  desc: 'We run 16 validation checks and generate a detailed report.',
-                  icon: <FileCheck className="w-5 h-5" />
-                },
-                {
-                  step: '3',
-                  title: 'Fix & Submit',
-                  desc: 'Follow our guidance to fix errors and submit confidently.',
-                  icon: <RefreshCcw className="w-5 h-5" />
-                },
-              ].map((item, i) => (
-                <div key={i} className="scroll-reveal warm-card p-8 relative z-10 flex flex-col text-center hover-glow-border transition-colors group cursor-default">
-                  <div className="w-14 h-14 rounded-full flex items-center justify-center font-heading text-xl mx-auto mb-6 relative group-hover:scale-110 transition-transform duration-300" style={{
-                    background: 'var(--warm-charcoal)',
-                    color: 'var(--warm-cream)',
-                    boxShadow: '0 4px 20px rgba(40, 30, 21, 0.15)',
-                  }}>
-                    {item.step}
-                  </div>
-                  <h3 className="text-2xl font-heading mb-3" style={{ color: 'var(--warm-charcoal)' }}>{item.title}</h3>
-                  <p className="text-[14.5px] leading-[1.65]" style={{ color: 'var(--warm-text-secondary)' }}>{item.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="section-divider" />
-
-      {/* ═══════════════ WHY THIS MATTERS ═══════════════ */}
-      <section className="py-24 md:py-32" style={{ background: 'var(--warm-bg)' }}>
-        <div className="container mx-auto px-5 sm:px-6 lg:px-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="scroll-reveal mb-16 max-w-3xl text-center mx-auto">
-              <span className="pill-badge mb-6 text-[12px] inline-flex hover-glow-border" style={{
-                background: '#FEF3E2',
-                borderColor: '#FCEAC5',
-                color: '#8B6914',
-              }}>
-                <Scale className="w-3 h-3" />
-                Risk Mitigation
-              </span>
-              <h2 className="text-[2.25rem] md:text-[3rem] lg:text-[3.5rem] leading-[1.05] mb-5 font-heading" style={{ color: 'var(--warm-charcoal)' }}>
-                Transforming statutory risks into guaranteed compliance
-              </h2>
-              <p className="text-[1.0625rem] leading-[1.65]" style={{ color: 'var(--warm-text-secondary)' }}>
-                Indian GST laws impose heavy penalties for minor discrepancies. We insulate your business from these critical vulnerabilities.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 scroll-reveal-stagger">
-              {[
-                {
-                  icon: <AlertCircle className="w-6 h-6" />,
-                  title: 'Input Tax Credit Denial',
-                  section: 'Section 16',
-                  impact: 'Double Taxation',
-                  desc: "If your supplier's GSTIN is invalid or returns are not filed, the buyer loses Input Tax Credit. This means you pay tax twice — once to your supplier, and again to the government.",
-                },
-                {
-                  icon: <Clock className="w-6 h-6" />,
-                  title: 'Late Filing Penalty',
-                  section: 'Section 47',
-                  impact: '₹1,500+ / month',
-                  desc: "GSTR-1 filed late attracts ₹50/day (₹20/day for NIL returns). A single month's delay on an incorrect invoice can cost thousands in compounding penalties.",
-                },
-                {
-                  icon: <Building2 className="w-6 h-6" />,
-                  title: 'Marketplace Payment Holds',
-                  section: 'Operations',
-                  impact: 'Blocked Working Capital',
-                  desc: 'Amazon, Flipkart, and Meesho automatically reject invoices with wrong tax types (IGST vs CGST/SGST), invalid HSN codes, or calculation mismatches — holding your payments for weeks.',
-                },
-                {
-                  icon: <FileCheck className="w-6 h-6" />,
-                  title: 'GST Audit Notice',
-                  section: 'Section 65',
-                  impact: 'Intensive Scrutiny',
-                  desc: 'Businesses with turnover above ₹5 crore face mandatory GST audit. Repeated invoice errors create a paper trail of non-compliance that auditors flag immediately.',
-                },
-              ].map((item, i) => (
-                <div key={i} className="scroll-reveal warm-card p-8 group hover-glow-border hover:-translate-y-1 transition-transform duration-300">
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110 duration-300" style={{ background: '#F5F0EA', color: 'var(--warm-charcoal)' }}>
-                      {item.icon}
-                    </div>
-                    <div className="text-[11px] font-bold tracking-widest uppercase px-3 py-1.5 rounded-full" style={{ background: 'var(--warm-bg)', color: 'var(--warm-text-secondary)', border: '1px solid var(--warm-border)' }}>
-                      {item.section}
-                    </div>
-                  </div>
-
-                  <h3 className="text-[1.35rem] font-heading mb-2" style={{ color: 'var(--warm-charcoal)' }}>{item.title}</h3>
-                  <div className="text-[13px] font-semibold mb-3" style={{ color: 'var(--warm-accent)' }}>
-                    Impact: {item.impact}
-                  </div>
-                  <p className="text-[14.5px] leading-[1.65]" style={{ color: 'var(--warm-text-secondary)' }}>{item.desc}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="scroll-reveal mt-12 text-center">
-              <p className="text-[13.5px] inline-flex items-center gap-2" style={{ color: 'var(--warm-text-secondary)' }}>
-                <Scale className="w-4 h-4" /> All references from CGST Act, 2017 and CBIC circulars.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="section-divider" />
-
-      {/* ═══════════════ WHAT WE CHECK (TABS) ═══════════════ */}
-      <section className="py-24 md:py-32" style={{ background: 'var(--warm-cream-dark)' }}>
-        <div className="container mx-auto px-5 sm:px-6 lg:px-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="scroll-reveal text-center mb-16 max-w-2xl mx-auto">
-              <span className="pill-badge mb-6 text-[12px] hover-glow-border" style={{
-                background: '#E8F5EE',
-                borderColor: '#C8E6D4',
-                color: 'var(--warm-success)',
-              }}>
-                <ShieldCheck className="w-3 h-3" />
-                Comprehensive Auditing
-              </span>
-              <h2 className="text-[2.25rem] md:text-[3rem] lg:text-[3.5rem] leading-[1.05] mb-5 font-heading" style={{ color: 'var(--warm-charcoal)' }}>
-                Enterprise-grade validation, delivered in seconds
-              </h2>
-              <p className="text-[1.0625rem] leading-[1.65]" style={{ color: 'var(--warm-text-secondary)' }}>
-                We subject every invoice to the rigorous auditing standards used by top marketplaces and government portals.
-              </p>
-            </div>
-
-            <div className="scroll-reveal">
-              <InteractiveFeatureTabs />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="section-divider" />
-
-      {/* ═══════════════ FAQ ACCORDION ═══════════════ */}
-      <section className="py-24 md:py-32" style={{ background: 'var(--warm-bg)' }}>
-        <div className="container mx-auto px-5 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="scroll-reveal text-center mb-16">
-              <h2 className="text-[2.25rem] md:text-[3rem] lg:text-[3.5rem] leading-[1.05] mb-5 font-heading" style={{ color: 'var(--warm-charcoal)' }}>
-                Frequently Asked Questions
-              </h2>
-            </div>
-            <div className="scroll-reveal">
-              <FAQAccordion />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════ FINAL CTA ═══════════════ */}
+      {/* ═══════════════ 1. HERO ═══════════════ */}
       <section className="relative overflow-hidden" style={{ background: 'var(--warm-charcoal)' }}>
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full opacity-[0.1]" style={{ background: 'radial-gradient(circle, #9E542F 0%, transparent 70%)' }} />
-          <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] rounded-full opacity-[0.06]" style={{ background: 'radial-gradient(circle, #C4B5A3 0%, transparent 70%)' }} />
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -top-32 -right-32 h-[500px] w-[500px] rounded-full opacity-[0.12]" style={{ background: 'radial-gradient(circle, #9E542F 0%, transparent 70%)' }} />
+          <div className="absolute -bottom-48 -left-24 h-[400px] w-[400px] rounded-full opacity-[0.08]" style={{ background: 'radial-gradient(circle, #C4B5A3 0%, transparent 70%)' }} />
         </div>
 
-        <div className="container mx-auto px-5 sm:px-6 lg:px-8 py-28 md:py-36 text-center relative z-10">
-          <div className="scroll-reveal max-w-3xl mx-auto">
-            <h2 className="text-[2.25rem] md:text-[3rem] lg:text-[4rem] leading-[1.05] mb-6 font-heading" style={{ color: 'var(--warm-cream)' }}>
-              Take control of your GST compliance today
-            </h2>
-            <p className="text-lg sm:text-xl mb-10" style={{ color: '#B8A895' }}>
-              Check your invoices against the GST rules before the portal checks them for you.
-            </p>
+        <div className="container relative z-10 mx-auto max-w-6xl px-5 sm:px-6 lg:px-8">
+          <div className="grid items-center gap-8 pt-10 pb-16 md:py-24 lg:grid-cols-2 lg:gap-16">
+            <div className="max-w-xl">
+              <span
+                className="pill-badge mb-5 text-xs sm:mb-7"
+                style={{ background: 'rgba(250, 248, 246, 0.06)', borderColor: 'rgba(250, 248, 246, 0.12)', color: '#C4B5A3' }}
+              >
+                <Sparkles className="h-3 w-3" style={{ color: '#D4A056' }} />
+                Free · No sign-up needed
+              </span>
 
-            <button
-              onClick={() => setShowModal(true)}
-              className="btn-warm-primary magnetic-btn text-[17px] px-10 py-4 inline-flex items-center gap-2.5"
-              style={{ animation: 'pulseGlow 3s ease-in-out infinite' }}
-            >
-              Check Your Invoice Now <ArrowUpRight className="w-5 h-5" />
-            </button>
+              <h1 className="font-heading mb-5 text-[2.75rem] leading-[1.05] sm:text-[3.5rem] lg:text-[4rem]" style={{ color: 'var(--warm-cream)' }}>
+                Check Your Invoices{' '}
+                <span style={{ color: 'var(--warm-accent)' }}>in 15 Seconds</span>
+              </h1>
 
-            <p className="mt-8 text-[13px] font-medium" style={{ color: '#9E8A78' }}>
-              No signup required&nbsp;&nbsp;·&nbsp;&nbsp;Results in 15 seconds&nbsp;&nbsp;·&nbsp;&nbsp;100% secure
-            </p>
+              <p className="mb-6 text-[1.125rem] leading-[1.6] sm:mb-8 sm:text-xl" style={{ color: '#B8A895' }}>
+                A 16-point GST compliance check that catches errors before the portal or the marketplace rejects them.
+                Fix them in minutes, not next month&apos;s amendment.
+              </p>
+
+              <a
+                href="#tools"
+                className="inline-flex items-center gap-1.5 text-[15px] font-semibold underline-offset-4 hover:underline"
+                style={{ color: '#C4B5A3' }}
+              >
+                Or browse every tool
+                <ChevronDown className="h-4 w-4" />
+              </a>
+
+              <div className="mt-8 hidden flex-wrap items-center gap-x-5 gap-y-3 sm:flex">
+                {[
+                  { icon: ShieldCheck, text: '16 validation checks' },
+                  { icon: BookOpen, text: 'Every check cites its rule' },
+                  { icon: Timer, text: 'Results in seconds' },
+                ].map((item) => (
+                  <span key={item.text} className="flex items-center gap-1.5 text-[13px] font-medium" style={{ color: '#9E8A78' }}>
+                    <item.icon className="h-[15px] w-[15px]" style={{ color: '#7EC89B' }} />
+                    {item.text}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* The instant verifier: most visitors arrive holding an invoice they received. */}
+            <div id="verify" className="scroll-mt-24">
+              <InvoiceVerifier />
+            </div>
           </div>
         </div>
       </section>
+
+      {/* ═══════════════ 2. EVERY TOOL ═══════════════ */}
+      <Section id="tools">
+        <SectionHeading
+          eyebrow="All tools"
+          title="Pick the side of the invoice you are on"
+          subtitle="Every tool is free to run. Each one does a single job and tells you which rule it is checking."
+        />
+        <ToolDirectory />
+      </Section>
+
+      {/* ═══════════════ 3. VENDOR GST WATCH ═══════════════ */}
+      <section className="py-4 md:py-6" style={{ background: 'var(--warm-bg)' }}>
+        <div className="container mx-auto max-w-6xl px-5 sm:px-6 lg:px-8">
+          <div
+            className="flex flex-col gap-6 rounded-3xl p-7 sm:p-10 md:flex-row md:items-center md:justify-between"
+            style={{ background: 'var(--warm-accent)' }}
+          >
+            <div className="max-w-2xl">
+              <p className="mb-3 inline-flex items-center gap-2 text-[12.5px] font-semibold uppercase tracking-[0.14em]" style={{ color: '#F5DCCB' }}>
+                <BellRing className="h-4 w-4" /> New · early access
+              </p>
+              <h2 className="font-heading text-[1.9rem] leading-[1.1] sm:text-[2.25rem]" style={{ color: 'var(--warm-cream)' }}>
+                Know when a supplier stops filing, before it costs you ITC
+              </h2>
+              <p className="mt-3 text-[1.0625rem] leading-relaxed" style={{ color: '#F5E6DA' }}>
+                Vendor GST Watch checks every supplier&apos;s GSTIN and return filing each month, and alerts you when one
+                lapses. ₹{WATCH_PRICE_RUPEES}/month early-access price. Not built yet: tell us if you want it.
+              </p>
+            </div>
+            <Link
+              href="/vendor-gst-watch"
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl px-6 py-4 text-[16px] font-semibold transition-transform hover:-translate-y-0.5"
+              style={{ background: 'var(--warm-cream)', color: 'var(--warm-charcoal)' }}
+            >
+              Get early access <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════ 4. HOW IT WORKS ═══════════════ */}
+      <Section>
+        <SectionHeading eyebrow="How it works" title="Three steps, no sign-up" />
+        <ol className="grid gap-5 md:grid-cols-3">
+          {STEPS.map((step, i) => (
+            <li
+              key={step.title}
+              className="rounded-2xl p-6"
+              style={{ background: '#fff', border: '1px solid var(--warm-border)', boxShadow: 'var(--warm-card-shadow)' }}
+            >
+              <div className="mb-4 flex items-center gap-3">
+                <span
+                  className="font-heading flex h-9 w-9 items-center justify-center rounded-full text-[15px]"
+                  style={{ background: 'var(--warm-charcoal)', color: 'var(--warm-cream)' }}
+                >
+                  {i + 1}
+                </span>
+                <step.icon className="h-5 w-5" style={{ color: 'var(--warm-accent)' }} />
+              </div>
+              <h3 className="font-heading text-[1.35rem] leading-tight" style={{ color: 'var(--warm-charcoal)' }}>{step.title}</h3>
+              <p className="mt-2 text-[15px] leading-relaxed" style={{ color: 'var(--warm-text-secondary)' }}>{step.body}</p>
+            </li>
+          ))}
+        </ol>
+      </Section>
+
+      {/* ═══════════════ 5. FAQ ═══════════════ */}
+      <Section tone="alt">
+        <SectionHeading eyebrow="Questions" title="Frequently asked questions" />
+        <FAQAccordion />
+      </Section>
+
+      {/* ═══════════════ 6. CLOSING CTA ═══════════════ */}
+      <Section tone="dark">
+        <SectionHeading
+          tone="dark"
+          title="Check an invoice before it costs you"
+          subtitle="Start with a GSTIN or an e-invoice QR at the top of the page, or run the full 16-point check."
+        />
+        <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <a href="#verify" className="btn-warm-primary inline-flex items-center gap-2 px-7 py-4 text-[16px]">
+            Check a GSTIN now <ArrowRight className="h-4 w-4" />
+          </a>
+          <Link
+            href="/check"
+            className="inline-flex items-center gap-2 rounded-xl px-7 py-4 text-[16px] font-semibold"
+            style={{ border: '1px solid rgba(250, 248, 246, 0.25)', color: 'var(--warm-cream)' }}
+          >
+            Run the full check
+          </Link>
+        </div>
+      </Section>
     </div>
   );
 }

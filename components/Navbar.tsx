@@ -7,36 +7,17 @@ import { Menu, X, User, LogOut, LayoutDashboard, ChevronDown } from 'lucide-reac
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth-context';
 import { LogoutDialog } from '@/components/LogoutDialog';
+import { TOOL_GROUPS, ALL_TOOLS, type ToolGroup } from '@/lib/tools';
 
 /**
- * Grouped rather than flat. Ten top-level links with two competing gold
- * highlights read as clutter and gave no sense of which pages matter — every
- * new page added over time made the bar worse. Three menus keep the tools
- * discoverable while leaving the header quiet.
+ * One "Tools" menu grouped the same way as the homepage tool grid, both
+ * rendered from lib/tools.ts so a page added there is reachable from the
+ * header, the mobile sheet and the homepage at once. Vendor GST Watch also
+ * gets its own link while it is the early-access test we want seen.
  *
  * About / FAQ / Contact are intentionally absent: they live in the footer,
- * which is where people look for them, and they were taking header space from
- * the pages that actually do something.
+ * which is where people look for them.
  */
-type NavItem = { href: string; label: string; desc?: string };
-
-const TOOLS: NavItem[] = [
-    { href: '/check', label: 'Check an invoice', desc: 'One invoice, 16 compliance checks' },
-    { href: '/bulk', label: 'Bulk check', desc: 'A whole batch before you file' },
-    { href: '/verify-invoice', label: 'Verify an invoice', desc: 'Is an invoice you received genuine?' },
-    { href: '/gst-penalty-calculator', label: 'Penalty calculator', desc: 'What a late return costs' },
-    { href: '/unpaid-invoice', label: 'Unpaid invoice interest', desc: 'What a late payment owes you' },
-    { href: '/invoice-number-check', label: 'Invoice number check', desc: 'Sixteen characters, Rule 46(b)' },
-];
-
-const RESOURCES: NavItem[] = [
-    { href: '/guides', label: 'GST guides', desc: 'Place of supply, Rule 46, late fees' },
-    { href: '/gst-error-codes', label: 'Error codes', desc: 'Every GSTR-1 upload error, explained' },
-];
-
-/** Flattened for the mobile sheet and for active-state matching. */
-const ALL_NAV = [...TOOLS, ...RESOURCES, { href: '/pricing', label: 'Pricing' }];
-
 export default function Navbar() {
     const pathname = usePathname();
     const router = useRouter();
@@ -45,7 +26,7 @@ export default function Navbar() {
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const [scrolled, setScrolled] = useState(false);
-    const [openMenu, setOpenMenu] = useState<'tools' | 'resources' | null>(null);
+    const [toolsOpen, setToolsOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
     const handleLogout = () => {
@@ -88,7 +69,7 @@ export default function Navbar() {
     useEffect(() => {
         setMobileOpen(false);
         setUserMenuOpen(false);
-        setOpenMenu(null);
+        setToolsOpen(false);
     }, [pathname]);
 
     // Don't show navbar on auth pages or check page (focused flows)
@@ -129,20 +110,26 @@ export default function Navbar() {
 
                     {/* Desktop Nav */}
                     <nav className="hidden md:flex items-center gap-1">
-                        <NavMenu
-                            label="Tools"
-                            items={TOOLS}
+                        <ToolsMenu
+                            groups={TOOL_GROUPS}
                             pathname={pathname}
-                            open={openMenu === 'tools'}
-                            onToggle={() => setOpenMenu(openMenu === 'tools' ? null : 'tools')}
+                            open={toolsOpen}
+                            onToggle={() => setToolsOpen((o) => !o)}
                         />
-                        <NavMenu
-                            label="Resources"
-                            items={RESOURCES}
-                            pathname={pathname}
-                            open={openMenu === 'resources'}
-                            onToggle={() => setOpenMenu(openMenu === 'resources' ? null : 'resources')}
-                        />
+                        <Link
+                            href="/vendor-gst-watch"
+                            className="text-sm px-3 py-2 rounded-lg transition-colors inline-flex items-center gap-1.5 whitespace-nowrap"
+                            style={{
+                                color: pathname === '/vendor-gst-watch' ? 'var(--warm-charcoal)' : 'var(--warm-text-secondary)',
+                                fontWeight: pathname === '/vendor-gst-watch' ? 600 : 400,
+                                background: pathname === '/vendor-gst-watch' ? 'var(--warm-bg-alt)' : 'transparent',
+                            }}
+                        >
+                            Vendor GST Watch
+                            <span className="rounded-full px-1.5 py-px text-[10px] font-bold uppercase" style={{ background: 'var(--warm-accent)', color: 'var(--warm-cream)' }}>
+                                New
+                            </span>
+                        </Link>
                         <Link
                             href="/pricing"
                             className="text-sm px-3 py-2 rounded-lg transition-colors"
@@ -214,9 +201,10 @@ export default function Navbar() {
                         ) : (
                             // Guest User Buttons
                             <>
-                                <Link href="/check">
+                                {/* Hidden below lg: the Tools menu already has it, and the bar wraps at tablet width. */}
+                                <Link href="/check" className="hidden lg:inline-block">
                                     <button
-                                        className="text-sm px-3 py-2 rounded-lg transition-colors font-medium"
+                                        className="text-sm px-3 py-2 rounded-lg transition-colors font-medium whitespace-nowrap"
                                         style={{ color: 'var(--warm-charcoal-soft)' }}
                                     >
                                         Check Invoice
@@ -256,33 +244,21 @@ export default function Navbar() {
                     <div className="md:hidden" style={{ borderTop: '1px solid var(--warm-border)', background: 'var(--warm-bg)' }}>
                         <nav className="container mx-auto px-4 py-4 flex flex-col gap-1">
                             {/* Mobile keeps a flat list — a dropdown inside a
-                                dropdown is worse than a little scrolling — but
-                                headings preserve the same grouping. */}
-                            <p className="px-3 pt-1 pb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--warm-text-secondary)' }}>
-                                Tools
-                            </p>
-                            {ALL_NAV.map((link) => (
-                                <div key={link.href}>
-                                    {link.href === '/guides' && (
-                                        <p className="px-3 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--warm-text-secondary)' }}>
-                                            Resources
-                                        </p>
-                                    )}
-                                    <Link
-                                        href={link.href}
-                                        className="block text-sm py-2.5 px-3 rounded-lg transition-colors"
-                                        style={{
-                                            color: pathname === link.href
-                                                ? 'var(--warm-charcoal)'
-                                                : 'var(--warm-text-secondary)',
-                                            fontWeight: pathname === link.href ? 600 : 400,
-                                            background: pathname === link.href ? 'var(--warm-bg-alt)' : 'transparent',
-                                        }}
-                                    >
-                                        {link.label}
-                                    </Link>
+                                dropdown is worse than a little scrolling — with
+                                the same group headings as the desktop menu. */}
+                            {TOOL_GROUPS.map((group) => (
+                                <div key={group.id}>
+                                    <p className="px-3 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--warm-text-secondary)' }}>
+                                        {group.title}
+                                    </p>
+                                    {group.tools.map((link) => (
+                                        <MobileLink key={link.href} href={link.href} label={link.label} badge={link.badge} active={pathname === link.href} />
+                                    ))}
                                 </div>
                             ))}
+                            <div className="pt-2">
+                                <MobileLink href="/pricing" label="Pricing" active={pathname === '/pricing'} />
+                            </div>
 
                             <div className="my-2" style={{ borderTop: '1px solid var(--warm-border)' }} />
 
@@ -340,25 +316,45 @@ export default function Navbar() {
     );
 }
 
+function MobileLink({ href, label, badge, active }: { href: string; label: string; badge?: string; active: boolean }) {
+    return (
+        <Link
+            href={href}
+            className="flex items-center gap-2 text-sm py-2.5 px-3 rounded-lg transition-colors"
+            style={{
+                color: active ? 'var(--warm-charcoal)' : 'var(--warm-charcoal-soft)',
+                fontWeight: active ? 600 : 400,
+                background: active ? 'var(--warm-bg-alt)' : 'transparent',
+            }}
+        >
+            {label}
+            {badge && (
+                <span className="rounded-full px-1.5 py-px text-[10px] font-bold uppercase" style={{ background: 'var(--warm-accent)', color: 'var(--warm-cream)' }}>
+                    {badge}
+                </span>
+            )}
+        </Link>
+    );
+}
+
 /**
- * A grouped header menu. Opens on click rather than hover so it behaves the
- * same on touch, and closes on outside click, Escape, or route change.
+ * The grouped Tools menu: three columns, one per side of the invoice. Opens on
+ * click rather than hover so it behaves the same on touch, and closes on
+ * outside click, Escape, or route change.
  */
-function NavMenu({
-    label,
-    items,
+function ToolsMenu({
+    groups,
     pathname,
     open,
     onToggle,
 }: {
-    label: string;
-    items: NavItem[];
+    groups: ToolGroup[];
     pathname: string;
     open: boolean;
     onToggle: () => void;
 }) {
     const ref = useRef<HTMLDivElement>(null);
-    const containsCurrent = items.some((i) => pathname === i.href);
+    const containsCurrent = ALL_TOOLS.some((t) => pathname === t.href);
 
     useEffect(() => {
         if (!open) return;
@@ -374,8 +370,11 @@ function NavMenu({
         };
     }, [open, onToggle]);
 
+    // Not `relative`: the panel positions against the sticky header, so it
+    // can centre under the whole bar instead of hanging off the Tools button
+    // and running past the right edge of a laptop screen.
     return (
-        <div className="relative" ref={ref}>
+        <div ref={ref}>
             <button
                 type="button"
                 onClick={onToggle}
@@ -388,7 +387,7 @@ function NavMenu({
                     background: containsCurrent ? 'var(--warm-bg-alt)' : 'transparent',
                 }}
             >
-                {label}
+                Tools
                 <ChevronDown
                     className="w-3.5 h-3.5 transition-transform"
                     style={{ transform: open ? 'rotate(180deg)' : 'none' }}
@@ -397,30 +396,37 @@ function NavMenu({
 
             {open && (
                 <div
-                    className="absolute left-0 mt-2 w-72 rounded-xl shadow-lg py-2 z-50"
+                    className="absolute left-1/2 top-full -translate-x-1/2 mt-1 grid w-[min(760px,calc(100vw-2rem))] grid-cols-3 gap-2 rounded-2xl p-3 shadow-xl z-50"
                     style={{ background: 'white', border: '1px solid var(--warm-border)' }}
                 >
-                    {items.map((item) => (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            className="block px-4 py-2.5 transition-colors hover:bg-[var(--warm-bg-alt)]"
-                        >
-                            <span
-                                className="block text-sm"
-                                style={{
-                                    color: 'var(--warm-charcoal)',
-                                    fontWeight: pathname === item.href ? 600 : 500,
-                                }}
-                            >
-                                {item.label}
-                            </span>
-                            {item.desc && (
-                                <span className="block text-xs mt-0.5" style={{ color: 'var(--warm-text-secondary)' }}>
-                                    {item.desc}
-                                </span>
-                            )}
-                        </Link>
+                    {groups.map((group) => (
+                        <div key={group.id}>
+                            <p className="px-3 pt-2 pb-1.5 text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--warm-accent)' }}>
+                                {group.title}
+                            </p>
+                            {group.tools.map((item) => (
+                                <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    className="block rounded-lg px-3 py-2 transition-colors hover:bg-[var(--warm-bg-alt)]"
+                                >
+                                    <span
+                                        className="flex items-center gap-1.5 text-sm"
+                                        style={{ color: 'var(--warm-charcoal)', fontWeight: pathname === item.href ? 600 : 500 }}
+                                    >
+                                        {item.label}
+                                        {item.badge && (
+                                            <span className="rounded-full px-1.5 py-px text-[10px] font-bold uppercase" style={{ background: 'var(--warm-accent)', color: 'var(--warm-cream)' }}>
+                                                {item.badge}
+                                            </span>
+                                        )}
+                                    </span>
+                                    <span className="block text-xs mt-0.5" style={{ color: 'var(--warm-text-secondary)' }}>
+                                        {item.desc}
+                                    </span>
+                                </Link>
+                            ))}
+                        </div>
                     ))}
                 </div>
             )}
