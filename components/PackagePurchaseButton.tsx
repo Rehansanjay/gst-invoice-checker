@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2, CreditCard, Tag } from 'lucide-react';
 import { toast } from 'sonner';
+import { track, trackPurchase } from '@/lib/analytics';
 
 interface PackagePurchaseButtonProps {
     packageType: 'pack_10' | 'pack_50' | 'pack_100' | 'practice_250';
@@ -118,6 +119,7 @@ export default function PackagePurchaseButton({
                     color: '#6d28d9',
                 },
                 handler: function (response: any) {
+                    trackPurchase(`credits_${packageType}`, response.razorpay_payment_id, data.amount);
                     toast.success('Payment successful! Credits added.');
                     setIsProcessing(false);
                     router.refresh();
@@ -126,6 +128,7 @@ export default function PackagePurchaseButton({
                 },
                 modal: {
                     ondismiss: function () {
+                        track('checkout_dismissed', { item: `credits_${packageType}` });
                         setIsProcessing(false);
                         toast('Payment cancelled');
                     }
@@ -134,11 +137,13 @@ export default function PackagePurchaseButton({
 
             const rzp1 = new window.Razorpay(options);
             rzp1.on('payment.failed', function (response: any) {
+                track('payment_failed', { item: `credits_${packageType}` });
                 toast.error(response.error.description || 'Payment failed');
                 setIsProcessing(false);
             });
 
             rzp1.open();
+            track('checkout_opened', { item: `credits_${packageType}` });
 
         } catch (error: any) {
             console.error('Purchase error:', error);
