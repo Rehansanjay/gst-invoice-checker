@@ -294,6 +294,12 @@ export default function InvoiceVerifier() {
                     >
                         Check the whole invoice — tax, HSN and format <ArrowRight className="w-4 h-4" />
                     </Link>
+                    <p className="mt-2 text-[13px]" style={{ color: 'var(--warm-text-secondary)' }}>
+                        Buy from many suppliers?{' '}
+                        <Link href="/vendor-gst-watch" className="underline font-medium" style={{ color: 'var(--warm-accent)' }}>
+                            Get told when one stops filing
+                        </Link>
+                    </p>
                 </div>
             )}
         </div>

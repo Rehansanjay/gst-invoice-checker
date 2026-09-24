@@ -25,7 +25,7 @@ const FROM = 'InvoiceCheck.in <noreply@invoicecheck.in>';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://invoicecheck.in';
 
-export type LeadSource = 'bulk' | 'check' | 'unpaid';
+export type LeadSource = 'bulk' | 'check' | 'unpaid' | 'watch';
 
 function formatINR(value: number): string {
     return new Intl.NumberFormat('en-IN', {
@@ -276,6 +276,29 @@ export async function sendComputationCertificate(
         subject: `Interest computation ${summary.reference} — ₹${rupees(summary.total)} total`,
         html: shell(body, MSME_FOOTER),
         attachments: [{ filename, content: pdf.toString('base64') }],
+    });
+}
+
+/**
+ * Confirms a Vendor GST Watch early-access sign-up. Says plainly that nothing
+ * is running yet and nothing will be charged without asking, because the
+ * page is a test and the email must not read as a subscription.
+ */
+export async function sendWatchConfirmationEmail(email: string) {
+    await getResend().emails.send({
+        from: FROM,
+        to: email,
+        subject: 'You are on the Vendor GST Watch early-access list',
+        html: shell(`
+          <h1 style="font-size:20px;margin:0 0 12px;">You're on the list</h1>
+          <p>Thanks for signing up for Vendor GST Watch: a monthly check of your suppliers' GSTINs and return
+          filing, with an alert when one gets cancelled or stops filing, before it costs you input tax credit.</p>
+          <p>It is not running yet. We are finding out whether enough businesses want it before we build it,
+          and your answer is part of that. Nothing will be charged without asking you first.</p>
+          <p>If you want to tell us what would make it worth paying for, just reply to this email.</p>
+          <p>Meanwhile, you can check any single supplier's GSTIN for free:
+          <a href="${APP_URL}/#verify" style="color:#9E542F;">invoicecheck.in</a></p>
+        `),
     });
 }
 
