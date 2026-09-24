@@ -28,7 +28,10 @@ export type FunnelEvent =
     | 'checkout_dismissed'
     | 'payment_failed'
     | 'purchase'
-    | 'bulk_check_completed';
+    | 'bulk_check_completed'
+    | 'verify_gstin'
+    | 'verify_qr'
+    | 'verify_full_check_clicked';
 
 type Params = Record<string, string | number | boolean | undefined>;
 

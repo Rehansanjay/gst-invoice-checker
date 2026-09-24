@@ -1,4 +1,5 @@
 import { ParsedInvoice, ValidationIssue, ValidationRule, VALID_GST_RATES, VALID_STATE_CODES } from '@/types';
+import { gstinCheckChar } from '@/lib/gstin';
 
 /**
  * Validation Rules Registry
@@ -69,6 +70,26 @@ export const gstinFormatRule: ValidationRule = {
                     expected: 'Format: 22AAAAA0000A1Z5',
                     howToFix: 'Check GSTIN follows: 2-digit state + 10-char PAN + entity number + Z + checksum',
                     impact: 'Portal will reject invalid format. ITC claim will fail.',
+                    gstLawContext: 'GSTIN format defined under Rule 10 of CGST Rules 2017.',
+                });
+                return;
+            }
+
+            // The site tells people the checksum is checked; this is where it
+            // actually is. A transposed pair passes the pattern above.
+            const expected = gstinCheckChar(gstin.slice(0, 14));
+            if (gstin[14] !== expected) {
+                issues.push({
+                    id: `gstin-checksum-${label.toLowerCase()}`,
+                    ruleId: 'RULE_GSTIN_FORMAT',
+                    severity: 'critical',
+                    category: 'GSTIN Validation',
+                    title: `${label} GSTIN Fails Checksum`,
+                    description: 'The last character of a GSTIN is computed from the first fourteen, and it does not match here',
+                    found: gstin,
+                    expected: `Last character ${expected}, if the first fourteen are right`,
+                    howToFix: 'A character is mistyped or two are swapped. Copy the GSTIN from the registration certificate or the GST portal search.',
+                    impact: 'The portal rejects a GSTIN that fails its checksum. ITC claim will fail.',
                     gstLawContext: 'GSTIN format defined under Rule 10 of CGST Rules 2017.',
                 });
             }

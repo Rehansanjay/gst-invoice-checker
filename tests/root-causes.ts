@@ -37,29 +37,29 @@ ok('different lines group together',
 
 // ── counterparty detection ─────────────────────────────────────────────
 const sameBuyer = detectRootCauses([
-    inv('A-1', '29AACCM1234C1ZK', [issue('Wrong Tax Type — Line 1')], 5000),
-    inv('A-2', '29AACCM1234C1ZK', [issue('Wrong Tax Type — Line 1')], 3000),
-    inv('A-3', '27AAAAA1111A1Z5', [issue('Invoice Total Wrong')]),
+    inv('A-1', '29AACCM1234C1ZY', [issue('Wrong Tax Type — Line 1')], 5000),
+    inv('A-2', '29AACCM1234C1ZY', [issue('Wrong Tax Type — Line 1')], 3000),
+    inv('A-3', '27AAAAA1111A1ZW', [issue('Invoice Total Wrong')]),
 ]);
 const cp = sameBuyer.find(c => c.scope === 'counterparty');
 ok('detects a repeated defect on one buyer', !!cp, sameBuyer);
 ok('counts the right invoices', cp?.invoiceCount === 2, cp?.invoiceCount);
 ok('sums the affected value', cp?.amountAffected === 8000, cp?.amountAffected);
-ok('names the buyer', cp?.key === '29AACCM1234C1ZK', cp?.key);
+ok('names the buyer', cp?.key === '29AACCM1234C1ZY', cp?.key);
 ok('does not flag the single unrelated issue', sameBuyer.length === 1, sameBuyer.map(c => c.id));
 
 // ── a one-off must NOT be reported ─────────────────────────────────────
 const oneOff = detectRootCauses([
-    inv('B-1', '29AACCM1234C1ZK', [issue('Wrong Tax Type — Line 1')]),
-    inv('B-2', '27AAAAA1111A1Z5', [issue('Invoice Total Wrong')]),
+    inv('B-1', '29AACCM1234C1ZY', [issue('Wrong Tax Type — Line 1')]),
+    inv('B-2', '27AAAAA1111A1ZW', [issue('Invoice Total Wrong')]),
 ]);
 ok('no root cause from unrelated single issues', oneOff.length === 0, oneOff);
 
 // ── systemic detection ─────────────────────────────────────────────────
 const systemic = detectRootCauses([
-    inv('C-1', '29AAAAA1111A1Z5', [issue('Invoice Number Too Long', { category: 'Invoice Number' })]),
-    inv('C-2', '27BBBBB2222B1Z5', [issue('Invoice Number Too Long', { category: 'Invoice Number' })]),
-    inv('C-3', '24CCCCC3333C1Z5', [issue('Invoice Number Too Long', { category: 'Invoice Number' })]),
+    inv('C-1', '29AAAAA1111A1ZS', [issue('Invoice Number Too Long', { category: 'Invoice Number' })]),
+    inv('C-2', '27BBBBB2222B1ZH', [issue('Invoice Number Too Long', { category: 'Invoice Number' })]),
+    inv('C-3', '24CCCCC3333C1Z8', [issue('Invoice Number Too Long', { category: 'Invoice Number' })]),
 ]);
 const sys = systemic.find(c => c.scope === 'systemic');
 ok('detects a systemic defect across buyers', !!sys, systemic);
@@ -68,9 +68,9 @@ ok('systemic has no counterparty key', sys?.key === '', sys?.key);
 
 // ── a counterparty problem must not ALSO be reported as systemic ───────
 const notBoth = detectRootCauses([
-    inv('D-1', '29AACCM1234C1ZK', [issue('Wrong Tax Type — Line 1')]),
-    inv('D-2', '29AACCM1234C1ZK', [issue('Wrong Tax Type — Line 1')]),
-    inv('D-3', '29AACCM1234C1ZK', [issue('Wrong Tax Type — Line 1')]),
+    inv('D-1', '29AACCM1234C1ZY', [issue('Wrong Tax Type — Line 1')]),
+    inv('D-2', '29AACCM1234C1ZY', [issue('Wrong Tax Type — Line 1')]),
+    inv('D-3', '29AACCM1234C1ZY', [issue('Wrong Tax Type — Line 1')]),
 ]);
 ok('three invoices, one buyer → counterparty only', notBoth.length === 1 && notBoth[0].scope === 'counterparty',
     notBoth.map(c => c.scope));
@@ -84,7 +84,7 @@ ok('no counterparty cause without a buyer GSTIN', b2c.length === 0, b2c);
 
 // ── one invoice, same defect on many lines, is still one invoice ───────
 const multiLine = detectRootCauses([
-    inv('F-1', '29AACCM1234C1ZK', [
+    inv('F-1', '29AACCM1234C1ZY', [
         issue('Wrong Tax Type — Line 1'),
         issue('Wrong Tax Type — Line 2'),
         issue('Wrong Tax Type — Line 3'),
@@ -94,10 +94,10 @@ ok('multiple lines on one invoice is not a pattern', multiLine.length === 0, mul
 
 // ── ordering: critical before warning ──────────────────────────────────
 const ordered = detectRootCauses([
-    inv('G-1', '29AAAAA1111A1Z5', [issue('Place of Supply Not Specified', { severity: 'warning', category: 'Place of Supply' })]),
-    inv('G-2', '29AAAAA1111A1Z5', [issue('Place of Supply Not Specified', { severity: 'warning', category: 'Place of Supply' })]),
-    inv('G-3', '27BBBBB2222B1Z5', [issue('Wrong Tax Type — Line 1')]),
-    inv('G-4', '27BBBBB2222B1Z5', [issue('Wrong Tax Type — Line 1')]),
+    inv('G-1', '29AAAAA1111A1ZS', [issue('Place of Supply Not Specified', { severity: 'warning', category: 'Place of Supply' })]),
+    inv('G-2', '29AAAAA1111A1ZS', [issue('Place of Supply Not Specified', { severity: 'warning', category: 'Place of Supply' })]),
+    inv('G-3', '27BBBBB2222B1ZH', [issue('Wrong Tax Type — Line 1')]),
+    inv('G-4', '27BBBBB2222B1ZH', [issue('Wrong Tax Type — Line 1')]),
 ]);
 ok('criticals sort ahead of warnings', ordered[0]?.severity === 'critical', ordered.map(c => c.severity));
 

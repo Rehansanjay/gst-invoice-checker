@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ShieldAlert, Search, FileWarning, CheckCircle2 } from 'lucide-react';
 import { SITE_URL, OG_IMAGE } from '@/lib/site';
+import InvoiceVerifier from '@/components/InvoiceVerifier';
 
 /**
  * Landing page for the RECEIVER of an invoice, not the filer.
@@ -130,13 +131,18 @@ export default function VerifyInvoicePage() {
                         invoice usually fails at least one of these.
                     </p>
 
-                    <div className="mt-8 flex flex-wrap justify-center gap-3">
+                    {/* The one-field answer first; the full check is the next step. */}
+                    <div className="mt-8 mx-auto max-w-xl">
+                        <InvoiceVerifier />
+                    </div>
+
+                    <div className="mt-6 flex flex-wrap justify-center gap-3">
                         <Link
                             href="/check?utm_source=verify-invoice"
                             className="inline-block rounded-lg px-6 py-3 font-semibold"
                             style={{ background: 'var(--warm-accent)', color: 'var(--warm-cream)' }}
                         >
-                            Check an invoice — free
+                            Check the whole invoice — free
                         </Link>
                         <Link
                             href="/guides/how-to-check-fake-gst-invoice"

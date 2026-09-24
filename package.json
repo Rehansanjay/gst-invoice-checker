@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:validation": "npx tsx tests/false-positives.ts && npx tsx tests/true-positives.ts && npx tsx tests/deadlines.ts && npx tsx tests/root-causes.ts && npx tsx tests/invoice-level-tax.ts && npx tsx tests/check-count.ts && npx tsx tests/bank-rate.ts && npx tsx tests/msme-interest.ts && npx tsx tests/udyam.ts && npx tsx tests/demand-letter.ts && npx tsx tests/pricing-consistency.ts && npx tsx tests/internal-links.ts && npx tsx tests/computation-certificate.ts && npx tsx tests/razorpay-signature.ts && npx tsx tests/affiliates.ts"
+    "test:validation": "npx tsx tests/false-positives.ts && npx tsx tests/true-positives.ts && npx tsx tests/deadlines.ts && npx tsx tests/root-causes.ts && npx tsx tests/invoice-level-tax.ts && npx tsx tests/check-count.ts && npx tsx tests/bank-rate.ts && npx tsx tests/msme-interest.ts && npx tsx tests/udyam.ts && npx tsx tests/demand-letter.ts && npx tsx tests/pricing-consistency.ts && npx tsx tests/internal-links.ts && npx tsx tests/computation-certificate.ts && npx tsx tests/razorpay-signature.ts && npx tsx tests/affiliates.ts && npx tsx tests/verify-invoice.ts"
   },
   "dependencies": {
     "@next/third-parties": "^16.1.6",
@@ -31,6 +31,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "jspdf": "^4.2.0",
+    "jsqr": "^1.4.0",
     "lucide-react": "^0.563.0",
     "next": "16.1.6",
     "pdfkit": "^0.17.2",

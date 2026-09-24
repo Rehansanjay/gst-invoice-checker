@@ -25,7 +25,7 @@ const line = (o: Partial<LineItem>): LineItem => ({
 
 const inv = (o: Partial<ParsedInvoice>): ParsedInvoice => ({
     invoiceNumber: 'R-1', invoiceDate: '2026-08-01',
-    supplierGSTIN: '27AAPFU0939F1ZV', buyerGSTIN: '27AACCM1234C1ZK',
+    supplierGSTIN: '27AAPFU0939F1ZV', buyerGSTIN: '27AACCM1234C1Z2',
     lineItems: [], taxableTotalAmount: 0, totalTaxAmount: 0, invoiceTotalAmount: 0,
     invoiceType: 'tax_invoice', placeOfSupply: '27', reverseCharge: false, ...o,
 });

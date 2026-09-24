@@ -7,8 +7,8 @@ import { validateInvoice } from '../lib/services/validationService';
 import { ParsedInvoice, LineItem } from '../types';
 
 const SUP = '27AAPFU0939F1ZV'; // Maharashtra
-const BUY_MH = '27AACCM1234C1ZK'; // Maharashtra
-const BUY_KA = '29AACCM1234C1ZK'; // Karnataka
+const BUY_MH = '27AACCM1234C1Z2'; // Maharashtra
+const BUY_KA = '29AACCM1234C1ZY'; // Karnataka
 
 const line = (o: Partial<LineItem>): LineItem => ({
     lineNumber: 1, description: 'Goods', hsnCode: '7307', quantity: 1, rate: 1000,
@@ -152,7 +152,7 @@ const cases: { name: string; invoice: ParsedInvoice }[] = [
     {
         name: 'Union territory supply (Chandigarh, intra-UT)',
         invoice: inv({
-            invoiceNumber: 'A-16', supplierGSTIN: '04AAPFU0939F1ZV', buyerGSTIN: '04AACCM1234C1ZK',
+            invoiceNumber: 'A-16', supplierGSTIN: '04AAPFU0939F1Z3', buyerGSTIN: '04AACCM1234C1ZA',
             placeOfSupply: '04',
         }),
     },
@@ -185,5 +185,7 @@ const cases: { name: string; invoice: ParsedInvoice }[] = [
     console.log(`\n${clean}/${cases.length} correct invoices came back clean`);
     if (failures.length) {
         console.log(`\nFalse positives on:\n${failures.map((f) => `  - ${f}`).join('\n')}`);
+        // Without this the suite's && chain carried on and reported success.
+        process.exit(1);
     }
 })();
