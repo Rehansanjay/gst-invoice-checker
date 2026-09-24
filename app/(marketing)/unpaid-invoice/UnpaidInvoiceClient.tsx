@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Loader2, Info, ExternalLink, TrendingUp, FileText, Download, Copy, Check, FileCheck2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { track, trackPurchase } from '@/lib/analytics';
 import EmailReportCapture from '@/components/EmailReportCapture';
 
 /**
@@ -228,14 +229,21 @@ export default function UnpaidInvoiceClient() {
                         const data = await res.json();
                         if (!res.ok) { toast.error(data.error || 'Delivery failed.'); return; }
                         setBought(data.reference);
+                        trackPurchase('interest_certificate', response.razorpay_payment_id, order.amount);
                         toast.success('Sent — check your inbox.');
                     } finally {
                         setBuying(false);
                     }
                 },
-                modal: { ondismiss: () => setBuying(false) },
+                modal: {
+                    ondismiss: () => {
+                        track('checkout_dismissed', { item: 'interest_certificate' });
+                        setBuying(false);
+                    },
+                },
             });
             rzp.open();
+            track('checkout_opened', { item: 'interest_certificate' });
         } catch {
             toast.error('Something went wrong. Please try again.');
         } finally {

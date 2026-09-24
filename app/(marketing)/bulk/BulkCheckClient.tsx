@@ -7,6 +7,7 @@ import { Upload, Download, AlertCircle, AlertTriangle, CheckCircle2, Lock, Loade
 import { BulkCheckResult } from '@/types';
 import EmailReportCapture from '@/components/EmailReportCapture';
 import { toast } from 'sonner';
+import { track } from '@/lib/analytics';
 
 const SEVERITY_DOT = {
     critical: 'bg-red-500',
@@ -44,6 +45,7 @@ export default function BulkCheckClient() {
                 return;
             }
             setResult(data.result);
+            track('bulk_check_completed', { invoices: data.result.totalInvoices });
             toast.success(`${data.result.totalInvoices} invoices checked.`);
         } catch {
             toast.error('Something went wrong. Please try again.');

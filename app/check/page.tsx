@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ParsedInvoice, ValidationResult, PreviewResult } from '@/types';
 import { useAuth } from '@/lib/auth-context';
+import { track, trackPurchase } from '@/lib/analytics';
 import { toast } from 'sonner';
 
 declare global {
@@ -199,6 +200,8 @@ function CheckPageInner() {
         // abandoned or failed payment does not show payment copy.
         setProcessingMode('validate');
         setProcessingStep('Starting...');
+        const flow = user ? 'user' : 'guest';
+        track('check_submitted', { flow });
 
         try {
             if (user) {
@@ -226,6 +229,7 @@ function CheckPageInner() {
 
                 if (data.success || data.result) {
                     setValidationResult(data.result);
+                    track('check_completed', { flow, issues: data.result?.issuesFound?.length ?? 0 });
                 } else {
                     throw new Error(data.error || 'Unknown validation error');
                 }
@@ -251,6 +255,11 @@ function CheckPageInner() {
                 }
 
                 setPreviewResult(data.result);
+                track('check_completed', {
+                    flow,
+                    issues: (data.result?.revealedIssue ? 1 : 0) + (data.result?.lockedIssues?.length ?? 0),
+                    health_score: data.result?.healthScore,
+                });
                 setIsProcessing(false);
                 setProcessingStep('');
                 toast.success('Analysis complete! Issues found.');
@@ -258,6 +267,7 @@ function CheckPageInner() {
 
         } catch (error: any) {
             console.error('handleSubmit error:', error);
+            track('check_failed', { flow });
             toast.error(error.message || 'Something went wrong. Please try again.');
             setIsProcessing(false);
             setProcessingStep('');
@@ -270,6 +280,7 @@ function CheckPageInner() {
             return;
         }
 
+        track('unlock_clicked', { item: 'single_check' });
         setIsProcessing(true);
         setProcessingMode('payment');
         setProcessingStep('Initializing payment...');
@@ -340,6 +351,7 @@ function CheckPageInner() {
                             throw new Error(data.error || 'Processing failed');
                         }
 
+                        trackPurchase('single_check', response.razorpay_payment_id, orderData.amount / 100);
                         toast.success('Payment verified! Showing your report.');
                         setValidationResult(data.result);
                         setPreviewResult(null);
@@ -354,6 +366,7 @@ function CheckPageInner() {
 
                 modal: {
                     ondismiss: () => {
+                        track('checkout_dismissed', { item: 'single_check' });
                         setIsProcessing(false);
                         setProcessingStep('');
                         toast('Payment cancelled');
@@ -367,11 +380,13 @@ function CheckPageInner() {
 
             const rzp = new window.Razorpay(options);
             rzp.on('payment.failed', (response: any) => {
+                track('payment_failed', { item: 'single_check' });
                 toast.error(`Payment failed: ${response.error.description}`);
                 setIsProcessing(false);
             });
 
             rzp.open();
+            track('checkout_opened', { item: 'single_check' });
 
         } catch (error: any) {
             console.error('Payment error:', error);
