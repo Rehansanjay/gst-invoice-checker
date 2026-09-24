@@ -49,7 +49,7 @@ const malformed = [
     ['UDYAM-03-03-0001234', 'digits where letters belong'],
     ['UDYOG-KA-03-0001234', 'wrong prefix'],
     ['KA-03-0001234', 'missing prefix'],
-    ['29AABCU9603R1ZM', 'a GSTIN, not a Udyam number'],
+    ['29AABCU9603R1ZJ', 'a GSTIN, not a Udyam number'],
     ['UDYAM-KA-03-0001234-X', 'trailing junk'],
 ];
 for (const [value, why] of malformed) {

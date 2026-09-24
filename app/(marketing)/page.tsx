@@ -14,46 +14,7 @@ import Link from 'next/link';
 import GetStartedModal from '@/components/GetStartedModal';
 import LoggedInHome from '@/components/LoggedInHome';
 import AudienceSplit from '@/components/AudienceSplit';
-
-/* ── 1. Premium Hero Mockup ──────────────────────────── */
-function HeroMockup() {
-  return (
-    <div className="relative w-full max-w-md mx-auto aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl" style={{ background: '#FDFCFB', border: '1px solid var(--warm-border)' }}>
-      {/* Browser Header */}
-      <div className="absolute top-0 left-0 right-0 h-12 flex items-center px-5 gap-2" style={{ background: 'rgba(250, 248, 246, 0.95)', borderBottom: '1px solid var(--warm-border)', backdropFilter: 'blur(10px)' }}>
-        <div className="w-3 h-3 rounded-full" style={{ background: '#E8E0D8' }} />
-        <div className="w-3 h-3 rounded-full" style={{ background: '#E8E0D8' }} />
-        <div className="w-3 h-3 rounded-full" style={{ background: '#E8E0D8' }} />
-      </div>
-
-      <div className="pt-20 px-6 pb-6 h-full flex flex-col justify-center">
-        <div className="space-y-4">
-          {[
-            { label: 'GSTIN Verified', delay: '0s' },
-            { label: 'Tax Types Matching', delay: '0.1s' },
-            { label: 'HSN Code Valid', delay: '0.2s' },
-            { label: 'Totals Accurately Calculated', delay: '0.3s' },
-            { label: 'Ready for Safe Submission', delay: '0.4s' }
-          ].map((item, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-4 p-4 rounded-2xl bg-white shadow-sm"
-              style={{
-                border: '1px solid var(--warm-border)',
-                animation: `checkSlideIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) ${item.delay} both`
-              }}
-            >
-              <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#F4FAF6' }}>
-                <CheckCircle2 className="w-3.5 h-3.5" style={{ color: 'var(--warm-success)' }} />
-              </div>
-              <div className="h-2 w-32 rounded-full" style={{ background: 'var(--warm-bg-alt)' }} />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
+import InvoiceVerifier from '@/components/InvoiceVerifier';
 
 /* ── 3. Interactive Feature Tabs ───────────────────────── */
 function InteractiveFeatureTabs() {
@@ -64,8 +25,8 @@ function InteractiveFeatureTabs() {
       id: 0,
       title: 'Identity Verification',
       icon: <Target className="w-4 h-4" />,
-      desc: 'Validating GSTIN formats, active status, and supplier/buyer mismatches.',
-      checks: ['15-digit GSTIN format', 'Live Government Portal Status', 'Distinct Supplier/Buyer match']
+      desc: 'Validating GSTIN format, checksum and state code, and supplier/buyer mismatches.',
+      checks: ['15-character GSTIN format', 'GSTIN checksum and state code', 'Distinct Supplier/Buyer match']
     },
     {
       id: 1,
@@ -155,15 +116,15 @@ const HOMEPAGE_FAQS: { q: string; a: string }[] = [
     },
     {
       q: 'Does this replace my CA?',
-      a: 'No, and it is not meant to. We run 16 mechanical checks on the invoice itself — GSTIN structure, tax head against place of supply, HSN, the arithmetic, invoice numbering and dates. That is the tedious layer, and it is the layer that gets returns rejected on upload. Judgement calls, classification, notices and the return itself are your CA\'s work. Plenty of practices use this on their own client batches for exactly that reason — it clears the mechanical errors before the professional review starts.'
+      a: 'No, and it is not meant to. We run 16 mechanical checks on the invoice itself — GSTIN structure, tax head against place of supply, HSN, the arithmetic, invoice numbering and dates. That is the tedious layer, and it is the layer that gets returns rejected on upload. Judgement calls, classification, notices and the return itself are your CA\'s work. It is built to clear the mechanical errors before the professional review starts.'
     },
     {
       q: 'What if the government GST portal is down?',
-      a: 'We use highly redundant caching and alternate API gateways. If the primary portal is completely inaccessible, we still run 10 offline heuristic checks (math, structural rules) and flag the portal-dependent checks for later review.'
+      a: 'Nothing here depends on it. Every check runs on the invoice itself — GSTIN structure and checksum, tax arithmetic, HSN, numbering and dates — so it works whether the portal is up or not. The one thing only the portal can tell you is whether a GSTIN is currently active, and we link you to the portal search for that.'
     },
     {
       q: 'Does this integrate with Tally or Zoho?',
-      a: 'Not directly yet. We are building our API to plug directly into major ERPs. For now, you can instantly check any generated invoice PDF before you upload it to your buyer marketplace.'
+      a: 'Not directly. You can check any invoice you have generated before you upload it to your buyer or marketplace, or run a whole batch at once on the bulk page.'
     }
 ];
 
@@ -216,17 +177,22 @@ export default function Home() {
         </div>
 
         <div className="container mx-auto px-5 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center py-20 md:py-28 lg:py-36">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-20 items-center pt-10 pb-16 md:py-28 lg:py-36">
             {/* Copy */}
             <div className="max-w-xl">
-              <div className="hero-animate-1 mb-8">
+              <div className="hero-animate-1 mb-5 sm:mb-8">
                 <span className="pill-badge text-xs hover-glow-border cursor-default" style={{
                   background: 'rgba(250, 248, 246, 0.06)',
                   borderColor: 'rgba(250, 248, 246, 0.12)',
                   color: '#C4B5A3',
                 }}>
+                  {/*
+                    Was "Trusted by Indian sellers & CA firms". No CA firm uses
+                    it and nobody has paid, so the badge now says only what is
+                    true of every visitor's first minute here.
+                  */}
                   <Sparkles className="w-3 h-3" style={{ color: '#D4A056' }} />
-                  Trusted by Indian sellers &amp; CA firms
+                  Free · No sign-up needed
                 </span>
               </div>
 
@@ -235,7 +201,7 @@ export default function Home() {
                 <span style={{ color: 'var(--warm-accent)' }}>in 15 Seconds</span>
               </h1>
 
-              <p className="hero-animate-3 text-[1.125rem] sm:text-xl leading-[1.6] mb-10 font-sans" style={{ color: '#B8A895' }}>
+              <p className="hero-animate-3 text-[1.125rem] sm:text-xl leading-[1.6] mb-6 sm:mb-10 font-sans" style={{ color: '#B8A895' }}>
                 A 16-point GST compliance check that catches errors before the portal or the marketplace rejects them. Fix them in minutes, not next month&apos;s amendment.
               </p>
 
@@ -258,21 +224,23 @@ export default function Home() {
                 it is a comfortable target on a phone rather than a pill
                 floating in the middle of the screen.
               */}
-              <div className="hero-animate-4 mb-10">
+              {/*
+                The instant verifier (right column) is now the first action;
+                this link is the way to the other tools. It stays a real
+                anchor so it works without JavaScript.
+              */}
+              <div className="hero-animate-4 mb-0 sm:mb-10">
                 <a
                   href="#where-you-fit"
-                  className="btn-warm-primary magnetic-btn text-[15px] px-7 py-4 w-full sm:w-auto inline-flex items-center justify-center gap-2"
+                  className="text-[15px] font-semibold inline-flex items-center gap-1.5 underline-offset-4 hover:underline"
+                  style={{ color: '#C4B5A3' }}
                 >
-                  Show me which tool I need
+                  Or see all seven tools and which one fits you
                   <ChevronDown className="w-4 h-4" />
                 </a>
-                <p className="mt-3 text-[13.5px] leading-snug max-w-sm" style={{ color: '#9E8A78' }}>
-                  Seven tools, free to run. The two boxes just below tell you which one
-                  is yours — and what you need to have ready.
-                </p>
               </div>
 
-              <div className="hero-animate-5 flex flex-wrap items-center gap-x-5 gap-y-3">
+              <div className="hero-animate-5 hidden sm:flex flex-wrap items-center gap-x-5 gap-y-3">
                 {[
                   { icon: <BadgeCheck className="w-[15px] h-[15px]" style={{ color: '#7EC89B' }} />, text: 'GST Act Compliant' },
                   { icon: <ShieldCheck className="w-[15px] h-[15px]" style={{ color: '#7EC89B' }} />, text: '16 Validation Checks' },
@@ -286,9 +254,15 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Mockup */}
-            <div className="hero-animate-6 hidden lg:block">
-              <HeroMockup />
+            {/*
+              Instant verifier, where an empty animated mockup used to be.
+              Most visitors search "invoice check" / "invoice number check"
+              holding an invoice they received, and 73% were leaving the
+              homepage in about 13 seconds. Visible at every width: on a
+              phone it sits right under the H1.
+            */}
+            <div id="verify" className="hero-animate-6">
+              <InvoiceVerifier />
             </div>
           </div>
         </div>

@@ -8,8 +8,8 @@ import { validateInvoice } from '../lib/services/validationService';
 import { ParsedInvoice, LineItem } from '../types';
 
 const SUP = '27AAPFU0939F1ZV';
-const BUY_MH = '27AACCM1234C1ZK';
-const BUY_KA = '29AACCM1234C1ZK';
+const BUY_MH = '27AACCM1234C1Z2';
+const BUY_KA = '29AACCM1234C1ZY';
 
 const line = (o: Partial<LineItem>): LineItem => ({
     lineNumber: 1, description: 'Goods', hsnCode: '7307', quantity: 1, rate: 1000,
@@ -70,7 +70,7 @@ const cases: { name: string; mustCatch: string; invoice: ParsedInvoice }[] = [
     {
         name: 'Invalid state code in GSTIN (99)',
         mustCatch: 'State Code',
-        invoice: inv({ invoiceNumber: 'B-8', supplierGSTIN: '99AAPFU0939F1ZV', placeOfSupply: '99' }),
+        invoice: inv({ invoiceNumber: 'B-8', supplierGSTIN: '99AAPFU0939F1ZK', placeOfSupply: '99' }),
     },
     {
         name: 'Supplier and buyer GSTIN identical',
@@ -141,5 +141,9 @@ const cases: { name: string; mustCatch: string; invoice: ParsedInvoice }[] = [
     }
 
     console.log(`\n${caught}/${cases.length} broken invoices correctly flagged`);
-    if (missed.length) console.log(`\nMISSED:\n${missed.map((m) => `  - ${m}`).join('\n')}`);
+    if (missed.length) {
+        console.log(`\nMISSED:\n${missed.map((m) => `  - ${m}`).join('\n')}`);
+        // Without this the suite's && chain carried on and reported success.
+        process.exit(1);
+    }
 })();
