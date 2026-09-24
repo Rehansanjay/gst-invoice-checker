@@ -31,7 +31,8 @@ export type FunnelEvent =
     | 'bulk_check_completed'
     | 'verify_gstin'
     | 'verify_qr'
-    | 'verify_full_check_clicked';
+    | 'verify_full_check_clicked'
+    | 'watch_signup';
 
 type Params = Record<string, string | number | boolean | undefined>;
 

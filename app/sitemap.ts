@@ -67,6 +67,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
             priority: 0.8,
         },
         {
+            url: `${SITE_URL}/vendor-gst-watch`,
+            lastModified: CORE_UPDATED,
+            changeFrequency: 'monthly',
+            priority: 0.7,
+        },
+        {
             // Ships alone, without the guide cluster that would normally
             // surround it. Thirteen pages here are already stuck at
             // "Discovered — currently not indexed", so the constraint is crawl

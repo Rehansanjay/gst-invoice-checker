@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { checkRateLimit } from '@/lib/rateLimit';
-import { sendBulkSummaryEmail, sendCheckSummaryEmail, sendUnpaidSummaryEmail, notifyNewLead } from '@/lib/leadService';
+import { WATCH_SUPPLIER_BANDS, WATCH_PRICE_ANSWERS, WATCH_PRICE_RUPEES } from '@/lib/watch';
+import { sendBulkSummaryEmail, sendCheckSummaryEmail, sendUnpaidSummaryEmail, sendWatchConfirmationEmail, notifyNewLead } from '@/lib/leadService';
 
 /**
  * Email capture for the FREE tools. Distinct from /api/email-report, which
@@ -61,7 +62,23 @@ const unpaidSummarySchema = z.object({
     letterFilename: z.string().max(120),
 });
 
+/**
+ * Vendor GST Watch early access. Not a product yet: these two answers are the
+ * test of whether it should become one, so they are stored in `detail`.
+ */
+const watchSummarySchema = z.object({
+    suppliers: z.enum(WATCH_SUPPLIER_BANDS),
+    wouldPay: z.enum(WATCH_PRICE_ANSWERS),
+});
+
 const schema = z.discriminatedUnion('source', [
+    z.object({
+        source: z.literal('watch'),
+        email: z.string().email().max(200),
+        summary: watchSummarySchema,
+        utm_source: z.string().max(64).optional().nullable(),
+        utm_campaign: z.string().max(64).optional().nullable(),
+    }),
     z.object({
         source: z.literal('bulk'),
         email: z.string().email().max(200),
@@ -108,7 +125,9 @@ export async function POST(request: NextRequest) {
 
         // Deliver first — this is the thing the visitor actually asked for.
         try {
-            if (data.source === 'bulk') {
+            if (data.source === 'watch') {
+                await sendWatchConfirmationEmail(email);
+            } else if (data.source === 'bulk') {
                 await sendBulkSummaryEmail(email, data.summary as never);
             } else if (data.source === 'unpaid') {
                 const { letterText, letterFilename, ...summary } = data.summary;
@@ -125,7 +144,9 @@ export async function POST(request: NextRequest) {
         }
 
         let detail: string;
-        if (data.source === 'bulk') {
+        if (data.source === 'watch') {
+            detail = `Vendor GST Watch early access: buys from ${data.summary.suppliers} suppliers; would pay ₹${WATCH_PRICE_RUPEES}/month: ${data.summary.wouldPay}.`;
+        } else if (data.source === 'bulk') {
             detail = `${data.summary.invoicesWithCritical} of ${data.summary.totalInvoices} invoices flagged, ₹${data.summary.amountAtRisk} at risk.`;
         } else if (data.source === 'unpaid') {
             detail = `₹${data.summary.principal} unpaid for ${data.summary.daysOverdue} days; interest computed ₹${data.summary.interest}.`;
