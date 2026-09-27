@@ -59,6 +59,16 @@ export default function Footer() {
                                 </Link>
                             </li>
                             <li>
+                                <Link href="/gstr-2b-reconciliation" className="transition-colors" style={{ color: '#9E8A78' }}>
+                                    GSTR-2B Reconciliation
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/gst-notice-help" className="transition-colors" style={{ color: '#9E8A78' }}>
+                                    GST Notice Help
+                                </Link>
+                            </li>
+                            <li>
                                 <Link href="/gst-penalty-calculator" className="transition-colors" style={{ color: '#9E8A78' }}>
                                     GST Penalty Calculator
                                 </Link>

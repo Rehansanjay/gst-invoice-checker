@@ -1,54 +1,54 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { BellRing, ListChecks, CalendarCheck, AlertTriangle } from 'lucide-react';
+import { Upload, ListChecks, Send, AlertTriangle } from 'lucide-react';
 import { SITE_URL, OG_IMAGE } from '@/lib/site';
-import { WATCH_PRICE_RUPEES } from '@/lib/watch';
-import WatchEarlyAccess from '@/components/WatchEarlyAccess';
+import { EARLY_ACCESS } from '@/lib/earlyAccess';
+import EarlyAccessForm from '@/components/EarlyAccessForm';
 
 /**
- * Vendor GST Watch — an early-access page, not a product.
+ * GSTR-2B Reconciliation — an early-access page, not a product.
  *
- * The CA and law-firm channels both said no (Sep 2026), so before building
- * anything new this page tests one question with real visitors: will a
- * business pay monthly to be told when a supplier's GSTIN is cancelled or it
- * stops filing? The page says plainly that it is not built. The sign-up asks
- * the price question, which is the signal that decides whether to build it.
+ * Tests whether businesses and CAs will pay monthly to have the purchase
+ * register matched against GSTR-2B before GSTR-3B is filed. Most do it by
+ * hand in Excel every month. The page says plainly that it is not built;
+ * the sign-up's price answer decides whether to build it.
  */
 
 export const metadata: Metadata = {
-    title: 'Vendor GST Watch — Alerts When a Supplier Stops Filing GST',
+    title: 'GSTR-2B Reconciliation — Find Missing ITC Before You File GSTR-3B',
     description:
-        'Get told when a supplier’s GSTIN is cancelled or it stops filing GSTR-1, before it costs you input tax credit. Early access.',
-    alternates: { canonical: '/vendor-gst-watch' },
+        'Match your purchase register against GSTR-2B in minutes. See which supplier invoices are missing, how much ITC is at risk, and who to chase. Early access.',
+    alternates: { canonical: '/gstr-2b-reconciliation' },
     openGraph: {
         type: 'website',
-        title: 'Vendor GST Watch — Know When a Supplier Stops Filing',
+        title: 'GSTR-2B Reconciliation — Find Missing ITC in Minutes',
         description:
-            'A monthly check of every supplier’s GSTIN and return filing, with an alert before it costs you ITC.',
-        url: `${SITE_URL}/vendor-gst-watch`,
+            'Upload GSTR-2B and your purchase register. Get the missing invoices, the ITC at risk and a message for each supplier.',
+        url: `${SITE_URL}/gstr-2b-reconciliation`,
         images: [OG_IMAGE],
     },
 };
 
 const STEPS = [
     {
+        icon: Upload,
+        title: 'Upload two files',
+        body: 'The GSTR-2B you download from the GST portal, and your purchase register exported from Tally, Zoho or Busy.',
+    },
+    {
         icon: ListChecks,
-        title: 'Add your suppliers once',
-        body: 'Paste or upload the GSTINs of the suppliers you buy from. Each one is checked for a valid format as you add it.',
+        title: 'Every invoice is matched',
+        body: 'Matched, missing from 2B, missing from your books, or different amounts. Each mismatch shows the ITC it puts at risk.',
     },
     {
-        icon: CalendarCheck,
-        title: 'Every month, each one is checked',
-        body: 'Is the GSTIN still active? Did the supplier file GSTR-1 and GSTR-3B for the period? The status comes from the GST system, not from the invoice.',
-    },
-    {
-        icon: BellRing,
-        title: 'You hear about problems first',
-        body: 'When a supplier is cancelled or misses a filing, you get an alert naming them, while there is still time to chase them or hold the payment.',
+        icon: Send,
+        title: 'Chase the right suppliers',
+        body: 'A list of suppliers who have not reported your invoices, with a ready-to-send message for each one, before you file GSTR-3B.',
     },
 ];
 
-export default function VendorGstWatchPage() {
+export default function Gstr2bReconciliationPage() {
+    const config = EARLY_ACCESS.recon;
     return (
         <div className="container mx-auto px-4 py-16">
             <div className="mx-auto max-w-3xl">
@@ -63,12 +63,12 @@ export default function VendorGstWatchPage() {
                         className="mt-4 text-4xl font-bold leading-tight font-heading sm:text-5xl"
                         style={{ color: 'var(--warm-charcoal)' }}
                     >
-                        Know when a supplier stops filing, before it costs you ITC
+                        Find missing ITC in minutes, not a day of Excel
                     </h1>
                     <p className="mx-auto mt-4 max-w-2xl text-lg" style={{ color: 'var(--warm-charcoal-soft)' }}>
-                        You can only claim input tax credit on an invoice your supplier has reported. If their GSTIN is
-                        cancelled, or they skip a return, the credit you were counting on disappears, and you usually
-                        find out weeks later.
+                        Every month, before GSTR-3B, someone matches the purchase register against GSTR-2B line by line.
+                        Any invoice your supplier did not report is credit you cannot claim, and finding them by hand
+                        takes hours for every GSTIN.
                     </p>
                 </div>
 
@@ -78,13 +78,13 @@ export default function VendorGstWatchPage() {
                 >
                     <div className="flex items-baseline justify-between flex-wrap gap-2 mb-5">
                         <h2 className="text-2xl font-bold font-heading" style={{ color: 'var(--warm-charcoal)' }}>
-                            Vendor GST Watch
+                            {config.name}
                         </h2>
                         <p className="text-[15px]" style={{ color: 'var(--warm-charcoal-soft)' }}>
-                            <strong style={{ color: 'var(--warm-charcoal)' }}>₹{WATCH_PRICE_RUPEES}/month</strong> early-access price
+                            <strong style={{ color: 'var(--warm-charcoal)' }}>{config.priceLabel}</strong> early-access price
                         </p>
                     </div>
-                    <WatchEarlyAccess from="vendor-gst-watch" />
+                    <EarlyAccessForm product="recon" from="gstr-2b-reconciliation" />
                 </div>
 
                 <h2 className="mb-6 text-2xl font-bold font-heading" style={{ color: 'var(--warm-charcoal)' }}>
@@ -103,32 +103,26 @@ export default function VendorGstWatchPage() {
                 <div className="mb-12 flex gap-3 rounded-xl p-5" style={{ background: 'var(--warm-bg-alt)' }}>
                     <AlertTriangle className="h-5 w-5 shrink-0" style={{ color: '#B7791F' }} />
                     <div className="text-[14.5px] leading-relaxed" style={{ color: 'var(--warm-charcoal-soft)' }}>
-                        <p className="font-semibold mb-1" style={{ color: 'var(--warm-charcoal)' }}>Why this matters now</p>
+                        <p className="font-semibold mb-1" style={{ color: 'var(--warm-charcoal)' }}>Why this matters every month</p>
                         <p>
                             Under Section 16(2)(aa) of the CGST Act, credit is available only for invoices that appear
-                            in your GSTR-2B, which fills from what your supplier reports. A supplier who files late or
-                            not at all blocks your credit, even when you paid them in full.
+                            in your GSTR-2B. Claim more than 2B shows and you risk a notice; claim less and you lose
+                            credit you paid for. Reconciling first is the only way to know which.
                         </p>
                     </div>
                 </div>
 
                 <div className="text-center">
                     <p className="mb-3" style={{ color: 'var(--warm-charcoal-soft)' }}>
-                        Checking a single supplier? That part is free today.
+                        Already have a batch of invoices to check? That part is free today.
                     </p>
                     <Link
-                        href="/#verify"
+                        href="/bulk"
                         className="inline-block rounded-lg px-6 py-3 font-semibold"
                         style={{ border: '1px solid var(--warm-border)', color: 'var(--warm-charcoal)' }}
                     >
-                        Check a supplier&apos;s GSTIN free
+                        Check a batch of invoices free
                     </Link>
-                    <p className="mt-6 text-[14px]" style={{ color: 'var(--warm-charcoal-soft)' }}>
-                        Reconciling a whole month of purchases?{' '}
-                        <Link href="/gstr-2b-reconciliation" className="font-semibold underline underline-offset-2" style={{ color: 'var(--warm-accent)' }}>
-                            GSTR-2B reconciliation
-                        </Link>
-                    </p>
                 </div>
             </div>
         </div>

@@ -35,6 +35,7 @@ export const TOOL_GROUPS: ToolGroup[] = [
             { href: '/verify-invoice', label: 'Verify an invoice', desc: 'Is an invoice you were given genuine?' },
             { href: '/vendor-invoice-check', label: 'Check vendor invoices', desc: 'Catch defects before you claim ITC' },
             { href: '/vendor-gst-watch', label: 'Vendor GST Watch', desc: 'Get told when a supplier stops filing', badge: 'New' },
+            { href: '/gstr-2b-reconciliation', label: 'GSTR-2B reconciliation', desc: 'Find missing ITC before GSTR-3B', badge: 'New' },
         ],
     },
     {
@@ -55,6 +56,7 @@ export const TOOL_GROUPS: ToolGroup[] = [
             { href: '/gst-penalty-calculator', label: 'Late return calculator', desc: 'What a missed GSTR-1 or 3B costs' },
             { href: '/unpaid-invoice', label: 'Interest on a late payment', desc: 'What a buyer owes under the MSMED Act' },
             { href: '/gst-error-codes', label: 'GSTR-1 error codes', desc: 'Every rejection code, explained' },
+            { href: '/gst-notice-help', label: 'Got a GST notice?', desc: 'What it means and how to reply', badge: 'New' },
             { href: '/guides', label: 'GST guides', desc: 'Place of supply, Rule 46, late fees' },
         ],
     },

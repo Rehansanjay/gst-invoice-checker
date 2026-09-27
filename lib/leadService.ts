@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import { BulkCheckResult } from '@/types';
+import { EARLY_ACCESS, type EarlyAccessProduct } from '@/lib/earlyAccess';
 
 /**
  * lib/leadService.ts
@@ -25,7 +26,7 @@ const FROM = 'InvoiceCheck.in <noreply@invoicecheck.in>';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://invoicecheck.in';
 
-export type LeadSource = 'bulk' | 'check' | 'unpaid' | 'watch';
+export type LeadSource = 'bulk' | 'check' | 'unpaid' | 'watch' | EarlyAccessProduct;
 
 function formatINR(value: number): string {
     return new Intl.NumberFormat('en-IN', {
@@ -298,6 +299,33 @@ export async function sendWatchConfirmationEmail(email: string) {
           <p>If you want to tell us what would make it worth paying for, just reply to this email.</p>
           <p>Meanwhile, you can check any single supplier's GSTIN for free:
           <a href="${APP_URL}/#verify" style="color:#9E542F;">invoicecheck.in</a></p>
+        `),
+    });
+}
+
+/** What each early-access product would do, for its confirmation email. */
+const EARLY_ACCESS_PITCH: Record<EarlyAccessProduct, string> = {
+    recon: 'your purchase register matched against GSTR-2B every month, with the invoices your suppliers have not reported, the ITC at risk, and a message for each supplier to chase',
+    notice: 'a plain explanation of your GST notice, the reply deadline, a checklist of the documents to gather and a draft reply for your CA to review',
+};
+
+/**
+ * Confirms a GSTR-2B Reconciliation or GST Notice Help early-access sign-up.
+ * Like the Watch email, it says plainly that nothing exists yet and nothing
+ * will be charged without asking.
+ */
+export async function sendEarlyAccessConfirmationEmail(email: string, product: EarlyAccessProduct) {
+    const name = EARLY_ACCESS[product].name;
+    await getResend().emails.send({
+        from: FROM,
+        to: email,
+        subject: `You are on the ${name} early-access list`,
+        html: shell(`
+          <h1 style="font-size:20px;margin:0 0 12px;">You're on the list</h1>
+          <p>Thanks for signing up for ${name}: ${EARLY_ACCESS_PITCH[product]}.</p>
+          <p>It is not running yet. We are finding out whether enough people want it before we build it,
+          and your answer is part of that. Nothing will be charged without asking you first.</p>
+          <p>If you want to tell us what would make it worth paying for, just reply to this email.</p>
         `),
     });
 }
