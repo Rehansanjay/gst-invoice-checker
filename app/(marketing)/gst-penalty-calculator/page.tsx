@@ -583,6 +583,12 @@ function GstPenaltyCalculatorInner() {
                             Work out what an unpaid invoice has accrued
                         </Link>.
                     </p>
+                    <p className="mt-3 text-sm" style={{ color: 'var(--warm-charcoal-soft)' }}>
+                        Already received a notice from the department?{' '}
+                        <Link href="/gst-notice-help" className="font-semibold underline underline-offset-2" style={{ color: 'var(--warm-accent)' }}>
+                            See what it means and how to reply
+                        </Link>.
+                    </p>
                 </div>
 
             </div>

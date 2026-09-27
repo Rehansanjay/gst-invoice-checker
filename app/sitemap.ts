@@ -73,6 +73,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
             priority: 0.7,
         },
         {
+            url: `${SITE_URL}/gstr-2b-reconciliation`,
+            lastModified: new Date('2026-09-27'),
+            changeFrequency: 'monthly',
+            priority: 0.7,
+        },
+        {
+            url: `${SITE_URL}/gst-notice-help`,
+            lastModified: new Date('2026-09-27'),
+            changeFrequency: 'monthly',
+            priority: 0.7,
+        },
+        {
             // Ships alone, without the guide cluster that would normally
             // surround it. Thirteen pages here are already stuck at
             // "Discovered — currently not indexed", so the constraint is crawl

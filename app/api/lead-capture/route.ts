@@ -3,7 +3,8 @@ import { z } from 'zod';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { WATCH_SUPPLIER_BANDS, WATCH_PRICE_ANSWERS, WATCH_PRICE_RUPEES } from '@/lib/watch';
-import { sendBulkSummaryEmail, sendCheckSummaryEmail, sendUnpaidSummaryEmail, sendWatchConfirmationEmail, notifyNewLead } from '@/lib/leadService';
+import { EARLY_ACCESS, PRICE_ANSWERS, RECON_GSTIN_BANDS, NOTICE_TYPES } from '@/lib/earlyAccess';
+import { sendBulkSummaryEmail, sendCheckSummaryEmail, sendUnpaidSummaryEmail, sendWatchConfirmationEmail, sendEarlyAccessConfirmationEmail, notifyNewLead } from '@/lib/leadService';
 
 /**
  * Email capture for the FREE tools. Distinct from /api/email-report, which
@@ -71,7 +72,35 @@ const watchSummarySchema = z.object({
     wouldPay: z.enum(WATCH_PRICE_ANSWERS),
 });
 
+/**
+ * GSTR-2B Reconciliation and GST Notice Help early access (lib/earlyAccess.ts).
+ * Same idea as Watch: a sizing answer and a price answer, stored in `detail`.
+ */
+const reconSummarySchema = z.object({
+    size: z.enum(RECON_GSTIN_BANDS),
+    wouldPay: z.enum(PRICE_ANSWERS),
+});
+
+const noticeSummarySchema = z.object({
+    size: z.enum(NOTICE_TYPES),
+    wouldPay: z.enum(PRICE_ANSWERS),
+});
+
 const schema = z.discriminatedUnion('source', [
+    z.object({
+        source: z.literal('recon'),
+        email: z.string().email().max(200),
+        summary: reconSummarySchema,
+        utm_source: z.string().max(64).optional().nullable(),
+        utm_campaign: z.string().max(64).optional().nullable(),
+    }),
+    z.object({
+        source: z.literal('notice'),
+        email: z.string().email().max(200),
+        summary: noticeSummarySchema,
+        utm_source: z.string().max(64).optional().nullable(),
+        utm_campaign: z.string().max(64).optional().nullable(),
+    }),
     z.object({
         source: z.literal('watch'),
         email: z.string().email().max(200),
@@ -125,7 +154,9 @@ export async function POST(request: NextRequest) {
 
         // Deliver first — this is the thing the visitor actually asked for.
         try {
-            if (data.source === 'watch') {
+            if (data.source === 'recon' || data.source === 'notice') {
+                await sendEarlyAccessConfirmationEmail(email, data.source);
+            } else if (data.source === 'watch') {
                 await sendWatchConfirmationEmail(email);
             } else if (data.source === 'bulk') {
                 await sendBulkSummaryEmail(email, data.summary as never);
@@ -144,7 +175,11 @@ export async function POST(request: NextRequest) {
         }
 
         let detail: string;
-        if (data.source === 'watch') {
+        if (data.source === 'recon') {
+            detail = `${EARLY_ACCESS.recon.name} early access: reconciles ${data.summary.size} GSTINs a month; would pay ${EARLY_ACCESS.recon.priceLabel}: ${data.summary.wouldPay}.`;
+        } else if (data.source === 'notice') {
+            detail = `${EARLY_ACCESS.notice.name} early access: notice ${data.summary.size}; would pay ${EARLY_ACCESS.notice.priceLabel}: ${data.summary.wouldPay}.`;
+        } else if (data.source === 'watch') {
             detail = `Vendor GST Watch early access: buys from ${data.summary.suppliers} suppliers; would pay ₹${WATCH_PRICE_RUPEES}/month: ${data.summary.wouldPay}.`;
         } else if (data.source === 'bulk') {
             detail = `${data.summary.invoicesWithCritical} of ${data.summary.totalInvoices} invoices flagged, ₹${data.summary.amountAtRisk} at risk.`;
