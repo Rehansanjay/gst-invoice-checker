@@ -113,7 +113,7 @@ export const stateCodeRule: ValidationRule = {
         const check = (gstin: string, label: string) => {
             if (gstin.length >= 2) {
                 const stateCode = gstin.substring(0, 2);
-                if (!VALID_STATE_CODES.includes(stateCode as any)) {
+                if (!(VALID_STATE_CODES as readonly string[]).includes(stateCode)) {
                     issues.push({
                         id: `state-code-invalid-${label.toLowerCase()}`,
                         ruleId: 'RULE_STATE_CODE',
@@ -248,7 +248,7 @@ export const taxRateRule: ValidationRule = {
         const issues: ValidationIssue[] = [];
 
         invoice.lineItems.forEach((item, index) => {
-            if (!VALID_GST_RATES.includes(item.taxRate as any)) {
+            if (!(VALID_GST_RATES as readonly number[]).includes(item.taxRate)) {
                 issues.push({
                     id: `rate-invalid-line-${index + 1}`,
                     ruleId: 'RULE_TAX_RATE',

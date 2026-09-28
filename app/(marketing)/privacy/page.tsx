@@ -16,7 +16,7 @@ export default function PrivacyPage() {
                 </p>
 
                 <p>
-                    InvoiceCheck.in ("we", "our", or "us") is committed to protecting the privacy of
+                    InvoiceCheck.in (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) is committed to protecting the privacy of
                     businesses and individuals who use our GST invoice validation service. This Privacy
                     Policy explains what data we collect, how we use it, and the choices you have.
                 </p>
@@ -132,7 +132,7 @@ export default function PrivacyPage() {
 
                 <h2>7. Your Rights</h2>
                 <p>
-                    Under India's Digital Personal Data Protection Act, 2023 (DPDPA), you have the
+                    Under India&apos;s Digital Personal Data Protection Act, 2023 (DPDPA), you have the
                     right to:
                 </p>
                 <ul>
@@ -148,7 +148,7 @@ export default function PrivacyPage() {
                     respond within 30 days.
                 </p>
 
-                <h2>8. Children's Privacy</h2>
+                <h2>8. Children&apos;s Privacy</h2>
                 <p>
                     Our service is intended for businesses and is not directed at individuals under 18.
                     We do not knowingly collect data from minors.

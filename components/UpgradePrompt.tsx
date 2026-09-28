@@ -13,11 +13,13 @@ export default function UpgradePrompt() {
     useEffect(() => {
         // Check local storage for quick check usage
         const count = parseInt(localStorage.getItem('quick_check_count') || '0');
-        setUsageCount(count);
 
         // Show after 3 checks
         if (count >= 3 && !localStorage.getItem('upgrade_prompt_dismissed')) {
-            const timer = setTimeout(() => setIsVisible(true), 2000);
+            const timer = setTimeout(() => {
+                setUsageCount(count);
+                setIsVisible(true);
+            }, 2000);
             return () => clearTimeout(timer);
         }
     }, []);
@@ -46,7 +48,7 @@ export default function UpgradePrompt() {
                     <div>
                         <h3 className="font-bold text-lg text-slate-900">Save ₹591 Instantly!</h3>
                         <p className="text-sm text-muted-foreground mt-1">
-                            You've used Quick Check {usageCount} times (₹{usageCount * 99}).
+                            You&apos;ve used Quick Check {usageCount} times (₹{usageCount * 99}).
                         </p>
                         <p className="text-sm font-medium text-green-600 mt-1">
                             Get 10 checks for only ₹399 (₹39/check).

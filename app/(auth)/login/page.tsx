@@ -204,7 +204,7 @@ export default function LoginPage() {
                         {/* Sign Up Link */}
                         <div className="text-center">
                             <p className="text-[15px]" style={{ color: 'var(--warm-text-secondary)' }}>
-                                Don't have an account?{' '}
+                                Don&apos;t have an account?{' '}
                                 <Link href="/signup" className="font-semibold hover:opacity-80" style={{ color: 'var(--warm-accent)' }}>
                                     Sign up for free
                                 </Link>

@@ -84,7 +84,16 @@ export async function POST(request: NextRequest) {
     }
 }
 
-async function handlePackagePurchase(paymentRecord: any) {
+// Columns of the `payments` row that the handlers below read.
+interface CapturedPaymentRecord {
+    id: string;
+    user_id: string | null;
+    package_type: string | null;
+    credits_included: number;
+    razorpay_payment_id: string;
+}
+
+async function handlePackagePurchase(paymentRecord: CapturedPaymentRecord) {
     const { data: user } = await supabaseAdmin
         .from('users')
         .select('credits_remaining, total_credits_purchased')
@@ -124,7 +133,7 @@ async function handlePackagePurchase(paymentRecord: any) {
     console.log(`✅ Added ${paymentRecord.credits_included} credits to user ${paymentRecord.user_id}`);
 }
 
-async function handleQuickCheck(paymentRecord: any) {
+async function handleQuickCheck(paymentRecord: CapturedPaymentRecord) {
     // Get the check associated with this payment
     const { data: check } = await supabaseAdmin
         .from('checks')

@@ -48,11 +48,10 @@ type RazorpayConstructor = new (options: RazorpayOptions) => { open: () => void 
 /**
  * Reads the checkout constructor off `window`, typed.
  *
- * `Window.Razorpay` is already declared globally as `any` by
- * components/PackagePurchaseButton.tsx, and TypeScript will not accept a
- * second declaration with a narrower type. Widening that file's declaration
- * would retype every call site in it for no benefit here, so the cast is
- * confined to this one accessor and the options object above stays checked.
+ * `Window.Razorpay` is already declared globally in types/razorpay.ts with
+ * looser options, and TypeScript will not accept a second declaration with a
+ * narrower type. The cast is confined to this one accessor so the stricter
+ * options object above stays checked.
  */
 function razorpayCheckout(): RazorpayConstructor | null {
     const ctor = (window as unknown as { Razorpay?: unknown }).Razorpay;

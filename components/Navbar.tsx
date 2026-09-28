@@ -66,11 +66,13 @@ export default function Navbar() {
     }, [userMenuOpen]);
 
     // Close mobile menu on route change
-    useEffect(() => {
+    const [prevPathname, setPrevPathname] = useState(pathname);
+    if (pathname !== prevPathname) {
+        setPrevPathname(pathname);
         setMobileOpen(false);
         setUserMenuOpen(false);
         setToolsOpen(false);
-    }, [pathname]);
+    }
 
     // Don't show navbar on auth pages or check page (focused flows)
     const isAuthPage = pathname === '/login' || pathname === '/signup';

@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
 
         // Combine all parsed pages
         const fullText = (ocrData.ParsedResults || [])
-            .map((r: any) => r.ParsedText || '')
+            .map((r: { ParsedText?: string }) => r.ParsedText || '')
             .join('\n');
 
         if (!fullText.trim()) {
@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
             extracted,
         });
 
-    } catch (error: any) {
+    } catch (error) {
         console.error('OCR extract error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }

@@ -15,12 +15,7 @@ import { ParsedInvoice, ValidationResult, PreviewResult } from '@/types';
 import { useAuth } from '@/lib/auth-context';
 import { track, trackPurchase } from '@/lib/analytics';
 import { toast } from 'sonner';
-
-declare global {
-    interface Window {
-        Razorpay: any;
-    }
-}
+import type { RazorpaySuccessResponse, RazorpayFailureResponse } from '@/types/razorpay';
 
 const loadRazorpayScript = (): Promise<boolean> => {
     return new Promise((resolve) => {
@@ -266,10 +261,10 @@ function CheckPageInner() {
                 toast.success('Analysis complete! Issues found.');
             }
 
-        } catch (error: any) {
+        } catch (error) {
             console.error('handleSubmit error:', error);
             track('check_failed', { flow });
-            toast.error(error.message || 'Something went wrong. Please try again.');
+            toast.error((error instanceof Error && error.message) || 'Something went wrong. Please try again.');
             setIsProcessing(false);
             setProcessingStep('');
         }
@@ -329,7 +324,7 @@ function CheckPageInner() {
                 image: 'https://invoicecheck.in/invoicecheck-logo.svg',
                 order_id: orderData.orderId,
 
-                handler: async function (response: any) {
+                handler: async function (response: RazorpaySuccessResponse) {
                     console.log('Payment success response:', response);
                     setProcessingStep('Verifying payment...');
 
@@ -358,7 +353,7 @@ function CheckPageInner() {
                         setPreviewResult(null);
                         setIsProcessing(false);
 
-                    } catch (err: any) {
+                    } catch (err) {
                         console.error('Process-check error:', err);
                         toast.error('Payment processing failed. Contact support.');
                         setIsProcessing(false);
@@ -380,7 +375,7 @@ function CheckPageInner() {
             };
 
             const rzp = new window.Razorpay(options);
-            rzp.on('payment.failed', (response: any) => {
+            rzp.on('payment.failed', (response: RazorpayFailureResponse) => {
                 track('payment_failed', { item: 'single_check' });
                 toast.error(`Payment failed: ${response.error.description}`);
                 setIsProcessing(false);
@@ -389,9 +384,9 @@ function CheckPageInner() {
             rzp.open();
             track('checkout_opened', { item: 'single_check' });
 
-        } catch (error: any) {
+        } catch (error) {
             console.error('Payment error:', error);
-            toast.error(error.message || 'Payment initiation failed.');
+            toast.error((error instanceof Error && error.message) || 'Payment initiation failed.');
             setIsProcessing(false);
         }
     };
@@ -450,7 +445,7 @@ function CheckPageInner() {
                         </div>
                         <h2 className="text-2xl font-bold mb-2">Free Trial Used</h2>
                         <p className="text-muted-foreground max-w-md mb-6">
-                            You've used your 1 free invoice check. Purchase a credit pack to keep validating GST invoices.
+                            You&apos;ve used your 1 free invoice check. Purchase a credit pack to keep validating GST invoices.
                         </p>
                         <div className="flex gap-3">
                             <Button size="lg" className="gap-2" onClick={() => router.push('/pricing')}>

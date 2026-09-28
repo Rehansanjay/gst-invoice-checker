@@ -1,12 +1,13 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import type { Ratelimit } from '@upstash/ratelimit'
 
 // ── Rate Limiting ─────────────────────────────────────────────────────
 // Uses Upstash Redis in production (persists across cold starts).
 // Falls back to in-memory if UPSTASH env vars not set (safe for local dev).
 // ─────────────────────────────────────────────────────────────────────
-let ratelimit: any = null
+let ratelimit: Ratelimit | null = null
 
 async function initRatelimit() {
     if (ratelimit) return ratelimit

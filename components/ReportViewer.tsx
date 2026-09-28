@@ -170,9 +170,9 @@ export default function ReportViewer({ result, invoiceNumber = 'Invoice' }: Repo
 
             doc.save(`invoice-report-${invoiceNumber || result.checkId}.pdf`);
             toast.success('PDF downloaded!');
-        } catch (error: any) {
+        } catch (error) {
             console.error('PDF error:', error);
-            toast.error('PDF generation failed: ' + (error.message || 'Unknown error'));
+            toast.error('PDF generation failed: ' + ((error instanceof Error && error.message) || 'Unknown error'));
         } finally {
             setIsDownloading(false);
         }
@@ -197,8 +197,8 @@ export default function ReportViewer({ result, invoiceNumber = 'Invoice' }: Repo
             toast.success(`Report sent to ${emailAddress}`);
             setShowEmailModal(false);
             setEmailAddress('');
-        } catch (error: any) {
-            toast.error(error.message || 'Email sending failed');
+        } catch (error) {
+            toast.error((error instanceof Error && error.message) || 'Email sending failed');
         } finally {
             setIsSendingEmail(false);
         }
@@ -387,7 +387,7 @@ export default function ReportViewer({ result, invoiceNumber = 'Invoice' }: Repo
                             </button>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                            We'll send the full validation report to your email using Resend.
+                            We&apos;ll send the full validation report to your email using Resend.
                         </p>
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Email Address</label>

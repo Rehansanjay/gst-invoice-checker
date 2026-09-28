@@ -32,7 +32,7 @@ export async function processInvoiceCheck(
 
     // 2. Mark Payment as Captured (if payment details provided)
     if (paymentId) {
-        const updateData: any = {
+        const updateData: Record<string, string> = {
             status: 'captured',
             captured_at: new Date().toISOString(), // was: completed_at (wrong column)
         };

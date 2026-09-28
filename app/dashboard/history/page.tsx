@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
+import type { CheckRecord } from '@/types';
 
 const PAGE_SIZE = 10;
 
@@ -53,7 +54,7 @@ function RiskBadge({ level, issues }: { level: string; issues?: number }) {
     );
 }
 
-function CheckRow({ check }: { check: any }) {
+function CheckRow({ check }: { check: CheckRecord }) {
     const riskLevel = check.risk_level || 'low';
     const health = check.health_score ?? 100;
     const issueCount =
@@ -136,7 +137,7 @@ export default function HistoryPage() {
     const { user, loading: authLoading } = useAuth();
     const router = useRouter();
 
-    const [checks, setChecks] = useState<any[]>([]);
+    const [checks, setChecks] = useState<CheckRecord[]>([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
     const [total, setTotal] = useState(0);

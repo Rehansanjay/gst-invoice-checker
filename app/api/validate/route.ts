@@ -3,6 +3,7 @@ import { validateInvoice } from '@/lib/services/validationService';
 import { ParsedInvoice } from '@/types';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import type { PostgrestError } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { invoiceDataSchema } from '@/lib/schemas';
 
@@ -73,7 +74,7 @@ export async function POST(request: NextRequest) {
                 // Tries to save with full columns, then auto-removes any column the live DB
                 // schema cache rejects (PGRST204) until the insert succeeds.
                 // This handles schema drift between the local schema file and the live DB.
-                const baseInsert: Record<string, any> = {
+                const baseInsert: Record<string, unknown> = {
                     user_id: userId,
                     invoice_number: invoice.invoiceNumber,
                     invoice_date: invoiceDateValue,
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
                 };
 
                 // Desirable extra columns — may or may not exist in live DB
-                const extras: Record<string, any> = {
+                const extras: Record<string, unknown> = {
                     check_type: 'bulk',
                     status: 'completed',
                     health_score: validationResult.healthScore,
@@ -92,8 +93,8 @@ export async function POST(request: NextRequest) {
                 };
 
                 let checkRecord: { id: string } | null = null;
-                let dbError: any = null;
-                let insertAttempt: Record<string, any> = { ...baseInsert, ...extras };
+                let dbError: PostgrestError | null = null;
+                const insertAttempt: Record<string, unknown> = { ...baseInsert, ...extras };
 
                 for (let attempt = 0; attempt < 12; attempt++) {
                     const res = await supabaseAdmin

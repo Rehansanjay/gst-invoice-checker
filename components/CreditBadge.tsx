@@ -14,6 +14,18 @@ export default function CreditBadge() {
     useEffect(() => {
         if (!user) return;
 
+        async function fetchCredits() {
+            if (!user) return;
+
+            const { data } = await supabase
+                .from('users')
+                .select('credits_remaining')
+                .eq('id', user.id)
+                .single();
+
+            if (data) setCredits(data.credits_remaining);
+        }
+
         fetchCredits();
 
         // Listen for credit updates via custom event or window function
@@ -22,18 +34,6 @@ export default function CreditBadge() {
 
         return () => clearInterval(interval);
     }, [user]);
-
-    async function fetchCredits() {
-        if (!user) return;
-
-        const { data } = await supabase
-            .from('users')
-            .select('credits_remaining')
-            .eq('id', user.id)
-            .single();
-
-        if (data) setCredits(data.credits_remaining);
-    }
 
     if (!user || credits === null) return null;
 
