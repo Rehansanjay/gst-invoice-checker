@@ -110,9 +110,10 @@ function TaxTypePill({ value, onChange, suggestedType }: {
     );
 }
 
-export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLabel, initialData }: {
+export default function InvoiceForm({ onSubmit, isAuthLoading = false, isGuest = false, submitLabel, initialData }: {
     onSubmit: (data: ParsedInvoice) => void;
     isAuthLoading?: boolean;
+    isGuest?: boolean;
     submitLabel?: string;
     initialData?: Partial<ParsedInvoice>;
 }) {
@@ -153,15 +154,13 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
     const FREE_CHECKS_KEY = 'gst_free_checks_used';
     const MAX_FREE_CHECKS = 3;
     const [freeChecksUsed, setFreeChecksUsed] = useState(0);
-    const [isGuest, setIsGuest] = useState(false);
 
     useEffect(() => {
-        if (!submitLabel) {
-            setIsGuest(true);
+        if (isGuest) {
             const stored = parseInt(localStorage.getItem(FREE_CHECKS_KEY) || '0', 10);
             setFreeChecksUsed(stored);
         }
-    }, [submitLabel]);
+    }, [isGuest]);
 
     const freeChecksRemaining = Math.max(0, MAX_FREE_CHECKS - freeChecksUsed);
     const hasUsedAllFreeChecks = isGuest && freeChecksUsed >= MAX_FREE_CHECKS;
