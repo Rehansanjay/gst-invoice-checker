@@ -33,7 +33,9 @@ export type FunnelEvent =
     | 'verify_qr'
     | 'verify_full_check_clicked'
     | 'watch_signup'
-    | 'early_access_signup';
+    | 'early_access_signup'
+    | 'feedback_given'
+    | 'feedback_comment';
 
 type Params = Record<string, string | number | boolean | undefined>;
 

@@ -8,6 +8,7 @@ import ReportViewer from '@/components/ReportViewer';
 import ProcessingView, { type ProcessingMode } from '@/components/ProcessingView';
 import CheckResultPreview from '@/components/CheckResultPreview';
 import EmailReportCapture from '@/components/EmailReportCapture';
+import FeedbackPrompt from '@/components/FeedbackPrompt';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ParsedInvoice, ValidationResult, PreviewResult } from '@/types';
@@ -461,15 +462,24 @@ function CheckPageInner() {
                         </div>
                     </div>
                 ) : validationResult ? (
-                    <ReportViewer result={validationResult} />
+                    <>
+                        <div data-clarity-mask="true">
+                            <ReportViewer result={validationResult} />
+                        </div>
+                        <div className="mx-auto mt-6 w-full max-w-3xl">
+                            <FeedbackPrompt tool="check" />
+                        </div>
+                    </>
                 ) : previewResult ? (
                     <>
-                        <CheckResultPreview
-                            result={previewResult}
-                            onUnlock={handleUnlockReport}
-                            isProcessing={isProcessing}
-                            invoiceTotal={invoiceDataForPayment?.invoiceTotalAmount}
-                        />
+                        <div data-clarity-mask="true">
+                            <CheckResultPreview
+                                result={previewResult}
+                                onUnlock={handleUnlockReport}
+                                isProcessing={isProcessing}
+                                invoiceTotal={invoiceDataForPayment?.invoiceTotalAmount}
+                            />
+                        </div>
                         <div className="mx-auto mt-6 w-full max-w-3xl">
                             {/* Only issue titles are sent — the email carries the
                                 same depth as the free tier, never the fixes. */}
@@ -486,6 +496,9 @@ function CheckPageInner() {
                                 heading="Email me this result"
                                 subheading="Send the findings to your inbox so you have them to hand."
                             />
+                            <div className="mt-4">
+                                <FeedbackPrompt tool="check" />
+                            </div>
                         </div>
                     </>
                 ) : (
@@ -623,6 +636,7 @@ function CheckPageInner() {
                                 <InvoiceForm
                                     onSubmit={handleSubmit}
                                     isAuthLoading={loading}
+                                    isGuest={!loading && !user}
                                     submitLabel={user ? 'Validate Invoice' : 'Analyze Invoice Free'}
                                     initialData={extractedData ?? undefined}
                                 />

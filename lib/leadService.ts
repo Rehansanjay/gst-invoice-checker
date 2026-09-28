@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 import { BulkCheckResult } from '@/types';
 import { EARLY_ACCESS, type EarlyAccessProduct } from '@/lib/earlyAccess';
+import { FEEDBACK_TOOL_NAMES, type FeedbackTool } from '@/lib/feedback';
 
 /**
  * lib/leadService.ts
@@ -326,6 +327,45 @@ export async function sendEarlyAccessConfirmationEmail(email: string, product: E
           <p>It is not running yet. We are finding out whether enough people want it before we build it,
           and your answer is part of that. Nothing will be charged without asking you first.</p>
           <p>If you want to tell us what would make it worth paying for, just reply to this email.</p>
+        `),
+    });
+}
+
+/** Escapes visitor-written text before it goes into an HTML email. */
+function escapeHtml(text: string): string {
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+/**
+ * Sends us a "Did this help?" comment from a free tool. The comment is free
+ * text from an anonymous visitor, so everything they wrote is escaped.
+ */
+export async function notifyFeedback(params: {
+    tool: FeedbackTool;
+    useful: boolean;
+    comment: string;
+    email?: string;
+    page?: string;
+}) {
+    const toolName = FEEDBACK_TOOL_NAMES[params.tool];
+    const verdict = params.useful ? '👍 Helpful' : '👎 Not helpful';
+    await getResend().emails.send({
+        from: FROM,
+        to: NOTIFY_TO,
+        ...(params.email ? { replyTo: params.email } : {}),
+        subject: `${verdict}: ${toolName} feedback`,
+        html: shell(`
+          <h1 style="font-size:18px;">${verdict}: ${toolName}</h1>
+          <p style="color:#52402F;white-space:pre-wrap;">${escapeHtml(params.comment)}</p>
+          <p style="font-size:13px;color:#9E8A78;">
+            Page: ${escapeHtml(params.page || '—')}<br>
+            ${params.email ? `Follow-up email: ${escapeHtml(params.email)} (reply to this email to reach them)` : 'No email left.'}
+          </p>
         `),
     });
 }

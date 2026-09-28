@@ -31,15 +31,16 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      // GTM/GA + both Razorpay script hosts
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://cdn.razorpay.com https://*.googletagmanager.com https://*.sentry.io",
+      // GTM/GA + both Razorpay script hosts + Microsoft Clarity
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://cdn.razorpay.com https://*.googletagmanager.com https://*.sentry.io https://*.clarity.ms",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // framerusercontent hosts the "Season Mix" heading face (see globals.css);
       // blocked, every heading silently fell back to Georgia/Times.
       "font-src 'self' https://fonts.gstatic.com https://framerusercontent.com https://*.razorpay.com",
-      // GA beacons are sent as image requests; Razorpay serves modal icons from cdn
-      "img-src 'self' data: blob: https://*.razorpay.com https://*.google-analytics.com https://*.googletagmanager.com",
-      "connect-src 'self' https://*.supabase.co https://*.razorpay.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.sentry.io",
+      // GA beacons are sent as image requests; Razorpay serves modal icons from cdn;
+      // Clarity sends beacons to clarity.ms and syncs via c.bing.com
+      "img-src 'self' data: blob: https://*.razorpay.com https://*.google-analytics.com https://*.googletagmanager.com https://*.clarity.ms https://c.bing.com",
+      "connect-src 'self' https://*.supabase.co https://*.razorpay.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.sentry.io https://*.clarity.ms https://c.bing.com",
       // The checkout modal itself is an iframe
       "frame-src https://api.razorpay.com https://checkout.razorpay.com https://*.razorpay.com",
     ].join("; ") + ";",

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Upload, Download, AlertCircle, AlertTriangle, CheckCircle2, Lock, Loader2, FileSpreadsheet } from 'lucide-react';
 import { BulkCheckResult } from '@/types';
 import EmailReportCapture from '@/components/EmailReportCapture';
+import FeedbackPrompt from '@/components/FeedbackPrompt';
 import { toast } from 'sonner';
 import { track } from '@/lib/analytics';
 
@@ -127,7 +128,7 @@ export default function BulkCheckClient() {
 
                 {/* ── Results ────────────────────────────────────────── */}
                 {result && (
-                    <div className="mt-10 space-y-6">
+                    <div className="mt-10 space-y-6" data-clarity-mask="true">
                         <div className="grid gap-4 sm:grid-cols-4">
                             <Tile label="Invoices checked" value={String(result.totalInvoices)} />
                             <Tile label="Clean" value={String(result.cleanInvoices)} tone="good" />
@@ -288,6 +289,8 @@ export default function BulkCheckClient() {
                                     : 'Send the results to your inbox for your records.'
                             }
                         />
+
+                        <FeedbackPrompt tool="bulk" />
 
                         {result.invoicesWithCritical > 0 && (
                             <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center">
