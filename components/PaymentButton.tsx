@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Loader2, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
+import type { RazorpaySuccessResponse, RazorpayFailureResponse } from '@/types/razorpay';
 
 interface PaymentButtonProps {
     orderId: string;
@@ -16,12 +17,6 @@ interface PaymentButtonProps {
     description?: string;
     onSuccess?: (paymentId: string) => void;
     className?: string;
-}
-
-declare global {
-    interface Window {
-        Razorpay: any;
-    }
 }
 
 export default function PaymentButton({
@@ -61,7 +56,7 @@ export default function PaymentButton({
             theme: {
                 color: '#6d28d9',
             },
-            handler: async function (response: any) {
+            handler: async function (response: RazorpaySuccessResponse) {
                 // Payment successful - verification needed on backend
                 try {
                     // Call backend to verify and process check
@@ -107,7 +102,7 @@ export default function PaymentButton({
         };
 
         const rzp1 = new window.Razorpay(options);
-        rzp1.on('payment.failed', function (response: any) {
+        rzp1.on('payment.failed', function (response: RazorpayFailureResponse) {
             toast.error(response.error.description || 'Payment failed');
             setIsProcessing(false);
         });

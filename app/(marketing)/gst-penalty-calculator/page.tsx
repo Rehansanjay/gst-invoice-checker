@@ -155,7 +155,7 @@ function GstPenaltyCalculatorInner() {
     })();
 
     return (
-        <div ref={scrollRef as any} className="min-h-screen py-16" style={{ background: 'var(--warm-bg)' }}>
+        <div ref={scrollRef} className="min-h-screen py-16" style={{ background: 'var(--warm-bg)' }}>
             <div className="container mx-auto px-4 max-w-3xl">
 
                 {/* Hero */}

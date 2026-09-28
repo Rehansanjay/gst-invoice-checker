@@ -25,7 +25,10 @@ jobs:
         run: npm ci --legacy-peer-deps
 
       - name: Lint
-        run: npm run lint || true
+        run: npm run lint
+
+      - name: Validation tests
+        run: npm run test:validation
 
       - name: Build
         run: npm run build

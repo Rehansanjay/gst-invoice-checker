@@ -17,9 +17,9 @@ export default function TermsPage() {
 
                 <p>
                     Welcome to InvoiceCheck.in, a GST invoice validation service operated by
-                    InvoiceCheck Technologies ("Company", "we", "us", or "our"). By accessing or
+                    InvoiceCheck Technologies (&quot;Company&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;). By accessing or
                     using our website at <a href="https://invoicecheck.in">invoicecheck.in</a> (the
-                    "Service"), you agree to be bound by these Terms of Service ("Terms"). If you do
+                    &quot;Service&quot;), you agree to be bound by these Terms of Service (&quot;Terms&quot;). If you do
                     not agree, do not use the Service.
                 </p>
 
@@ -69,7 +69,7 @@ export default function TermsPage() {
                         advance. Credits are non-transferable between accounts.
                     </li>
                     <li>
-                        Payments are processed by Razorpay and are subject to Razorpay's terms. All
+                        Payments are processed by Razorpay and are subject to Razorpay&apos;s terms. All
                         prices are inclusive of applicable taxes.
                     </li>
                 </ul>

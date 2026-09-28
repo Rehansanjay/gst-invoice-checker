@@ -18,13 +18,8 @@ interface PackagePurchaseButtonProps {
     disabled?: boolean;
 }
 
-declare global {
-    interface Window {
-        Razorpay: any;
-    }
-}
-
 import { useAuth } from '@/lib/auth-context';
+import type { RazorpaySuccessResponse, RazorpayFailureResponse } from '@/types/razorpay';
 
 export default function PackagePurchaseButton({
     packageType,
@@ -118,7 +113,7 @@ export default function PackagePurchaseButton({
                 theme: {
                     color: '#6d28d9',
                 },
-                handler: function (response: any) {
+                handler: function (response: RazorpaySuccessResponse) {
                     trackPurchase(`credits_${packageType}`, response.razorpay_payment_id, data.amount);
                     toast.success('Payment successful! Credits added.');
                     setIsProcessing(false);
@@ -136,7 +131,7 @@ export default function PackagePurchaseButton({
             };
 
             const rzp1 = new window.Razorpay(options);
-            rzp1.on('payment.failed', function (response: any) {
+            rzp1.on('payment.failed', function (response: RazorpayFailureResponse) {
                 track('payment_failed', { item: `credits_${packageType}` });
                 toast.error(response.error.description || 'Payment failed');
                 setIsProcessing(false);
@@ -145,9 +140,9 @@ export default function PackagePurchaseButton({
             rzp1.open();
             track('checkout_opened', { item: `credits_${packageType}` });
 
-        } catch (error: any) {
+        } catch (error) {
             console.error('Purchase error:', error);
-            toast.error(error.message || 'Something went wrong');
+            toast.error((error instanceof Error && error.message) || 'Something went wrong');
             setIsProcessing(false);
         }
     };
@@ -184,7 +179,7 @@ export default function PackagePurchaseButton({
             </Button>
             {couponCode.toUpperCase() === 'SAVE50' && (
                 <p className="text-xs text-green-600 font-medium text-center">
-                    'SAVE50' applied! You'll pay 50% less at checkout.
+                    &apos;SAVE50&apos; applied! You&apos;ll pay 50% less at checkout.
                 </p>
             )}
         </div>

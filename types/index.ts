@@ -234,3 +234,38 @@ export const VALID_STATE_CODES = [
   '21', '22', '23', '24', '25', '26', '27', '28', '29', '30',
   '31', '32', '33', '34', '35', '36', '37', '38', '97'
 ] as const;
+
+// Supabase rows read by the dashboard and settings pages (only the columns they use).
+export interface CheckRecord {
+  id: string;
+  created_at: string;
+  invoice_number: string | null;
+  supplier_gstin: string | null;
+  invoice_total_amount: number | null;
+  health_score: number | null;
+  risk_level: string | null;
+  issues_count?: number | null;
+  line_items?: unknown;
+  validation_result?: { issuesFound?: unknown[] } | null;
+}
+
+export interface UserProfile {
+  full_name: string | null;
+  phone: string | null;
+  business_name: string | null;
+  business_gstin: string | null;
+  credits_remaining: number | null;
+  credits_used: number | null;
+  current_plan: string | null;
+  credits_expire_at: string | null;
+}
+
+export interface CreditTransaction {
+  id: string;
+  created_at: string;
+  description: string | null;
+  transaction_type: string;
+  credits_used: number | null;
+  credits_added: number | null;
+  credits_balance: number | null;
+}

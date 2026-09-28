@@ -72,7 +72,7 @@ export default function ReportPage() {
                 validationResult,
                 invoiceNumber: data.invoice_number || 'Invoice',
             });
-        } catch (err: any) {
+        } catch (err) {
             setError('Failed to load report. Please try again.');
             console.error('fetchReport error:', err);
         } finally {

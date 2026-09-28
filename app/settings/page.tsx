@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
+import type { CreditTransaction, UserProfile } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
@@ -20,8 +21,8 @@ import {
 export default function SettingsPage() {
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
-    const [transactions, setTransactions] = useState<any[]>([]);
-    const [profile, setProfile] = useState<any>(null);
+    const [transactions, setTransactions] = useState<CreditTransaction[]>([]);
+    const [profile, setProfile] = useState<UserProfile | null>(null);
     const [formData, setFormData] = useState({
         full_name: '',
         phone: '',

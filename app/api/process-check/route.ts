@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
             alreadyProcessed: processingResult.alreadyProcessed,
         });
 
-    } catch (error: any) {
+    } catch (error) {
         console.error('process-check internal error:', error);
         return NextResponse.json(
             { error: 'Processing failed. Please contact support.' },

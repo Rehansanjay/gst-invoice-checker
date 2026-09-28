@@ -12,6 +12,9 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
+import type { CheckRecord, UserProfile } from '@/types';
+
+type DashboardWindow = Window & { refreshDashboard?: () => Promise<void> };
 
 // ── Subcomponents ──────────────────────────────────────────────────
 
@@ -52,7 +55,7 @@ function RiskBadge({ level, issues }: { level: string; issues?: number }) {
     );
 }
 
-function CheckCard({ check }: { check: any }) {
+function CheckCard({ check }: { check: CheckRecord }) {
     const riskLevel = check.risk_level || 'low';
     const health = check.health_score ?? 100;
     const issueCount =
@@ -150,9 +153,9 @@ function CheckCard({ check }: { check: any }) {
 export default function DashboardPage() {
     const { user, loading: authLoading } = useAuth();
     const router = useRouter();
-    const [userData, setUserData] = useState<any>(null);
+    const [userData, setUserData] = useState<UserProfile | null>(null);
     const [loadingData, setLoadingData] = useState(true);
-    const [checks, setChecks] = useState<any[]>([]);
+    const [checks, setChecks] = useState<CheckRecord[]>([]);
 
     useEffect(() => {
         if (!authLoading && !user) router.replace('/login');
@@ -187,8 +190,8 @@ export default function DashboardPage() {
     };
 
     useEffect(() => {
-        (window as any).refreshDashboard = fetchUserData;
-        return () => { delete (window as any).refreshDashboard; };
+        (window as DashboardWindow).refreshDashboard = fetchUserData;
+        return () => { delete (window as DashboardWindow).refreshDashboard; };
     }, [user]);
 
     if (authLoading || loadingData) {
