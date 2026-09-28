@@ -7,6 +7,7 @@ import { Loader2, Info, ExternalLink, TrendingUp, FileText, Download, Copy, Chec
 import { toast } from 'sonner';
 import { track, trackPurchase } from '@/lib/analytics';
 import EmailReportCapture from '@/components/EmailReportCapture';
+import FeedbackPrompt from '@/components/FeedbackPrompt';
 
 /**
  * The four-field calculator.
@@ -445,7 +446,7 @@ export default function UnpaidInvoiceClient() {
               form off-screen with it. The table scrolls in its own box; the
               page must not.
             */}
-            <div className="min-w-0">
+            <div className="min-w-0" data-clarity-mask="true">
                 {!outcome && (
                     <div
                         className="rounded-xl p-8 text-center h-full flex flex-col justify-center"
@@ -696,6 +697,8 @@ export default function UnpaidInvoiceClient() {
                                 letterFilename: outcome.letterFilename,
                             }}
                         />
+
+                        <FeedbackPrompt tool="unpaid" />
 
                         <div className="text-xs space-y-2" style={{ color: 'var(--warm-text-secondary)' }}>
                             {outcome.rate.sourceUrl && (

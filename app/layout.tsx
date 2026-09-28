@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "sonner";
 import { GoogleAnalytics } from '@next/third-parties/google';
+import ClarityScript from '@/components/ClarityScript';
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
@@ -166,6 +167,7 @@ export default function RootLayout({
         </AuthProvider>
       </body>
       <GoogleAnalytics gaId="G-17FW1M1B0K" />
+      <ClarityScript />
     </html>
   );
 }

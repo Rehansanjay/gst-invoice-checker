@@ -46,6 +46,16 @@ export default function PrivacyPage() {
                     product. This data cannot be used to identify you individually. We also collect
                     UTM parameters and referral codes to attribute traffic sources.
                 </p>
+                <p>
+                    We use Google Analytics and Microsoft Clarity to understand how the site is used.
+                    Clarity records clicks, scrolling and page interactions so we can see where the
+                    tools are hard to use. Invoice details you enter or upload, and the results shown
+                    for them, are masked and never included in these recordings. Microsoft processes
+                    this data under its{' '}
+                    <a href="https://privacy.microsoft.com/privacystatement" target="_blank" rel="noopener noreferrer">
+                        privacy statement
+                    </a>.
+                </p>
                 <h3>1e. Technical Data</h3>
                 <p>
                     Standard server logs include your IP address, browser type, and timestamps. These
@@ -109,7 +119,8 @@ export default function PrivacyPage() {
                 <p>
                     We use strict-necessity cookies for session authentication and a localStorage key
                     (<code>gst_free_checks_used</code>) to track your free check usage. We do not use
-                    third-party advertising cookies.
+                    third-party advertising cookies. Google Analytics and Microsoft Clarity set analytics
+                    cookies to tell a returning visit from a new one.
                 </p>
 
                 <h2>6. Security</h2>
