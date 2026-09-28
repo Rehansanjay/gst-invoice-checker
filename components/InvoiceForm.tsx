@@ -344,7 +344,8 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
     };
 
     return (
-        <div className="space-y-5">
+        // Masked in Clarity recordings: this is the visitor's invoice data.
+        <div className="space-y-5" data-clarity-mask="true">
             {/* ── Step Progress Bar ── */}
             <StepBar activeStep={activeStep} />
 
@@ -832,10 +833,10 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, submitLab
                         <div className="flex-1">
                             <p className="font-semibold text-blue-900 mb-1">You&apos;ve used your 3 free checks</p>
                             <p className="text-sm text-blue-800 mb-3">
-                                Create a free account to save your reports and get dashboard access. Or continue with ₹99/check.
+                                Create a free account and get your first full report free: every issue, with the fix. Or continue with ₹99/check.
                             </p>
                             <div className="flex flex-col sm:flex-row gap-2">
-                                <Link href="/auth/signup" className="flex-1">
+                                <Link href="/signup" className="flex-1">
                                     <Button className="w-full bg-blue-700 hover:bg-blue-800 text-white" size="sm">
                                         <UserPlus className="w-4 h-4 mr-2" />
                                         Create Free Account

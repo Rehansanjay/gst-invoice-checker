@@ -21,6 +21,7 @@ import { CheckCircle2, XCircle, AlertTriangle, QrCode, Hash, Upload, ExternalLin
 import { readGstin, GST_PORTAL_SEARCH_URL, type GstinReading } from '@/lib/gstin';
 import { readEInvoiceQr, OFFICIAL_QR_VERIFIER_URL, type QrReading } from '@/lib/einvoiceQr';
 import { track } from '@/lib/analytics';
+import FeedbackPrompt from '@/components/FeedbackPrompt';
 
 type Mode = 'gstin' | 'qr';
 
@@ -283,8 +284,10 @@ export default function InvoiceVerifier() {
 
             {hasResult && (
                 <div className="mt-5 pt-4 border-t" style={{ borderColor: 'var(--warm-border)' }} aria-live="polite">
-                    {mode === 'gstin' && gstinResult && <GstinResult r={gstinResult} />}
-                    {mode === 'qr' && qrResult && <QrResult r={qrResult} />}
+                    <div data-clarity-mask="true">
+                        {mode === 'gstin' && gstinResult && <GstinResult r={gstinResult} />}
+                        {mode === 'qr' && qrResult && <QrResult r={qrResult} />}
+                    </div>
 
                     <Link
                         href="/check"
@@ -300,6 +303,10 @@ export default function InvoiceVerifier() {
                             Get told when one stops filing
                         </Link>
                     </p>
+
+                    <div className="mt-4">
+                        <FeedbackPrompt key={mode} tool="verify" />
+                    </div>
                 </div>
             )}
         </div>
