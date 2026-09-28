@@ -636,6 +636,7 @@ function CheckPageInner() {
                                 <InvoiceForm
                                     onSubmit={handleSubmit}
                                     isAuthLoading={loading}
+                                    isGuest={!loading && !user}
                                     submitLabel={user ? 'Validate Invoice' : 'Analyze Invoice Free'}
                                     initialData={extractedData ?? undefined}
                                 />
