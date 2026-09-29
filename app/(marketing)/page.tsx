@@ -198,6 +198,26 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ═══════════════ 1b. PRODUCT DEMO ═══════════════ */}
+      <section className="pb-12 md:pb-20" style={{ background: 'var(--warm-charcoal)' }}>
+        <div className="container mx-auto max-w-6xl px-5 sm:px-6 lg:px-8">
+          <video
+            className="w-full rounded-2xl border shadow-2xl"
+            style={{ borderColor: 'rgba(250, 248, 246, 0.12)', aspectRatio: '16 / 9' }}
+            poster="/videos/invoicecheck-demo-poster.jpg"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            aria-label="Demo: entering an invoice in InvoiceCheck, the 16 checks flagging a wrong tax type, and the corrected invoice"
+          >
+            <source src="/videos/invoicecheck-demo.webm" type="video/webm" />
+            <source src="/videos/invoicecheck-demo.mp4" type="video/mp4" />
+          </video>
+        </div>
+      </section>
+
       {/* ═══════════════ 2. EVERY TOOL ═══════════════ */}
       <Section id="tools">
         <SectionHeading
