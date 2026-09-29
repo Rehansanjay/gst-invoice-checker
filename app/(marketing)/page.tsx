@@ -202,8 +202,8 @@ export default function Home() {
       <section className="pb-12 md:pb-20" style={{ background: 'var(--warm-charcoal)' }}>
         <div className="container mx-auto max-w-6xl px-5 sm:px-6 lg:px-8">
           <video
-            className="w-full rounded-2xl border shadow-2xl"
-            style={{ borderColor: 'rgba(250, 248, 246, 0.12)', aspectRatio: '16 / 9' }}
+            className="aspect-[4/5] w-full rounded-2xl border object-cover shadow-2xl md:aspect-video"
+            style={{ borderColor: 'rgba(250, 248, 246, 0.12)' }}
             poster="/videos/invoicecheck-demo-poster.jpg"
             autoPlay
             muted
@@ -212,6 +212,8 @@ export default function Home() {
             preload="metadata"
             aria-label="Demo: entering an invoice in InvoiceCheck, the 16 checks flagging a wrong tax type, and the corrected invoice"
           >
+            <source media="(max-width: 767px)" src="/videos/invoicecheck-demo-mobile.mp4" type="video/mp4" />
+            <source media="(max-width: 767px)" src="/videos/invoicecheck-demo-mobile.webm" type="video/webm" />
             <source src="/videos/invoicecheck-demo.webm" type="video/webm" />
             <source src="/videos/invoicecheck-demo.mp4" type="video/mp4" />
           </video>
