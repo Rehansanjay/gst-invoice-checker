@@ -34,6 +34,7 @@ export type FunnelEvent =
     | 'verify_full_check_clicked'
     | 'watch_signup'
     | 'early_access_signup'
+    | 'sign_up'
     | 'feedback_given'
     | 'feedback_comment';
 
