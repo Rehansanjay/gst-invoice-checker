@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/auth-context';
+import { track } from '@/lib/analytics';
 import { Loader2, ArrowLeft, Check, X, ShieldCheck, Zap, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -74,10 +75,12 @@ export default function SignupPage() {
             setLoading(false);
         } else if (!user) {
             // signUp succeeded but no session yet → email confirmation required
+            track('sign_up', { method: 'email', confirmation_required: true });
             setSuccessMessage('✅ Account created! Please check your email and click the confirmation link to activate your account.');
             setLoading(false);
         } else {
             // Email confirmation OFF → redirect directly
+            track('sign_up', { method: 'email', confirmation_required: false });
             router.replace('/dashboard');
         }
     };
