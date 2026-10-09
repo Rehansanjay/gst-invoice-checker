@@ -50,7 +50,7 @@ function Choice<T extends string>({ name, options, labels, value, onChange }: {
     );
 }
 
-export default function WatchEarlyAccess({ from }: { from: string }) {
+export default function WatchEarlyAccess({ from, gstin }: { from: string; gstin?: string }) {
     const [email, setEmail] = useState('');
     const [suppliers, setSuppliers] = useState<WatchSupplierBand | null>(null);
     const [wouldPay, setWouldPay] = useState<WatchPriceAnswer | null>(null);
@@ -73,7 +73,7 @@ export default function WatchEarlyAccess({ from }: { from: string }) {
                 body: JSON.stringify({
                     source: 'watch',
                     email: email.trim(),
-                    summary: { suppliers, wouldPay },
+                    summary: { suppliers, wouldPay, gstin: gstin || undefined },
                     utm_source: from,
                 }),
             });
@@ -82,7 +82,7 @@ export default function WatchEarlyAccess({ from }: { from: string }) {
                 setError(data.error || 'Could not sign you up. Please check the email and try again.');
                 return;
             }
-            track('watch_signup', { suppliers, would_pay: wouldPay, from });
+            track('watch_signup', { suppliers, would_pay: wouldPay, from, from_gstin_check: !!gstin });
             setDone(true);
         } catch {
             setError('Something went wrong. Please try again.');

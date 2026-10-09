@@ -297,12 +297,39 @@ export default function InvoiceVerifier() {
                     >
                         Check the whole invoice — tax, HSN and format <ArrowRight className="w-4 h-4" />
                     </Link>
-                    <p className="mt-2 text-[13px]" style={{ color: 'var(--warm-text-secondary)' }}>
-                        Buy from many suppliers?{' '}
-                        <Link href="/vendor-gst-watch" className="underline font-medium" style={{ color: 'var(--warm-accent)' }}>
-                            Get told when one stops filing
-                        </Link>
-                    </p>
+                    {/* This was a grey 13px line reading "Buy from many suppliers? Get told
+                        when one stops filing", sitting under a louder CTA. GA says ~137 people
+                        a month reach this point and the watch page drew 0 views in 7 days: the
+                        line asked them to self-identify as a certain kind of buyer and to
+                        imagine a hypothetical, right after they had asked about one specific
+                        supplier. Say it about the supplier they just checked instead, and give
+                        it the same weight as the other offer. The format check above cannot
+                        answer whether this supplier is actually filing, which is the thing that
+                        costs money, so this is a genuine next question rather than an upsell. */}
+                    {mode === 'gstin' && gstin.trim().length > 0 && (
+                        <div
+                            className="mt-4 rounded-lg px-4 py-3"
+                            style={{ background: 'var(--warm-cream-dark)' }}
+                        >
+                            <p className="text-[14px] font-semibold" style={{ color: 'var(--warm-text)' }}>
+                                Is this supplier still filing their GST returns?
+                            </p>
+                            <p className="mt-1 text-[13px]" style={{ color: 'var(--warm-charcoal-soft)' }}>
+                                A correctly formed GSTIN says nothing about whether they are filing.
+                                If a supplier stops, your input tax credit on their invoices is at
+                                risk and you usually find out months later.
+                            </p>
+                            <Link
+                                href={`/vendor-gst-watch?gstin=${encodeURIComponent(gstin.trim().toUpperCase())}&from=${mode}`}
+                                onClick={() => track('watch_prompt_clicked', { from: mode })}
+                                className="mt-2 inline-flex items-center gap-1.5 text-[14px] font-semibold"
+                                style={{ color: 'var(--warm-accent)' }}
+                            >
+                                Watch this supplier for me <ArrowRight className="w-4 h-4" />
+                            </Link>
+                        </div>
+                    )}
+
 
                     <div className="mt-4">
                         <FeedbackPrompt key={mode} tool="verify" />
