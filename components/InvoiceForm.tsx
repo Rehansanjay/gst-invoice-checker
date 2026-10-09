@@ -792,9 +792,14 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, isGuest =
                 <div className="flex items-center justify-center gap-2 text-sm bg-green-50 border border-green-200 rounded-lg px-4 py-2.5">
                     <Gift className="w-4 h-4 text-green-600" />
                     <span className="text-green-800 font-medium">
+                        {/* Said "3 free checks — no signup needed", which a guest reads as
+                            a free report. The guest flow returns a preview: one issue shown,
+                            the rest locked behind ₹99. Ten guests in 28 days filled the whole
+                            form on the back of that line and none of them paid. Promise the
+                            thing that is actually free. */}
                         {freeChecksRemaining === MAX_FREE_CHECKS
-                            ? `${MAX_FREE_CHECKS} free checks — no signup needed`
-                            : `${freeChecksRemaining} free check${freeChecksRemaining !== 1 ? 's' : ''} remaining`}
+                            ? `${MAX_FREE_CHECKS} free checks — no signup needed. See what's wrong; ₹99 adds the fixes.`
+                            : `${freeChecksRemaining} free check${freeChecksRemaining !== 1 ? 's' : ''} remaining — ₹99 adds the fixes`}
                     </span>
                 </div>
             )}
@@ -818,7 +823,9 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, isGuest =
                     ) : (
                         <>
                             <Sparkles className="w-4 h-4 mr-2" />
-                            {submitLabel || (freeChecksRemaining > 0 ? 'Validate Invoice — Free' : 'Validate Invoice — ₹99')}
+                            {/* "Validate Invoice — Free" set the same expectation the badge did,
+                                at the exact moment of commitment. */}
+                            {submitLabel || (freeChecksRemaining > 0 ? 'Check Invoice Free' : 'Validate Invoice — ₹99')}
                         </>
                     )}
                 </Button>
