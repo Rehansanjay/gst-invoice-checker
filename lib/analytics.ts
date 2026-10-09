@@ -32,6 +32,7 @@ export type FunnelEvent =
     | 'verify_gstin'
     | 'verify_qr'
     | 'verify_full_check_clicked'
+    | 'watch_prompt_clicked'
     | 'watch_signup'
     | 'early_access_signup'
     | 'sign_up'

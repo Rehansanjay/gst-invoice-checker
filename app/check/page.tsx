@@ -520,11 +520,20 @@ function CheckPageInner() {
                                     </svg>
                                 </div>
                                 <div>
-                                    <p className="font-semibold text-blue-900 mb-0.5">💡 Tip: Enter data manually for best results</p>
+                                    {/* This banner used to open with "enter data manually for best
+                                        results" and describe the OCR as unreliable. 38 people a month
+                                        reached this page and only 10 submitted: the ask jumps from
+                                        pasting one GSTIN on the home page to transcribing a whole
+                                        invoice, and the one shortcut that avoids that was being
+                                        argued against in its own tooltip. Lead with the upload, keep
+                                        the caveat, and say what the free check actually returns so
+                                        nobody does the work before learning the price. */}
+                                    <p className="font-semibold text-blue-900 mb-0.5">Upload your invoice — we&apos;ll fill this in</p>
                                     <p className="text-blue-700">
-                                        For the most accurate validation, we recommend entering your invoice details manually.
-                                        You can also upload an image/PDF to auto-fill — but our OCR is still being improved,
-                                        so please double-check the extracted values.
+                                        Drop a PDF or photo on the left and the fields fill themselves. Check the
+                                        values before submitting, and type anything the scan misreads.
+                                        Your free check tells you what&apos;s wrong with the invoice; the ₹99 report
+                                        adds how to fix each issue.
                                     </p>
                                 </div>
                             </div>

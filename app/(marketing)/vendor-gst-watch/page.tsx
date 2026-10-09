@@ -48,7 +48,18 @@ const STEPS = [
     },
 ];
 
-export default function VendorGstWatchPage() {
+export default async function VendorGstWatchPage({
+    searchParams,
+}: {
+    searchParams: Promise<{ gstin?: string; from?: string }>;
+}) {
+    const sp = await searchParams;
+    // Only a plausibly-shaped GSTIN is carried through; anything else is
+    // ignored rather than stored or rendered.
+    const raw = (sp.gstin ?? '').toUpperCase();
+    const gstinParam = /^[0-9A-Z]{15}$/.test(raw) ? raw : undefined;
+    const fromParam = sp.from === 'gstin' || sp.from === 'qr' ? `verify-${sp.from}` : 'vendor-gst-watch';
+
     return (
         <div className="container mx-auto px-4 py-16">
             <div className="mx-auto max-w-3xl">
@@ -84,7 +95,9 @@ export default function VendorGstWatchPage() {
                             <strong style={{ color: 'var(--warm-charcoal)' }}>₹{WATCH_PRICE_RUPEES}/month</strong> early-access price
                         </p>
                     </div>
-                    <WatchEarlyAccess from="vendor-gst-watch" />
+                    {/* The home-page GSTIN check links here with the supplier it just
+                        read, so the sign-up records which one prompted it. */}
+                    <WatchEarlyAccess from={fromParam} gstin={gstinParam} />
                 </div>
 
                 <h2 className="mb-6 text-2xl font-bold font-heading" style={{ color: 'var(--warm-charcoal)' }}>

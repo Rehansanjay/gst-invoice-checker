@@ -70,6 +70,10 @@ const unpaidSummarySchema = z.object({
 const watchSummarySchema = z.object({
     suppliers: z.enum(WATCH_SUPPLIER_BANDS),
     wouldPay: z.enum(WATCH_PRICE_ANSWERS),
+    // Set when the sign-up came from the home-page GSTIN check rather than the
+    // landing page. Records which supplier prompted it, which is the difference
+    // between "someone liked the idea" and "someone wanted this one watched".
+    gstin: z.string().max(20).optional().nullable(),
 });
 
 /**
@@ -181,6 +185,9 @@ export async function POST(request: NextRequest) {
             detail = `${EARLY_ACCESS.notice.name} early access: notice ${data.summary.size}; would pay ${EARLY_ACCESS.notice.priceLabel}: ${data.summary.wouldPay}.`;
         } else if (data.source === 'watch') {
             detail = `Vendor GST Watch early access: buys from ${data.summary.suppliers} suppliers; would pay ₹${WATCH_PRICE_RUPEES}/month: ${data.summary.wouldPay}.`;
+            if (data.summary.gstin) {
+                detail += ` Asked after checking ${data.summary.gstin}.`;
+            }
         } else if (data.source === 'bulk') {
             detail = `${data.summary.invoicesWithCritical} of ${data.summary.totalInvoices} invoices flagged, ₹${data.summary.amountAtRisk} at risk.`;
         } else if (data.source === 'unpaid') {
