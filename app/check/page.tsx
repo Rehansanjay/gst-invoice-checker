@@ -637,11 +637,18 @@ function CheckPageInner() {
                                         <span><strong>Fields auto-filled from your document</strong> — please verify and correct if needed.</span>
                                     </div>
                                 )}
+                                {/* Only the signed-in label is fixed here. A guest's label has to
+                                    come from the form's own free-check counter: a guest who has
+                                    spent all three still sees this button, and hard-coding "Free"
+                                    told them the fourth check was free too -- the exact promise
+                                    #67 was opened to stop making. Passing undefined lets the form
+                                    say "Check Invoice Free" while checks remain and
+                                    "Validate Invoice -- Rs 99" once they are gone. */}
                                 <InvoiceForm
                                     onSubmit={handleSubmit}
                                     isAuthLoading={loading}
                                     isGuest={!loading && !user}
-                                    submitLabel={user ? 'Validate Invoice' : 'Analyze Invoice Free'}
+                                    submitLabel={user ? 'Validate Invoice' : undefined}
                                     initialData={extractedData ?? undefined}
                                 />
                             </div>
