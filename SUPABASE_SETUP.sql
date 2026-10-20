@@ -1,3 +1,22 @@
+-- ============================================================================
+-- Data API grants (Supabase change, 30 October 2026)
+-- ============================================================================
+-- Supabase no longer grants Data API access to new tables in "public"
+-- automatically. Every new table needs an explicit GRANT, or supabase-js and
+-- PostgREST answer "permission denied" -- which reads like an RLS bug and is not.
+--
+-- migrations/grant_data_api_access.sql sets default privileges for this project
+-- so new tables keep getting them, and has been applied to production. If you
+-- create a table somewhere that migration has not run (a fresh project, a
+-- preview branch), grant it explicitly:
+--
+--   grant all privileges on table public.your_table
+--     to anon, authenticated, service_role;
+--
+-- Row level security is what actually restricts access here, not the grants --
+-- every table is granted to all three roles and gated by policies.
+-- ============================================================================
+
 -- ═══════════════════════════════════════════════════════════
 -- GST INVOICE CHECKER - COMPLETE SUPABASE SETUP
 -- ═══════════════════════════════════════════════════════════
