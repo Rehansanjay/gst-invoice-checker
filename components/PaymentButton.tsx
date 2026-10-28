@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Loader2, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
+import { trackPurchase } from '@/lib/analytics';
 import type { RazorpaySuccessResponse, RazorpayFailureResponse } from '@/types/razorpay';
 
 interface PaymentButtonProps {
@@ -76,6 +77,7 @@ export default function PaymentButton({
                     const data = await result.json();
 
                     if (data.success) {
+                        trackPurchase('invoice_check', response.razorpay_payment_id, amount);
                         toast.success('Payment successful! Validating invoice...');
                         if (onSuccess) {
                             onSuccess(response.razorpay_payment_id);
