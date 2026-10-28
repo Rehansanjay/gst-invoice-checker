@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Upload, X, ZoomIn, FileImage, Lock, CreditCard, Loader2, Sparkles, Zap, Wand2 } from 'lucide-react';
+import { ArrowLeft, Upload, X, ZoomIn, FileImage, Lock, CreditCard, Loader2, Sparkles, Zap, Wand2, Camera, Pencil } from 'lucide-react';
 import InvoiceForm from '@/components/InvoiceForm';
 import ReportViewer from '@/components/ReportViewer';
 import ProcessingView, { type ProcessingMode } from '@/components/ProcessingView';
@@ -11,6 +11,12 @@ import EmailReportCapture from '@/components/EmailReportCapture';
 import FeedbackPrompt from '@/components/FeedbackPrompt';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { ParsedInvoice, ValidationResult, PreviewResult } from '@/types';
 import { useAuth } from '@/lib/auth-context';
 import { track, trackPurchase } from '@/lib/analytics';
@@ -77,6 +83,29 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
     const [extractedData, setExtractedData] = useState<Partial<ParsedInvoice> | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const uploadedFileRef = useRef<File | null>(null);
+    const cameraInputRef = useRef<HTMLInputElement>(null);
+    // The last invoice actually submitted for validation — reused to
+    // pre-fill the "Edit Extracted Fields" drawer once results are shown.
+    const [lastInvoiceData, setLastInvoiceData] = useState<ParsedInvoice | null>(null);
+    const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
+
+    // ── Freemium 3-check model (guest users only) ──
+    // Owned here rather than inside InvoiceForm so it stays correct when an
+    // extraction is confident enough to auto-submit and skip the form.
+    const FREE_CHECKS_KEY = 'gst_free_checks_used';
+    const MAX_FREE_CHECKS = 3;
+    const [freeChecksUsed, setFreeChecksUsed] = useState(0);
+    const isGuest = !loading && !user;
+
+    useEffect(() => {
+        if (isGuest) {
+            const stored = parseInt(localStorage.getItem(FREE_CHECKS_KEY) || '0', 10);
+            setFreeChecksUsed(stored);
+        }
+    }, [isGuest]);
+
+    const freeChecksRemaining = Math.max(0, MAX_FREE_CHECKS - freeChecksUsed);
+    const hasUsedAllFreeChecks = isGuest && freeChecksUsed >= MAX_FREE_CHECKS;
 
     // ── Read UTM & referral params from URL ──────────────────────────
     const searchParams = useSearchParams();
@@ -118,9 +147,10 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
         }
 
         if (fileInputRef.current) fileInputRef.current.value = '';
+        if (cameraInputRef.current) cameraInputRef.current.value = '';
 
-        // Kick off OCR extraction
-        runOcr(file);
+        // Kick off one-shot LLM extraction
+        runExtraction(file);
     };
 
     const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -139,51 +169,43 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
 
     const handleDragLeave = () => setIsDragging(false);
 
-    const runOcr = async (file: File) => {
+    const runExtraction = async (file: File) => {
         setIsOcrLoading(true);
         try {
             const fd = new FormData();
             fd.append('file', file);
-            const res = await fetch('/api/ocr-extract', { method: 'POST', body: fd });
+            const res = await fetch('/api/extract-invoice', { method: 'POST', body: fd });
             const data = await res.json();
+
             if (res.ok && data.success && data.extracted) {
-                const e = data.extracted;
-                // Only apply fields that were actually found
-                const partial: Partial<ParsedInvoice> = {};
-                if (e.supplierGSTIN) partial.supplierGSTIN = e.supplierGSTIN;
-                if (e.buyerGSTIN) partial.buyerGSTIN = e.buyerGSTIN;
-                if (e.supplierName) partial.supplierName = e.supplierName;
-                if (e.buyerName) partial.buyerName = e.buyerName;
-                if (e.invoiceNumber) partial.invoiceNumber = e.invoiceNumber;
-                if (e.invoiceDate) partial.invoiceDate = e.invoiceDate;
-                if (e.hsnCode || e.taxableAmount) {
-                    partial.lineItems = [{
-                        lineNumber: 1,
-                        description: '',
-                        hsnCode: e.hsnCode || '',
-                        quantity: 1,
-                        rate: e.taxableAmount || 0,
-                        taxableAmount: e.taxableAmount || 0,
-                        taxRate: 18,
-                        taxType: e.taxType as 'CGST_SGST' | 'IGST',
-                        cgst: e.cgst || 0,
-                        sgst: e.sgst || 0,
-                        igst: e.igst || 0,
-                        totalAmount: e.totalAmount || 0,
-                    }];
+                const extracted = data.extracted as ParsedInvoice;
+
+                if (data.complete) {
+                    // Confident enough to skip the manual form entirely —
+                    // go straight to validation and show the result.
+                    toast.success('Invoice read — checking it now...');
+                    setExtractedData(extracted);
+                    await handleSubmit(extracted);
+                    return;
                 }
-                const filledCount = Object.keys(partial).length;
+
+                // Partial read: fall back to the manual form, pre-filled.
+                const filledCount = [
+                    extracted.supplierGSTIN, extracted.buyerGSTIN, extracted.supplierName,
+                    extracted.buyerName, extracted.invoiceNumber, extracted.invoiceDate,
+                ].filter(Boolean).length + (extracted.lineItems.length > 0 ? 1 : 0);
+
+                setExtractedData(extracted);
                 if (filledCount > 0) {
-                    setExtractedData(partial);
-                    toast.success(`✓ Auto-filled ${filledCount} field${filledCount > 1 ? 's' : ''} from your document`);
+                    toast.info(`Read ${filledCount} field${filledCount > 1 ? 's' : ''} — please check and fill in the rest.`);
                 } else {
-                    toast.info('OCR complete — no fields detected. Please fill manually.');
+                    toast.info('Could not read the document clearly. Please fill manually.');
                 }
             } else {
                 toast.warning(data.error || 'Could not extract data — please fill manually.');
             }
         } catch {
-            toast.warning('OCR failed — please fill in the form manually.');
+            toast.warning('Could not read the document — please fill in the form manually.');
         } finally {
             setIsOcrLoading(false);
         }
@@ -197,6 +219,12 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
         uploadedFileRef.current = null;
     };
 
+    const handleCheckAnother = () => {
+        resetToForm();
+        setLastInvoiceData(null);
+        removeImage();
+    };
+
     const handleSubmit = async (invoiceData: ParsedInvoice) => {
         console.log('handleSubmit called, user:', user?.email ?? 'guest', 'loading:', loading);
 
@@ -206,6 +234,8 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
         }
 
         setIsProcessing(true);
+        setIsEditDrawerOpen(false);
+        setLastInvoiceData(invoiceData);
         // Reset from any earlier unlock attempt, so a re-check after an
         // abandoned or failed payment does not show payment copy.
         setProcessingMode('validate');
@@ -270,6 +300,11 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
                     issues: (data.result?.revealedIssue ? 1 : 0) + (data.result?.lockedIssues?.length ?? 0),
                     health_score: data.result?.healthScore,
                 });
+                if (isGuest) {
+                    const newCount = freeChecksUsed + 1;
+                    localStorage.setItem(FREE_CHECKS_KEY, String(newCount));
+                    setFreeChecksUsed(newCount);
+                }
                 setIsProcessing(false);
                 setProcessingStep('');
                 toast.success('Analysis complete! Issues found.');
@@ -443,6 +478,13 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
                 </div>
             ) : validationResult ? (
                 <>
+                    {lastInvoiceData && (
+                        <div className="mx-auto mb-3 w-full max-w-3xl flex justify-end">
+                            <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => setIsEditDrawerOpen(true)}>
+                                <Pencil className="w-3.5 h-3.5 mr-1.5" /> Edit Extracted Fields
+                            </Button>
+                        </div>
+                    )}
                     <div data-clarity-mask="true">
                         <ReportViewer result={validationResult} />
                     </div>
@@ -452,6 +494,13 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
                 </>
             ) : previewResult ? (
                 <>
+                    {lastInvoiceData && (
+                        <div className="mx-auto mb-3 w-full max-w-3xl flex justify-end">
+                            <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => setIsEditDrawerOpen(true)}>
+                                <Pencil className="w-3.5 h-3.5 mr-1.5" /> Edit Extracted Fields
+                            </Button>
+                        </div>
+                    )}
                     <div data-clarity-mask="true">
                         <CheckResultPreview
                             result={previewResult}
@@ -563,30 +612,45 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
                                 {isOcrLoading ? (
                                     <div className="bg-slate-50 rounded-lg aspect-[3/4] flex flex-col items-center justify-center gap-3">
                                         <Loader2 className="w-10 h-10 text-primary animate-spin" />
-                                        <p className="font-semibold text-sm">Reading document...</p>
-                                        <p className="text-xs text-muted-foreground">Extracting invoice fields</p>
+                                        <p className="font-semibold text-sm">Reading your invoice...</p>
+                                        <p className="text-xs text-muted-foreground">Extracting fields and checking compliance</p>
                                     </div>
                                 ) : !uploadedImage ? (
-                                    <div
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className={`rounded-lg text-center cursor-pointer transition-all border
-                                            /* Mobile: compact horizontal strip; Desktop: tall card */
-                                            p-6 lg:aspect-[3/4] lg:p-12
-                                            flex flex-col items-center justify-center gap-3
-                                            ${isDragging
-                                                ? 'bg-primary/5 border-primary border-solid'
-                                                : 'bg-slate-50 hover:bg-slate-100 border-transparent hover:border-primary/20'
-                                            }`}
-                                    >
-                                        <div className={`w-12 h-12 lg:w-16 lg:h-16 rounded-full shadow-sm flex items-center justify-center transition-colors ${isDragging ? 'bg-primary/10' : 'bg-white'
-                                            }`}>
-                                            <Upload className={`w-6 h-6 lg:w-8 lg:h-8 transition-colors ${isDragging ? 'text-primary scale-110' : 'text-primary'}`} />
-                                        </div>
-                                        <div>
-                                            <p className="font-semibold mb-1 text-sm">{isDragging ? 'Drop to upload!' : 'Upload PDF/Image'}</p>
-                                            <p className="text-xs text-muted-foreground">
-                                                {isDragging ? 'Release to auto-fill fields' : 'Drag & drop or tap. Max 10MB. Auto-fills form.'}
-                                            </p>
+                                    <div className="flex flex-col gap-3">
+                                        {/* Mobile: camera is the primary action — this is how most of
+                                            our visitors arrive (phone photo of a paper bill or a
+                                            WhatsApp forward), so it comes before any form field. */}
+                                        <button
+                                            type="button"
+                                            onClick={() => cameraInputRef.current?.click()}
+                                            className="sm:hidden w-full py-4 rounded-lg bg-primary text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2 shadow-sm active:scale-[0.99] transition-transform"
+                                        >
+                                            <Camera className="w-5 h-5" /> Take Photo of Invoice
+                                        </button>
+                                        <div
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className={`rounded-lg text-center cursor-pointer transition-all border
+                                                /* Mobile: compact secondary strip; Desktop: tall primary card */
+                                                p-4 sm:p-6 lg:aspect-[3/4] lg:p-12
+                                                flex flex-col items-center justify-center gap-2 sm:gap-3
+                                                ${isDragging
+                                                    ? 'bg-primary/5 border-primary border-solid'
+                                                    : 'bg-slate-50 hover:bg-slate-100 border-transparent hover:border-primary/20'
+                                                }`}
+                                        >
+                                            <div className={`w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 rounded-full shadow-sm flex items-center justify-center transition-colors ${isDragging ? 'bg-primary/10' : 'bg-white'
+                                                }`}>
+                                                <Upload className={`w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 transition-colors ${isDragging ? 'text-primary scale-110' : 'text-primary'}`} />
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold mb-1 text-sm">
+                                                    {isDragging ? 'Drop to upload!' : <span className="sm:hidden">Choose from Gallery or PDF</span>}
+                                                    <span className="hidden sm:inline">{isDragging ? '' : 'Upload PDF/Image'}</span>
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {isDragging ? 'Release to read the invoice' : 'Drag & drop or tap. Max 10MB.'}
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
                                 ) : uploadedImage === 'pdf' ? (
@@ -627,6 +691,14 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
                                     onChange={handleFileSelect}
                                     className="hidden"
                                 />
+                                <input
+                                    ref={cameraInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    capture="environment"
+                                    onChange={handleFileSelect}
+                                    className="hidden"
+                                />
                             </Card>
                         </div>
 
@@ -647,9 +719,11 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
                             <InvoiceForm
                                 onSubmit={handleSubmit}
                                 isAuthLoading={loading}
-                                isGuest={!loading && !user}
+                                isGuest={isGuest}
                                 submitLabel={user ? 'Validate Invoice' : undefined}
                                 initialData={extractedData ?? undefined}
+                                freeChecksRemaining={freeChecksRemaining}
+                                hasUsedAllFreeChecks={hasUsedAllFreeChecks}
                             />
                         </div>
                     </div>
@@ -675,6 +749,28 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
                     />
                 </div>
             )}
+
+            {/* ── Edit Extracted Fields drawer ──
+                Shown only after a result is already on screen, so nobody
+                sees the 4-step form before they've seen their health score. */}
+            <Dialog open={isEditDrawerOpen} onOpenChange={setIsEditDrawerOpen}>
+                <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Edit Extracted Fields</DialogTitle>
+                    </DialogHeader>
+                    {lastInvoiceData && (
+                        <InvoiceForm
+                            onSubmit={handleSubmit}
+                            isAuthLoading={loading}
+                            isGuest={isGuest}
+                            submitLabel={user ? 'Re-check Invoice' : undefined}
+                            initialData={lastInvoiceData}
+                            freeChecksRemaining={freeChecksRemaining}
+                            hasUsedAllFreeChecks={hasUsedAllFreeChecks}
+                        />
+                    )}
+                </DialogContent>
+            </Dialog>
         </>
     );
 
@@ -703,7 +799,7 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
                                 variant="ghost"
                                 size="sm"
                                 className="text-xs sm:text-sm px-2 sm:px-3"
-                                onClick={resetToForm}
+                                onClick={handleCheckAnother}
                             >
                                 <span className="hidden sm:inline">Check Another Invoice</span>
                                 <span className="sm:hidden">Retry</span>
