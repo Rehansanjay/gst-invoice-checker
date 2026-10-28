@@ -136,15 +136,17 @@ export interface LockedIssueSummary {
 }
 
 /**
- * The one issue explained for free. The dividing line is deliberate: the visitor
- * is told what is wrong and what their invoice currently says (`found`), but not
- * what it should say (`expected`, `difference`) or how to correct it
- * (`howToFix`). Diagnosis is free, the remedy is paid.
+ * The #1 issue, named but not explained. The visitor is told the category and
+ * severity of the single most serious problem — enough to prove the check is
+ * real — but not the description, location, what the invoice currently says
+ * (`found`), what it should say (`expected`, `difference`), the GST law
+ * reference, or how to correct it (`howToFix`). All of that is the paid
+ * remedy. A clean invoice has no revealed issue at all.
  *
  * These fields are stripped server-side, not merely hidden in the UI — the
  * withheld values never reach the browser.
  */
-export type RevealedIssue = Omit<ValidationIssue, 'howToFix' | 'expected' | 'difference'>;
+export type RevealedIssue = Pick<ValidationIssue, 'id' | 'ruleId' | 'severity' | 'category' | 'title'>;
 
 /**
  * Free preview payload. One issue is revealed so the visitor can verify the tool
