@@ -110,12 +110,20 @@ function TaxTypePill({ value, onChange, suggestedType }: {
     );
 }
 
-export default function InvoiceForm({ onSubmit, isAuthLoading = false, isGuest = false, submitLabel, initialData }: {
+export default function InvoiceForm({
+    onSubmit, isAuthLoading = false, isGuest = false, submitLabel, initialData,
+    freeChecksRemaining = 0, hasUsedAllFreeChecks = false,
+}: {
     onSubmit: (data: ParsedInvoice) => void;
     isAuthLoading?: boolean;
     isGuest?: boolean;
     submitLabel?: string;
     initialData?: Partial<ParsedInvoice>;
+    /** Guest free-check counter — owned by the parent so it stays correct
+     * whether the check went through this form or an auto-submitted
+     * extraction that skipped it entirely. */
+    freeChecksRemaining?: number;
+    hasUsedAllFreeChecks?: boolean;
 }) {
     const [formData, setFormData] = useState({
         invoiceNumber: '',
@@ -149,21 +157,6 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, isGuest =
     const [collapsedItems, setCollapsedItems] = useState<Set<number>>(new Set());
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formReady, setFormReady] = useState(false);
-
-    // ── Freemium 3-check model (guest users only) ──
-    const FREE_CHECKS_KEY = 'gst_free_checks_used';
-    const MAX_FREE_CHECKS = 3;
-    const [freeChecksUsed, setFreeChecksUsed] = useState(0);
-
-    useEffect(() => {
-        if (isGuest) {
-            const stored = parseInt(localStorage.getItem(FREE_CHECKS_KEY) || '0', 10);
-            setFreeChecksUsed(stored);
-        }
-    }, [isGuest]);
-
-    const freeChecksRemaining = Math.max(0, MAX_FREE_CHECKS - freeChecksUsed);
-    const hasUsedAllFreeChecks = isGuest && freeChecksUsed >= MAX_FREE_CHECKS;
 
     // Apply auto-filled data from OCR whenever it changes
     useEffect(() => {
@@ -310,6 +303,8 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, isGuest =
         return true;
     };
 
+    const MAX_FREE_CHECKS = 3;
+
     const handleSubmit = async () => {
         if (!validateForm()) return;
         setIsSubmitting(true);
@@ -330,11 +325,6 @@ export default function InvoiceForm({ onSubmit, isAuthLoading = false, isGuest =
         };
         try {
             await onSubmit(invoiceData);
-            if (isGuest) {
-                const newCount = freeChecksUsed + 1;
-                localStorage.setItem(FREE_CHECKS_KEY, String(newCount));
-                setFreeChecksUsed(newCount);
-            }
         } catch (error) {
             console.error('Submit error:', error);
         } finally {
