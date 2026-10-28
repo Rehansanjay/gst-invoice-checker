@@ -1,15 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import {
   Sparkles, ShieldCheck, BookOpen, Timer, ChevronDown, ArrowRight,
-  Search, ListChecks, Wrench, BellRing,
+  Search, ListChecks, Wrench, BellRing, Loader2,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { WATCH_PRICE_RUPEES } from '@/lib/watch';
 import LoggedInHome from '@/components/LoggedInHome';
 import InvoiceVerifier from '@/components/InvoiceVerifier';
+import CheckTool from '@/components/CheckTool';
 import ToolDirectory from '@/components/ToolDirectory';
 import SectionHeading from '@/components/SectionHeading';
 
@@ -193,6 +194,26 @@ export default function Home() {
             {/* The instant verifier: most visitors arrive holding an invoice they received. */}
             <div id="verify" className="scroll-mt-24">
               <InvoiceVerifier />
+            </div>
+          </div>
+
+          {/* Full invoice check, embedded right in the hero so a visitor who
+              lands here from a Google search never has to find /check — the
+              click between the homepage and the tool was most of why only
+              21% of visitors ever reached it. */}
+          <div id="full-check" className="scroll-mt-24 pb-16 md:pb-24">
+            <div className="rounded-3xl p-5 sm:p-8" style={{ background: 'var(--warm-bg)' }}>
+              <div className="mb-6 max-w-2xl">
+                <h2 className="font-heading text-[1.6rem] leading-tight sm:text-[1.9rem]" style={{ color: 'var(--warm-charcoal)' }}>
+                  Or run the full 16-point check right here
+                </h2>
+                <p className="mt-2 text-[15px] leading-relaxed" style={{ color: 'var(--warm-text-secondary)' }}>
+                  Upload the invoice itself — a photo or PDF — and we check GSTIN, tax type, HSN, arithmetic and more in one go.
+                </p>
+              </div>
+              <Suspense fallback={<div className="flex min-h-[200px] items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+                <CheckTool variant="embedded" showSampleButton />
+              </Suspense>
             </div>
           </div>
         </div>
