@@ -10,6 +10,8 @@ interface CheckResultPreviewProps {
     isProcessing: boolean;
     /** Invoice total, used to frame the ₹99 against what is actually at stake. */
     invoiceTotal?: number;
+    /** Total tax on the invoice — the ITC amount the financial hook names. */
+    taxAmount?: number;
 }
 
 const SEVERITY_STYLES = {
@@ -65,6 +67,7 @@ export default function CheckResultPreview({
     onUnlock,
     isProcessing,
     invoiceTotal,
+    taxAmount,
 }: CheckResultPreviewProps) {
     const {
         healthScore,
@@ -91,6 +94,10 @@ export default function CheckResultPreview({
 
     const severity = revealedIssue ? SEVERITY_STYLES[revealedIssue.severity] : null;
     const SeverityIcon = severity?.icon;
+
+    const unlockLabel = isClean
+        ? 'Download Audit-Ready Verification PDF — ₹99 →'
+        : 'Unlock Full Error Report & Fix — ₹99 →';
 
     return (
         <div className="mx-auto mt-8 w-full max-w-3xl space-y-6">
@@ -122,80 +129,74 @@ export default function CheckResultPreview({
             </div>
 
             {isClean ? (
-                /* ── Clean invoice ──────────────────────────────────── */
-                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 sm:p-8">
-                    <div className="flex items-start gap-3">
-                        <ShieldCheck className="mt-0.5 h-6 w-6 shrink-0 text-emerald-600" />
-                        <div>
-                            <h3 className="font-semibold text-emerald-900">
-                                This invoice passed all {totalCheckCount} checks
-                            </h3>
-                            <p className="mt-1 text-sm text-emerald-800">
-                                Nothing needs fixing. If you want it on record — a signed PDF report
-                                showing every check that passed, to send to your buyer or keep for an
-                                audit — you can download the full report below.
-                            </p>
+                /* ── Clean invoice — a paid hook, not a dead end ─────── */
+                <div className="space-y-4">
+                    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 sm:p-8">
+                        <div className="flex items-start gap-3">
+                            <ShieldCheck className="mt-0.5 h-6 w-6 shrink-0 text-emerald-600" />
+                            <div>
+                                <h3 className="font-semibold text-emerald-900">
+                                    Passed: {totalCheckCount}/{totalCheckCount} math &amp; format rules
+                                </h3>
+                                <p className="mt-1 text-sm text-emerald-800">
+                                    No math or format errors. That is not the same as audit-proof — a
+                                    buyer or auditor will still want it on record.
+                                </p>
+                            </div>
                         </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+                        <h3 className="mb-1 font-semibold text-slate-900">Put it on record</h3>
+                        <p className="mb-4 text-sm text-slate-500">
+                            A signed PDF certificate showing every check this invoice passed — to send
+                            to your buyer or keep for an audit.
+                        </p>
+                        <LockedField
+                            label="Audit-ready verification certificate (PDF)"
+                            hint="Every rule checked, every result, signed and dated"
+                        />
                     </div>
                 </div>
             ) : (
                 <>
-                    {/* ── The one issue explained free ────────────────── */}
+                    {taxAmount !== undefined && taxAmount > 0 && (
+                        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-center sm:p-5">
+                            <p className="font-semibold text-red-800">
+                                🚨 {formatINR(taxAmount)} in Input Tax Credit (ITC) is at risk of rejection
+                            </p>
+                        </div>
+                    )}
+
+                    {/* ── The #1 issue, named but blurred ─────────────── */}
                     {revealedIssue && severity && SeverityIcon && (
                         <div className={`rounded-2xl border ${severity.border} ${severity.bg} p-6 sm:p-8`}>
                             <div className="mb-4 flex items-center gap-2">
                                 <SeverityIcon className={`h-4 w-4 ${severity.text}`} />
                                 <span className={`text-xs font-bold uppercase tracking-wide ${severity.text}`}>
-                                    {severity.label}
+                                    {severity.label} Error #1
                                 </span>
                                 <span className="text-xs text-slate-400">·</span>
                                 <span className="text-xs font-medium text-slate-500">
                                     {revealedIssue.category}
                                 </span>
-                                <span className="ml-auto rounded-full bg-white/70 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
-                                    Shown free
-                                </span>
                             </div>
 
                             <h3 className="text-lg font-bold text-slate-900">{revealedIssue.title}</h3>
-                            <p className="mt-2 text-sm leading-relaxed text-slate-700">
-                                {revealedIssue.description}
-                            </p>
 
-                            {revealedIssue.location && (
-                                <p className="mt-3 text-sm text-slate-600">
-                                    <span className="font-semibold">Where:</span> {revealedIssue.location}
-                                </p>
-                            )}
-
-                            {revealedIssue.found !== undefined && (
-                                <p className="mt-1 text-sm text-slate-600">
-                                    <span className="font-semibold">Your invoice says:</span>{' '}
-                                    <span className="font-mono">{String(revealedIssue.found)}</span>
-                                </p>
-                            )}
-
-                            {revealedIssue.impact && (
-                                <p className="mt-3 text-sm font-medium text-slate-800">
-                                    {revealedIssue.impact}
-                                </p>
-                            )}
-
-                            {revealedIssue.gstLawContext && (
-                                <p className="mt-3 border-t border-white/60 pt-3 text-xs text-slate-500">
-                                    {revealedIssue.gstLawContext}
-                                </p>
-                            )}
-
-                            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                                <LockedField
-                                    label="What it should be"
-                                    hint="The corrected value for this field"
-                                />
-                                <LockedField
-                                    label="How to fix it"
-                                    hint="Step-by-step correction for this error"
-                                />
+                            <div className="relative mt-4 overflow-hidden rounded-xl border border-white/60 bg-white/50">
+                                <div aria-hidden className="select-none space-y-2 p-4 blur-sm">
+                                    <p className="h-3 w-5/6 rounded bg-slate-300" />
+                                    <p className="h-3 w-full rounded bg-slate-300" />
+                                    <p className="h-3 w-2/3 rounded bg-slate-300" />
+                                    <p className="h-3 w-1/2 rounded bg-slate-300" />
+                                </div>
+                                <div className="absolute inset-0 flex items-center justify-center bg-white/40">
+                                    <span className="flex items-center gap-1.5 rounded-full bg-slate-900/90 px-3 py-1.5 text-xs font-semibold text-white">
+                                        <Lock className="h-3 w-3" />
+                                        Exact line, GST law reference &amp; corrected value — locked
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -256,7 +257,7 @@ export default function CheckResultPreview({
                     ) : (
                         <>
                             <Zap className="mr-2 h-4 w-4" />
-                            {isClean ? 'Get the full report — ₹99' : 'Unlock all fixes — ₹99'}
+                            {unlockLabel}
                         </>
                     )}
                 </Button>
