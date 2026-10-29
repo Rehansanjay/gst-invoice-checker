@@ -148,7 +148,7 @@ export default function Home() {
         </div>
 
         <div className="container relative z-10 mx-auto max-w-6xl px-5 sm:px-6 lg:px-8">
-          <div className="grid items-center gap-8 pt-10 pb-16 md:py-24 lg:grid-cols-2 lg:gap-16">
+          <div className="pt-10 pb-10 md:pt-24">
             <div className="max-w-xl">
               <span
                 className="pill-badge mb-5 text-xs sm:mb-7"
@@ -190,22 +190,17 @@ export default function Home() {
                 ))}
               </div>
             </div>
-
-            {/* The instant verifier: most visitors arrive holding an invoice they received. */}
-            <div id="verify" className="scroll-mt-24">
-              <InvoiceVerifier />
-            </div>
           </div>
 
-          {/* Full invoice check, embedded right in the hero so a visitor who
-              lands here from a Google search never has to find /check — the
-              click between the homepage and the tool was most of why only
-              21% of visitors ever reached it. */}
-          <div id="full-check" className="scroll-mt-24 pb-16 md:pb-24">
+          {/* Full invoice check is the primary tool a visitor sees — most
+              traffic is mobile, arriving from a Google search, and the click
+              between the homepage and /check was most of why only 21% of
+              visitors used to ever reach it. */}
+          <div id="full-check" className="scroll-mt-24 pb-10 md:pb-16">
             <div className="rounded-3xl p-5 sm:p-8" style={{ background: 'var(--warm-bg)' }}>
               <div className="mb-6 max-w-2xl">
                 <h2 className="font-heading text-[1.6rem] leading-tight sm:text-[1.9rem]" style={{ color: 'var(--warm-charcoal)' }}>
-                  Or run the full 16-point check right here
+                  Run the full 16-point check
                 </h2>
                 <p className="mt-2 text-[15px] leading-relaxed" style={{ color: 'var(--warm-text-secondary)' }}>
                   Upload the invoice itself — a photo or PDF — and we check GSTIN, tax type, HSN, arithmetic and more in one go.
@@ -215,6 +210,15 @@ export default function Home() {
                 <CheckTool variant="embedded" showSampleButton />
               </Suspense>
             </div>
+          </div>
+
+          {/* Secondary, lighter-weight tool: just checking whether a GSTIN
+              or e-invoice QR someone else issued is well-formed, no upload. */}
+          <div id="verify" className="scroll-mt-24 pb-16 md:pb-24">
+            <p className="mb-4 text-sm font-medium" style={{ color: '#9E8A78' }}>
+              Or just checking a GSTIN or e-invoice QR someone sent you?
+            </p>
+            <InvoiceVerifier />
           </div>
         </div>
       </section>

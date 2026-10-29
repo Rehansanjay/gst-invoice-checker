@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ALL_RULES } from '@/lib/services/validationRules';
+import { SINGLE_CHECK_PRICE_RUPEES } from '@/lib/pricing';
 import AffiliateSuggestion from '@/components/AffiliateSuggestion';
 
 /**
@@ -157,7 +158,7 @@ export default function CheckLayout({ children }: { children: React.ReactNode })
                                     { href: '/gst-error-codes', label: 'Look up an error code', detail: 'If the portal already rejected it' },
                                     { href: '/verify-invoice', label: 'Verify one you received', detail: 'Is it genuine?' },
                                     { href: '/unpaid-invoice', label: 'Chase a late payment', detail: 'Interest under the MSMED Act' },
-                                    { href: '/pricing', label: 'Pricing', detail: 'Free to run, ₹99 for the fixes' },
+                                    { href: '/pricing', label: 'Pricing', detail: `Free to run, ₹${SINGLE_CHECK_PRICE_RUPEES} for the fixes` },
                                 ].map((l) => (
                                     <li key={l.href}>
                                         <Link href={l.href} className="group block py-1">

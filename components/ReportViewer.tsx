@@ -5,7 +5,7 @@ import { ValidationResult } from '@/types';
 import HealthScore from './HealthScore';
 import IssueCard from './IssueCard';
 import { Card } from '@/components/ui/card';
-import { CheckCircle2, Download, Share2, Mail, RefreshCw, Loader2, X } from 'lucide-react';
+import { CheckCircle2, Download, Share2, Mail, RefreshCw, Loader2, X, ShieldCheck, ShieldAlert, ShieldQuestion } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -238,6 +238,38 @@ export default function ReportViewer({ result, invoiceNumber = 'Invoice' }: Repo
 
             {/* Health Score */}
             <HealthScore score={result.healthScore} riskLevel={result.riskLevel} />
+
+            {/* Live GSTIN status — only rendered once a provider is actually
+                configured and a lookup succeeded; silent otherwise rather than
+                showing a placeholder for a feature that is not live yet. */}
+            {result.supplierGstinStatus && result.supplierGstinStatus.source !== 'offline' && (
+                <Card className={`p-4 flex items-start gap-3 ${
+                    result.supplierGstinStatus.status === 'Active'
+                        ? 'border-emerald-200 bg-emerald-50/60'
+                        : result.supplierGstinStatus.status === 'Unknown'
+                            ? 'border-slate-200 bg-slate-50/60'
+                            : 'border-red-200 bg-red-50/60'
+                }`}>
+                    {result.supplierGstinStatus.status === 'Active' ? (
+                        <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                    ) : result.supplierGstinStatus.status === 'Unknown' ? (
+                        <ShieldQuestion className="w-5 h-5 text-slate-500 shrink-0 mt-0.5" />
+                    ) : (
+                        <ShieldAlert className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                    )}
+                    <div>
+                        <p className="font-semibold text-sm">
+                            Supplier GSTIN: {result.supplierGstinStatus.status ?? 'Unknown'}
+                            {result.supplierGstinStatus.taxpayerType && result.supplierGstinStatus.taxpayerType !== 'Unknown' && (
+                                <span className="text-muted-foreground font-normal"> · {result.supplierGstinStatus.taxpayerType}</span>
+                            )}
+                        </p>
+                        {result.supplierGstinStatus.legalName && (
+                            <p className="text-sm text-muted-foreground">{result.supplierGstinStatus.legalName}</p>
+                        )}
+                    </div>
+                </Card>
+            )}
 
             {/* Critical Issues */}
             {criticalIssues.length > 0 && (

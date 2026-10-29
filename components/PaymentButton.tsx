@@ -15,6 +15,8 @@ interface PaymentButtonProps {
     checkId: string;
     customerEmail?: string;
     customerName?: string;
+    /** Real phone number only — never pass a placeholder/fake one. */
+    customerPhone?: string;
     description?: string;
     onSuccess?: (paymentId: string) => void;
     className?: string;
@@ -26,6 +28,7 @@ export default function PaymentButton({
     checkId,
     customerEmail,
     customerName,
+    customerPhone,
     description = 'Invoice Validation Check',
     onSuccess,
     className
@@ -53,6 +56,22 @@ export default function PaymentButton({
             prefill: {
                 name: customerName,
                 email: customerEmail,
+                ...(customerPhone ? { contact: customerPhone } : {}),
+            },
+            // Opens straight into UPI (QR / intent apps) — most guests are on
+            // mobile and already pay this way — while still listing cards,
+            // netbanking and wallets below it rather than hiding them.
+            config: {
+                display: {
+                    blocks: {
+                        upi_block: {
+                            name: 'Pay via UPI',
+                            instruments: [{ method: 'upi' }],
+                        },
+                    },
+                    sequence: ['block.upi_block'],
+                    preferences: { show_default_blocks: true },
+                },
             },
             theme: {
                 color: '#6d28d9',

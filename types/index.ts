@@ -78,6 +78,18 @@ export interface ValidationResult {
   scoreBreakdown: ScoreBreakdown;
   processingTimeMs: number;
   timestamp: string;
+  /**
+   * Live GSTIN status for the supplier, from gstinStatusService. Paid-report
+   * only — best-effort, so absent (not an error) whenever no provider key is
+   * configured yet or the lookup otherwise could not complete.
+   */
+  supplierGstinStatus?: {
+    source: 'cache' | 'live' | 'offline';
+    status?: 'Active' | 'Cancelled' | 'Suspended' | 'Unknown';
+    legalName?: string;
+    taxpayerType?: 'Regular' | 'Composition' | 'Unknown';
+    lastFiledAt?: string | null;
+  };
 }
 
 export interface ValidationIssue {

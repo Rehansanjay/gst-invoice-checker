@@ -13,6 +13,7 @@
  */
 import fs from 'fs';
 import path from 'path';
+import { SINGLE_CHECK_PRICE_RUPEES, SINGLE_CHECK_PRICE_PAISE } from '../lib/pricing';
 
 let pass = 0, fail = 0;
 const ok = (name: string, cond: boolean, extra?: unknown) => {
@@ -22,7 +23,6 @@ const ok = (name: string, cond: boolean, extra?: unknown) => {
 const root = path.join(__dirname, '..');
 const api = fs.readFileSync(path.join(root, 'app/api/purchase-package/route.ts'), 'utf8');
 const page = fs.readFileSync(path.join(root, 'app/(marketing)/pricing/page.tsx'), 'utf8');
-const paymentRoute = fs.readFileSync(path.join(root, 'app/api/payment/route.ts'), 'utf8');
 
 // ─── What the server charges ──────────────────────────────────────────
 
@@ -52,22 +52,35 @@ for (const [type, shown] of pageButtons) {
         shown.credits === charged.credits, { shown: shown.credits, granted: charged.credits });
 }
 
-// ─── Credits are granted from a second map, which must also agree ─────
-// app/api/payment/route.ts keeps its own CREDITS_MAP. A package missing from
-// it falls through to `?? 1`, granting a single credit for a ₹4,999 payment.
+// ─── The single-check price must not drift either ──────────────────────
+// It used to be hardcoded independently in /api/quick-check and restated as
+// copy in about a dozen components and pages, with nothing to catch a
+// missed one. Now there is one constant (lib/pricing.ts); this guards that
+// quick-check reads from it rather than a bare number, and that no UI file
+// still states the old ₹99 price.
 
-const creditsMap = new Map<string, number>();
-const block = paymentRoute.match(/const CREDITS_MAP[^}]+\}/)?.[0] ?? '';
-for (const m of block.matchAll(/(\w+):\s*(\d+)/g)) creditsMap.set(m[1], Number(m[2]));
+ok('SINGLE_CHECK_PRICE_PAISE matches SINGLE_CHECK_PRICE_RUPEES × 100',
+    SINGLE_CHECK_PRICE_PAISE === SINGLE_CHECK_PRICE_RUPEES * 100,
+    { rupees: SINGLE_CHECK_PRICE_RUPEES, paise: SINGLE_CHECK_PRICE_PAISE });
 
-for (const [type, charged] of serverPackages) {
-    ok(`${type} appears in CREDITS_MAP, so it cannot fall through to 1 credit`,
-        creditsMap.has(type), { type, creditsMap: [...creditsMap.keys()] });
-    if (creditsMap.has(type)) {
-        ok(`${type}: CREDITS_MAP grants ${creditsMap.get(type)}, matching ${charged.credits}`,
-            creditsMap.get(type) === charged.credits,
-            { creditsMap: creditsMap.get(type), packages: charged.credits });
-    }
+const quickCheckRoute = fs.readFileSync(path.join(root, 'app/api/quick-check/route.ts'), 'utf8');
+ok('quick-check creates the Razorpay order from SINGLE_CHECK_PRICE_PAISE, not a bare number',
+    (quickCheckRoute.match(/amount:\s*SINGLE_CHECK_PRICE_PAISE/g) ?? []).length >= 2);
+
+const singleCheckUiFiles = [
+    'components/CheckResultPreview.tsx',
+    'components/InvoiceForm.tsx',
+    'components/CheckTool.tsx',
+    'components/GetStartedModal.tsx',
+    'app/(marketing)/pricing/page.tsx',
+    'app/(marketing)/faq/page.tsx',
+    'app/(marketing)/terms/page.tsx',
+    'app/check/layout.tsx',
+    'app/api/validate/route.ts',
+];
+for (const rel of singleCheckUiFiles) {
+    const text = fs.readFileSync(path.join(root, rel), 'utf8');
+    ok(`${rel} does not restate the old ₹99 single-check price`, !/₹99\b/.test(text));
 }
 
 // ─── The ladder must descend ──────────────────────────────────────────

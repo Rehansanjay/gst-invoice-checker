@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Zap, UserPlus, LogIn } from 'lucide-react';
+import { SINGLE_CHECK_PRICE_RUPEES } from '@/lib/pricing';
 
 interface GetStartedModalProps {
     open: boolean;
@@ -42,7 +43,7 @@ export default function GetStartedModal({ open, onClose }: GetStartedModalProps)
                             </div>
                             <h3 className="font-bold text-lg">Quick Check</h3>
                             <p className="text-sm text-muted-foreground">
-                                <span className="font-bold text-primary">Free</span> to run · ₹99 unlocks the fixes
+                                <span className="font-bold text-primary">Free</span> to run · ₹{SINGLE_CHECK_PRICE_RUPEES} unlocks the fixes
                             </p>
                             <p className="text-xs text-muted-foreground">
                                 No login required • Instant results

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { SINGLE_CHECK_PRICE_RUPEES } from '@/lib/pricing';
 
 export const metadata: Metadata = {
     title: 'Terms of Service — InvoiceCheck.in',
@@ -61,7 +62,7 @@ export default function TermsPage() {
                 <h2>4. Pricing and Payments</h2>
                 <ul>
                     <li>
-                        <strong>Pay-per-check:</strong> ₹99 per invoice validation (for guest users
+                        <strong>Pay-per-check:</strong> ₹{SINGLE_CHECK_PRICE_RUPEES} per invoice validation (for guest users
                         after 3 free checks, or registered users without a subscription).
                     </li>
                     <li>

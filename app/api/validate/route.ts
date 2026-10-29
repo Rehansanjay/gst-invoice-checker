@@ -6,6 +6,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 import type { PostgrestError } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { invoiceDataSchema } from '@/lib/schemas';
+import { SINGLE_CHECK_PRICE_RUPEES } from '@/lib/pricing';
 
 const validateSchema = z.object({
     invoiceData: invoiceDataSchema,
@@ -24,13 +25,13 @@ export async function POST(request: NextRequest) {
         const { invoiceData } = result.data as { invoiceData: ParsedInvoice };
         const invoice = invoiceData;
 
-        // 1. Require Authentication — guests must use /api/quick-check (₹99)
+        // 1. Require Authentication — guests must use /api/quick-check (SINGLE_CHECK_PRICE_RUPEES)
         const supabase = await createSupabaseServerClient();
         const { data: { session } } = await supabase.auth.getSession();
 
         if (!session?.user) {
             return NextResponse.json({
-                error: 'Please log in or use Quick Check (₹99) for guest validation.',
+                error: `Please log in or use Quick Check (₹${SINGLE_CHECK_PRICE_RUPEES}) for guest validation.`,
                 code: 'auth_required'
             }, { status: 401 });
         }
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
         const validationResult = await validateInvoice(invoice);
 
         // 4. Deduct Credit & Save — ONLY for signed-in users.
-        //    Guest ₹99 checks go through /api/quick-check + /api/process-check — NOT saved here.
+        //    Guest quick-check checks go through /api/quick-check + /api/process-check — NOT saved here.
         let dbCheckId: string | null = null;
 
         if (userId) {
@@ -137,7 +138,7 @@ export async function POST(request: NextRequest) {
                 console.error('❌ Credit deduction or DB save threw exception:', error);
             }
         }
-        // Guest/₹99 checks are intentionally NOT saved here.
+        // Guest/quick-check checks are intentionally NOT saved here.
 
         return NextResponse.json({
             success: true,
