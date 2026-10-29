@@ -507,6 +507,7 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
                             onUnlock={handleUnlockReport}
                             isProcessing={isProcessing}
                             invoiceTotal={invoiceDataForPayment?.invoiceTotalAmount}
+                            taxAmount={invoiceDataForPayment?.totalTaxAmount}
                         />
                     </div>
                     <div className="mx-auto mt-6 w-full max-w-3xl">

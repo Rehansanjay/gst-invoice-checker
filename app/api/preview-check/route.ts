@@ -7,6 +7,7 @@ import { checkRateLimit } from '@/lib/rateLimit';
 import { invoiceDataSchema } from '@/lib/schemas';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import type { PostgrestError } from '@supabase/supabase-js';
+import { SAMPLE_INVOICE } from '@/lib/sample-invoice';
 
 const validateSchema = z.object({
     invoiceData: invoiceDataSchema,
@@ -49,6 +50,15 @@ async function saveGuestCheck(
         ? invoiceData.invoiceDate
         : null;
 
+    // The homepage's "test with a sample invoice" button (#70) submits this
+    // exact constant straight through this same preview flow, so without a
+    // marker these runs are indistinguishable from a real upload when
+    // querying `checks`. Matched on invoice number alone: it's a fixed,
+    // distinctive value ('INV-2026-0847') that only this constant ever
+    // produces, and reusing the existing `utm_source` column needs no schema
+    // change or new request field.
+    const isSampleInvoice = invoiceData.invoiceNumber === SAMPLE_INVOICE.invoiceNumber;
+
     const insertAttempt: Record<string, unknown> = {
         check_type: 'quick',
         user_id: null,
@@ -71,6 +81,7 @@ async function saveGuestCheck(
         score_breakdown: validationResult.scoreBreakdown,
         processing_time_ms: validationResult.processingTimeMs,
         payment_status: 'pending',
+        utm_source: isSampleInvoice ? 'sample_invoice' : null,
     };
 
     let dbError: PostgrestError | null = null;
