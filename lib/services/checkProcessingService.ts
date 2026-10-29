@@ -1,6 +1,7 @@
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { validateInvoice } from '@/lib/services/validationService';
 import { sendEmailReport } from '@/lib/emailService';
+import { getGstinStatus } from '@/lib/services/gstinStatusService';
 
 export async function processInvoiceCheck(
     checkId: string,
@@ -77,6 +78,17 @@ export async function processInvoiceCheck(
     const startTime = Date.now();
     const validationResult = await validateInvoice(invoiceData);
     const processingTime = Date.now() - startTime;
+
+    // 5b. Live GSTIN status for the supplier — paid report only, never the
+    // free preview. Best-effort: getGstinStatus never throws, and a missing
+    // result here must never stop the report from being saved and sent.
+    if (invoiceData.supplierGSTIN) {
+        try {
+            validationResult.supplierGstinStatus = await getGstinStatus(invoiceData.supplierGSTIN);
+        } catch (err) {
+            console.error('[ProcessingService] GSTIN status lookup failed (non-blocking):', err);
+        }
+    }
 
     // 6. Save Results
     await supabaseAdmin

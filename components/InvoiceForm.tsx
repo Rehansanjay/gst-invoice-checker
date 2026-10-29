@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
 import { ParsedInvoice, LineItem, VALID_GST_RATES, InvoiceType, INVOICE_TYPE_LABELS, STATE_CODE_NAMES, VALID_STATE_CODES } from '@/types';
+import { SINGLE_CHECK_PRICE_RUPEES } from '@/lib/pricing';
 
 // ── GSTIN validation regex ──────────────────────────────────────────────────
 const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
@@ -784,12 +785,12 @@ export default function InvoiceForm({
                     <span className="text-green-800 font-medium">
                         {/* Said "3 free checks — no signup needed", which a guest reads as
                             a free report. The guest flow returns a preview: one issue shown,
-                            the rest locked behind ₹99. Ten guests in 28 days filled the whole
-                            form on the back of that line and none of them paid. Promise the
-                            thing that is actually free. */}
+                            the rest locked behind the unlock price. Ten guests in 28 days filled
+                            the whole form on the back of that line and none of them paid.
+                            Promise the thing that is actually free. */}
                         {freeChecksRemaining === MAX_FREE_CHECKS
-                            ? `${MAX_FREE_CHECKS} free checks — no signup needed. See what's wrong; ₹99 adds the fixes.`
-                            : `${freeChecksRemaining} free check${freeChecksRemaining !== 1 ? 's' : ''} remaining — ₹99 adds the fixes`}
+                            ? `${MAX_FREE_CHECKS} free checks — no signup needed. See what's wrong; ₹${SINGLE_CHECK_PRICE_RUPEES} adds the fixes.`
+                            : `${freeChecksRemaining} free check${freeChecksRemaining !== 1 ? 's' : ''} remaining — ₹${SINGLE_CHECK_PRICE_RUPEES} adds the fixes`}
                     </span>
                 </div>
             )}
@@ -815,7 +816,7 @@ export default function InvoiceForm({
                             <Sparkles className="w-4 h-4 mr-2" />
                             {/* "Validate Invoice — Free" set the same expectation the badge did,
                                 at the exact moment of commitment. */}
-                            {submitLabel || (freeChecksRemaining > 0 ? 'Check Invoice Free' : 'Validate Invoice — ₹99')}
+                            {submitLabel || (freeChecksRemaining > 0 ? 'Check Invoice Free' : `Validate Invoice — ₹${SINGLE_CHECK_PRICE_RUPEES}`)}
                         </>
                     )}
                 </Button>
@@ -829,7 +830,7 @@ export default function InvoiceForm({
                         <div className="flex-1">
                             <p className="font-semibold text-blue-900 mb-1">You&apos;ve used your 3 free checks</p>
                             <p className="text-sm text-blue-800 mb-3">
-                                Create a free account and get your first full report free: every issue, with the fix. Or continue with ₹99/check.
+                                Create a free account and get your first full report free: every issue, with the fix. Or continue with ₹{SINGLE_CHECK_PRICE_RUPEES}/check.
                             </p>
                             <div className="flex flex-col sm:flex-row gap-2">
                                 <Link href="/signup" className="flex-1">
@@ -845,7 +846,7 @@ export default function InvoiceForm({
                                     onClick={handleSubmit}
                                     disabled={isSubmitting}
                                 >
-                                    Continue — ₹99
+                                    Continue — ₹{SINGLE_CHECK_PRICE_RUPEES}
                                 </Button>
                             </div>
                         </div>

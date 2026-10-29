@@ -18,7 +18,7 @@
 import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { CheckCircle2, XCircle, AlertTriangle, QrCode, Hash, Upload, ExternalLink, ArrowRight, Loader2 } from 'lucide-react';
-import { readGstin, GST_PORTAL_SEARCH_URL, type GstinReading } from '@/lib/gstin';
+import { readGstin, type GstinReading } from '@/lib/gstin';
 import { readEInvoiceQr, OFFICIAL_QR_VERIFIER_URL, type QrReading } from '@/lib/einvoiceQr';
 import { track } from '@/lib/analytics';
 import FeedbackPrompt from '@/components/FeedbackPrompt';
@@ -82,14 +82,20 @@ function Verdict({ good, title, children }: { good: boolean | 'warn'; title: str
 
 function PortalNote() {
     return (
-        <p className="text-[13px] leading-relaxed mt-3 p-3 rounded-lg" style={{ background: 'var(--warm-cream-dark)', color: 'var(--warm-charcoal-soft)' }}>
-            This proves the number is correctly formed, not that the business is active. To see the registered name and
-            whether the GSTIN is active or cancelled, search it on the{' '}
-            <a href={GST_PORTAL_SEARCH_URL} target="_blank" rel="noopener noreferrer" className="underline font-medium inline-flex items-center gap-0.5" style={{ color: 'var(--warm-accent)' }}>
-                GST portal <ExternalLink className="w-3 h-3" />
+        <div className="mt-3 rounded-lg p-3" style={{ background: 'var(--warm-cream-dark)' }}>
+            <p className="text-[13px] leading-relaxed" style={{ color: 'var(--warm-charcoal-soft)' }}>
+                Format &amp; checksum valid — this proves the number is correctly formed, not that the business is
+                active or what it is registered to sell.
+            </p>
+            <a
+                href="#full-check"
+                className="mt-2 inline-flex items-center gap-1 text-[13px] font-semibold underline-offset-4 hover:underline"
+                style={{ color: 'var(--warm-accent)' }}
+            >
+                Upload the full invoice above to check all 16 GST &amp; ITC compliance rules
+                <ArrowRight className="w-3 h-3" />
             </a>
-            .
-        </p>
+        </div>
     );
 }
 

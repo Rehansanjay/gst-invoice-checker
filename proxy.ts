@@ -40,7 +40,6 @@ function inMemoryCheck(key: string, limit: number, windowMs: number): boolean {
 // Routes to rate-limit and their limits
 const RATE_LIMITED_ROUTES: Record<string, { limit: number; windowMs: number }> = {
     '/api/quick-check': { limit: 5, windowMs: 60_000 },
-    '/api/payment': { limit: 5, windowMs: 60_000 },
     '/api/process-check': { limit: 10, windowMs: 60_000 },
     '/api/auth/login': { limit: 5, windowMs: 60_000 },       // brute-force protection
     '/api/auth/signup': { limit: 3, windowMs: 60_000 },      // spam account prevention

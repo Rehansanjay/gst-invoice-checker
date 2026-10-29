@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { SITE_URL, OG_IMAGE } from '@/lib/site';
 import { ALL_RULES } from '@/lib/services/validationRules';
+import { SINGLE_CHECK_PRICE_RUPEES } from '@/lib/pricing';
 
 /**
  * FAQ.
@@ -49,7 +50,7 @@ const FAQS: QA[] = [
     },
     {
         q: 'What does it cost?',
-        a: 'Running a check is free and needs no account — the tool validates the invoice and names every problem it finds without payment. ₹99 unlocks the full report for that invoice: the corrected values, and how to put each issue right. A batch upload is free to run as well. If you check often, credit packs bring the per-invoice cost down to ₹40, ₹30 or ₹25, and a practice pack of 250 checks works out at ₹20 each.',
+        a: `Running a check is free and needs no account — the tool validates the invoice and names every problem it finds without payment. ₹${SINGLE_CHECK_PRICE_RUPEES} unlocks the full report for that invoice: the corrected values, and how to put each issue right. A batch upload is free to run as well. If you check often, credit packs bring the per-invoice cost down to ₹40, ₹30 or ₹25, and a practice pack of 250 checks works out at ₹20 each.`,
     },
     {
         q: 'Does this replace my CA?',

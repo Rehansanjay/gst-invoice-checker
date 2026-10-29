@@ -4,6 +4,7 @@ import Razorpay from 'razorpay';
 import { z } from 'zod';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { invoiceDataSchema } from '@/lib/schemas';
+import { SINGLE_CHECK_PRICE_PAISE } from '@/lib/pricing';
 
 const quickCheckSchema = z.object({
     guestEmail: z.string().email().optional().or(z.literal('')).nullable(),
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
         let order;
         try {
             order = await razorpay.orders.create({
-                amount: 9900, // ₹99 in paisa
+                amount: SINGLE_CHECK_PRICE_PAISE,
                 currency: 'INR',
                 receipt: `quick_${Date.now()}`,
             });
@@ -157,7 +158,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             success: true,
             orderId: order.id,
-            amount: 9900,
+            amount: SINGLE_CHECK_PRICE_PAISE,
             checkId: check.id,
             paymentId: payment.id,
             razorpayKeyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,

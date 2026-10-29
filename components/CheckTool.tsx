@@ -21,6 +21,7 @@ import { ParsedInvoice, ValidationResult, PreviewResult } from '@/types';
 import { useAuth } from '@/lib/auth-context';
 import { track, trackPurchase } from '@/lib/analytics';
 import { SAMPLE_INVOICE } from '@/lib/sample-invoice';
+import { SINGLE_CHECK_PRICE_RUPEES } from '@/lib/pricing';
 import { toast } from 'sonner';
 import type { RazorpaySuccessResponse, RazorpayFailureResponse } from '@/types/razorpay';
 
@@ -369,14 +370,37 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
 
             setProcessingStep('Opening payment...');
 
+            // No guest phone is collected anywhere in this flow today, and a
+            // logged-in user's phone isn't loaded into `user` here either —
+            // so there is nothing real to prefill yet. `guestPhone` stays
+            // undefined and prefill.contact is only sent when it is set,
+            // never with a placeholder/fake number.
+            const guestPhone: string | undefined = undefined;
+
             const options = {
                 key: orderData.razorpayKeyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
                 amount: orderData.amount,
                 currency: 'INR',
                 name: 'InvoiceCheck.in',
-                description: 'GST Invoice Validation — ₹99',
+                description: `GST Invoice Validation — ₹${SINGLE_CHECK_PRICE_RUPEES}`,
                 image: 'https://invoicecheck.in/invoicecheck-logo.svg',
                 order_id: orderData.orderId,
+                prefill: guestPhone ? { contact: guestPhone } : undefined,
+                // Opens straight into UPI (QR / intent apps) — most guests are on
+                // mobile and already pay this way — while still listing cards,
+                // netbanking and wallets below it rather than hiding them.
+                config: {
+                    display: {
+                        blocks: {
+                            upi_block: {
+                                name: 'Pay via UPI',
+                                instruments: [{ method: 'upi' }],
+                            },
+                        },
+                        sequence: ['block.upi_block'],
+                        preferences: { show_default_blocks: true },
+                    },
+                },
 
                 handler: async function (response: RazorpaySuccessResponse) {
                     console.log('Payment success response:', response);
@@ -569,7 +593,7 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
                                 <p className="text-blue-700">
                                     Drop a PDF or photo on the left and the fields fill themselves. Check the
                                     values before submitting, and type anything the scan misreads.
-                                    Your free check tells you what&apos;s wrong with the invoice; the ₹99 report
+                                    Your free check tells you what&apos;s wrong with the invoice; the ₹{SINGLE_CHECK_PRICE_RUPEES} report
                                     adds how to fix each issue.
                                 </p>
                             </div>
@@ -716,7 +740,7 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
                                 told them the fourth check was free too -- the exact promise
                                 #67 was opened to stop making. Passing undefined lets the form
                                 say "Check Invoice Free" while checks remain and
-                                "Validate Invoice -- Rs 99" once they are gone. */}
+                                "Validate Invoice -- Rs 49" once they are gone. */}
                             <InvoiceForm
                                 onSubmit={handleSubmit}
                                 isAuthLoading={loading}

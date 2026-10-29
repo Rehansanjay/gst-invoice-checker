@@ -213,9 +213,9 @@ export default function LoginPage() {
 
                         {/* No-account path. Leads with free, not with the price:
                             /check runs the validation and names what is wrong
-                            without payment — ₹99 only unlocks the fixes. Asking
-                            for ₹99 here turned away visitors before they had
-                            seen the tool work. */}
+                            without payment — the unlock price only unlocks the
+                            fixes. Asking for it here turned away visitors
+                            before they had seen the tool work. */}
                         <div className="mt-6 p-4 rounded-xl text-center" style={{ background: 'var(--warm-bg-alt)' }}>
                             <p className="text-[14px] mb-2" style={{ color: 'var(--warm-charcoal)' }}>
                                 Just checking one invoice?

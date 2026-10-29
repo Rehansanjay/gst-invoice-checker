@@ -23,10 +23,18 @@ export interface RazorpayCheckoutOptions {
     description: string;
     image?: string;
     order_id: string;
-    prefill?: { name?: string; email?: string };
+    prefill?: { name?: string; email?: string; contact?: string };
     theme?: { color: string };
     handler: (response: RazorpaySuccessResponse) => void | Promise<void>;
     modal?: { ondismiss?: () => void };
+    /** Prioritises/reorders checkout method blocks — used to open straight into UPI. */
+    config?: {
+        display: {
+            blocks: Record<string, { name: string; instruments: { method: string }[] }>;
+            sequence: string[];
+            preferences?: { show_default_blocks?: boolean };
+        };
+    };
 }
 
 export interface RazorpayCheckout {

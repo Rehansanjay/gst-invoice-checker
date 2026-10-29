@@ -3,12 +3,13 @@
 import { PreviewResult } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Lock, Zap, AlertTriangle, AlertCircle, Info, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { SINGLE_CHECK_PRICE_RUPEES } from '@/lib/pricing';
 
 interface CheckResultPreviewProps {
     result: PreviewResult;
     onUnlock: () => void;
     isProcessing: boolean;
-    /** Invoice total, used to frame the ₹99 against what is actually at stake. */
+    /** Invoice total, used to frame the unlock price against what is actually at stake. */
     invoiceTotal?: number;
     /** Total tax on the invoice — the ITC amount the financial hook names. */
     taxAmount?: number;
@@ -96,8 +97,8 @@ export default function CheckResultPreview({
     const SeverityIcon = severity?.icon;
 
     const unlockLabel = isClean
-        ? 'Download Audit-Ready Verification PDF — ₹99 →'
-        : 'Unlock Full Error Report & Fix — ₹99 →';
+        ? `Download Audit-Ready Verification PDF — ₹${SINGLE_CHECK_PRICE_RUPEES} →`
+        : `Unlock Full Error Report & Fix — ₹${SINGLE_CHECK_PRICE_RUPEES} →`;
 
     return (
         <div className="mx-auto mt-8 w-full max-w-3xl space-y-6">

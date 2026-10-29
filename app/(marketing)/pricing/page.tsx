@@ -3,10 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Check, AlertTriangle, ShieldCheck, Zap, CreditCard, Star } from 'lucide-react';
 import PackagePurchaseButton from '@/components/PackagePurchaseButton';
 import ScrollRevealWrapper from '@/components/ScrollRevealWrapper';
+import { SINGLE_CHECK_PRICE_RUPEES } from '@/lib/pricing';
 
 export const metadata = {
-    title: 'Pricing — Free to Run, ₹99 for the Fixes | InvoiceCheck.in',
-    description: 'Running a GST invoice check is free. ₹99 unlocks the corrected values and the fixes. Credit packs from ₹399, or 250 checks for ₹4,999.',
+    title: `Pricing — Free to Run, ₹${SINGLE_CHECK_PRICE_RUPEES} for the Fixes | InvoiceCheck.in`,
+    description: `Running a GST invoice check is free. ₹${SINGLE_CHECK_PRICE_RUPEES} unlocks the corrected values and the fixes. Credit packs from ₹399, or 250 checks for ₹4,999.`,
     alternates: { canonical: '/pricing' },
 };
 
