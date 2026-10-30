@@ -13,6 +13,8 @@ interface CheckResultPreviewProps {
     invoiceTotal?: number;
     /** Total tax on the invoice — the ITC amount the financial hook names. */
     taxAmount?: number;
+    /** Extracted supplier GSTIN — shown with legal name/live status locked. */
+    supplierGstin?: string;
 }
 
 const SEVERITY_STYLES = {
@@ -69,6 +71,7 @@ export default function CheckResultPreview({
     isProcessing,
     invoiceTotal,
     taxAmount,
+    supplierGstin,
 }: CheckResultPreviewProps) {
     const {
         healthScore,
@@ -129,6 +132,13 @@ export default function CheckResultPreview({
                 </div>
             </div>
 
+            {supplierGstin && (
+                <LockedField
+                    label={`Supplier GSTIN: ${supplierGstin}`}
+                    hint={`Legal Name & Live Govt Active Status: 🔒 Locked (Included in ₹${SINGLE_CHECK_PRICE_RUPEES} Report)`}
+                />
+            )}
+
             {isClean ? (
                 /* ── Clean invoice — a paid hook, not a dead end ─────── */
                 <div className="space-y-4">
@@ -177,13 +187,16 @@ export default function CheckResultPreview({
                                 <span className={`text-xs font-bold uppercase tracking-wide ${severity.text}`}>
                                     {severity.label} Error #1
                                 </span>
-                                <span className="text-xs text-slate-400">·</span>
-                                <span className="text-xs font-medium text-slate-500">
-                                    {revealedIssue.category}
-                                </span>
                             </div>
 
-                            <h3 className="text-lg font-bold text-slate-900">{revealedIssue.title}</h3>
+                            {/* Category + severity only — the specific defect (title,
+                                e.g. "HSN Code Missing — Line 1") stays paid. Naming
+                                the category is enough to prove the check is real
+                                without handing over what's wrong. */}
+                            <h3 className="text-lg font-bold text-slate-900">
+                                {revealedIssue.severity === 'critical' ? 'Critical Issue' : 'Issue'} Found in
+                                Category: {revealedIssue.category}
+                            </h3>
 
                             <div className="relative mt-4 overflow-hidden rounded-xl border border-white/60 bg-white/50">
                                 <div aria-hidden className="select-none space-y-2 p-4 blur-sm">

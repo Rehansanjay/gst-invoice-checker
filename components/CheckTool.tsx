@@ -89,6 +89,10 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
     // pre-fill the "Edit Extracted Fields" drawer once results are shown.
     const [lastInvoiceData, setLastInvoiceData] = useState<ParsedInvoice | null>(null);
     const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
+    // The `checks` row id /api/preview-check already inserted for this guest
+    // run, if the save succeeded — reused by /api/quick-check on Unlock so it
+    // updates that row instead of inserting a second one for the same check.
+    const [previewCheckId, setPreviewCheckId] = useState<string | null>(null);
 
     // ── Freemium 3-check model (guest users only) ──
     // Owned here rather than inside InvoiceForm so it stays correct when an
@@ -114,6 +118,18 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
     const utmMedium = searchParams.get('utm_medium');
     const utmCampaign = searchParams.get('utm_campaign');
     const refCode = searchParams.get('ref');
+
+    // ── Owner's own test traffic ──────────────────────────────────────
+    // Lets the owner tag their own manual runs (?test=1, sticky via
+    // localStorage so a bookmarked link keeps tagging on later visits) so
+    // they never get mistaken for real guest activity in `checks`.
+    useEffect(() => {
+        if (searchParams.get('test') === '1') {
+            localStorage.setItem('ic_owner', '1');
+        }
+    }, [searchParams]);
+    const isOwnerTest = searchParams.get('test') === '1'
+        || (typeof window !== 'undefined' && localStorage.getItem('ic_owner') === '1');
 
     useEffect(() => {
         loadRazorpayScript();
@@ -286,7 +302,7 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
                 const response = await fetch('/api/preview-check', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ invoiceData }),
+                    body: JSON.stringify({ invoiceData, isOwnerTest }),
                 });
 
                 const data = await response.json();
@@ -296,6 +312,7 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
                 }
 
                 setPreviewResult(data.result);
+                setPreviewCheckId(data.checkId ?? null);
                 track('check_completed', {
                     flow,
                     issues: (data.result?.revealedIssue ? 1 : 0) + (data.result?.lockedIssues?.length ?? 0),
@@ -341,6 +358,10 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
             const requestBody = {
                 invoiceData: invoiceDataForPayment,
                 guestEmail: '',
+                // Reuses the row /api/preview-check already inserted, instead
+                // of /api/quick-check inserting a duplicate for the same check.
+                checkId: previewCheckId || undefined,
+                isOwnerTest,
                 // Attribution — pass through from URL params
                 utm_source: utmSource || undefined,
                 utm_medium: utmMedium || undefined,
@@ -473,6 +494,7 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
         setValidationResult(null);
         setPreviewResult(null);
         setInvoiceDataForPayment(null);
+        setPreviewCheckId(null);
     };
 
     const body = (
@@ -532,18 +554,24 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
                             isProcessing={isProcessing}
                             invoiceTotal={invoiceDataForPayment?.invoiceTotalAmount}
                             taxAmount={invoiceDataForPayment?.totalTaxAmount}
+                            supplierGstin={invoiceDataForPayment?.supplierGSTIN}
                         />
                     </div>
                     <div className="mx-auto mt-6 w-full max-w-3xl">
-                        {/* Only issue titles are sent — the email carries the
-                            same depth as the free tier, never the fixes. */}
+                        {/* Only issue titles/categories are sent — the email carries
+                            the same depth as the free tier, never the fixes. The
+                            revealed issue only ever had category+severity on the
+                            free tier (never a specific title), so it's named the
+                            same way here. */}
                         <EmailReportCapture
                             source="check"
                             summary={{
                                 invoiceNumber: invoiceDataForPayment?.invoiceNumber ?? '',
                                 healthScore: previewResult.healthScore,
                                 issueTitles: [
-                                    ...(previewResult.revealedIssue ? [previewResult.revealedIssue.title] : []),
+                                    ...(previewResult.revealedIssue
+                                        ? [`${previewResult.revealedIssue.severity === 'critical' ? 'Critical issue' : 'Issue'} in ${previewResult.revealedIssue.category}`]
+                                        : []),
                                     ...previewResult.lockedIssues.map((i) => i.title),
                                 ],
                             }}
