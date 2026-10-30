@@ -11,6 +11,10 @@ import { SAMPLE_INVOICE } from '@/lib/sample-invoice';
 
 const validateSchema = z.object({
     invoiceData: invoiceDataSchema,
+    // Set by the client when it detects ?test=1 or the ic_owner localStorage
+    // flag — lets the owner tag their own test runs so they don't get
+    // mistaken for real guest traffic when reading `checks`.
+    isOwnerTest: z.boolean().optional(),
 });
 
 const SEVERITY_ORDER: Record<ValidationIssue['severity'], number> = {
@@ -44,8 +48,9 @@ function pickRevealedIssue(issues: ValidationIssue[]): ValidationIssue | null {
 async function saveGuestCheck(
     invoiceData: ParsedInvoice,
     guestIp: string,
-    validationResult: ValidationResult
-): Promise<void> {
+    validationResult: ValidationResult,
+    isOwnerTest: boolean
+): Promise<string | null> {
     const invoiceDateValue = invoiceData.invoiceDate && invoiceData.invoiceDate.trim() !== ''
         ? invoiceData.invoiceDate
         : null;
@@ -58,6 +63,10 @@ async function saveGuestCheck(
     // produces, and reusing the existing `utm_source` column needs no schema
     // change or new request field.
     const isSampleInvoice = invoiceData.invoiceNumber === SAMPLE_INVOICE.invoiceNumber;
+
+    // Sample-invoice tagging takes priority since it's the more specific,
+    // always-reliable signal; owner_test is the owner's own manual testing.
+    const utmSource = isSampleInvoice ? 'sample_invoice' : isOwnerTest ? 'owner_test' : null;
 
     const insertAttempt: Record<string, unknown> = {
         check_type: 'quick',
@@ -81,16 +90,18 @@ async function saveGuestCheck(
         score_breakdown: validationResult.scoreBreakdown,
         processing_time_ms: validationResult.processingTimeMs,
         payment_status: 'pending',
-        utm_source: isSampleInvoice ? 'sample_invoice' : null,
+        utm_source: utmSource,
     };
 
     let dbError: PostgrestError | null = null;
+    let insertedId: string | null = null;
 
     for (let attempt = 0; attempt < 12; attempt++) {
         const res = await supabaseAdmin.from('checks').insert(insertAttempt).select('id').single();
 
         if (!res.error) {
             dbError = null;
+            insertedId = res.data?.id ?? null;
             break;
         }
 
@@ -112,6 +123,8 @@ async function saveGuestCheck(
     if (dbError) {
         console.error('❌ [preview-check] Guest check save failed:', JSON.stringify(dbError, null, 2));
     }
+
+    return insertedId;
 }
 
 export async function POST(request: NextRequest) {
@@ -136,7 +149,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Invalid input', details: result.error.format() }, { status: 400 });
         }
 
-        const { invoiceData } = result.data as { invoiceData: ParsedInvoice };
+        const { invoiceData, isOwnerTest } = result.data as { invoiceData: ParsedInvoice; isOwnerTest?: boolean };
 
         // Run validation logic
         const validationResult = await validateInvoice(invoiceData);
@@ -145,11 +158,15 @@ export async function POST(request: NextRequest) {
         // Previously this route had no DB side effects at all, so a guest who
         // finished a check and never unlocked left no record anywhere — no way
         // to know whether the invoice they checked was clean or broken, or what
-        // they uploaded. Saved best-effort and non-blocking: a DB hiccup here
-        // must never stop a visitor from seeing their free preview.
-        saveGuestCheck(invoiceData, ip, validationResult).catch((err) =>
-            console.error('[preview-check] Guest check save threw:', err)
-        );
+        // they uploaded. Awaited (unlike before) so the inserted row's id can
+        // be handed back to the client and reused by /api/quick-check instead
+        // of inserting a second row for the same check on Unlock — but a save
+        // failure still must never stop the visitor from seeing their free
+        // preview, so errors are caught and just mean no checkId is returned.
+        const checkId = await saveGuestCheck(invoiceData, ip, validationResult, !!isOwnerTest).catch((err) => {
+            console.error('[preview-check] Guest check save threw:', err);
+            return null;
+        });
 
         // ── Free tier: the #1 issue named but not explained ─────────────
         // Naming the single most severe issue (category + title) is what proves
@@ -163,13 +180,15 @@ export async function POST(request: NextRequest) {
         // Built as an explicit allowlist rather than by removing keys: if a new
         // sensitive field is ever added to ValidationIssue, this omits it by
         // default instead of leaking it until someone remembers to exclude it.
+        // `title` is deliberately NOT included — it already names the exact
+        // defect (e.g. "HSN Code Missing — Line 1"), which combined with the
+        // free health score handed over the whole answer for free.
         const revealedIssue: RevealedIssue | null = topIssue
             ? {
                 id: topIssue.id,
                 ruleId: topIssue.ruleId,
                 severity: topIssue.severity,
                 category: topIssue.category,
-                title: topIssue.title,
             }
             : null;
 
@@ -184,6 +203,11 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
             success: true,
+            // Returned alongside `result` (not inside it) so /api/quick-check
+            // can reuse this row on Unlock instead of inserting a duplicate.
+            // Null when the save above failed — the client falls back to the
+            // old insert-a-new-row behavior in that case.
+            checkId,
             result: {
                 healthScore: validationResult.healthScore,
                 riskLevel: validationResult.riskLevel,
@@ -196,7 +220,7 @@ export async function POST(request: NextRequest) {
                 totalCheckCount: ALL_RULES.length,
                 // Explicitly NOT returning:
                 // - the full issuesFound array (howToFix, impact, expected/found)
-                // - checksPassed detail, checkId, invoiceHash
+                // - checksPassed detail, invoiceHash
             },
         });
 

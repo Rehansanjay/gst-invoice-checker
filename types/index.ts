@@ -148,17 +148,18 @@ export interface LockedIssueSummary {
 }
 
 /**
- * The #1 issue, named but not explained. The visitor is told the category and
- * severity of the single most serious problem — enough to prove the check is
- * real — but not the description, location, what the invoice currently says
- * (`found`), what it should say (`expected`, `difference`), the GST law
- * reference, or how to correct it (`howToFix`). All of that is the paid
- * remedy. A clean invoice has no revealed issue at all.
+ * The #1 issue, named but not explained. The visitor is told only the
+ * category and severity of the single most serious problem — enough to
+ * prove the check is real — but not `title` (which already names the exact
+ * defect, e.g. "HSN Code Missing — Line 1"), the description, location, what
+ * the invoice currently says (`found`), what it should say (`expected`,
+ * `difference`), the GST law reference, or how to correct it (`howToFix`).
+ * All of that is the paid remedy. A clean invoice has no revealed issue at all.
  *
  * These fields are stripped server-side, not merely hidden in the UI — the
  * withheld values never reach the browser.
  */
-export type RevealedIssue = Pick<ValidationIssue, 'id' | 'ruleId' | 'severity' | 'category' | 'title'>;
+export type RevealedIssue = Pick<ValidationIssue, 'id' | 'ruleId' | 'severity' | 'category'>;
 
 /**
  * Free preview payload. One issue is revealed so the visitor can verify the tool
