@@ -144,7 +144,7 @@ export default function CheckResultPreview({
             {supplierGstin && (
                 <LockedField
                     label={`Supplier GSTIN: ${supplierGstin}`}
-                    hint={`Legal Name & Live Govt Active Status: 🔒 Locked (Included in ₹${SINGLE_CHECK_PRICE_RUPEES} Report)`}
+                    hint={`Full GSTIN Forensics (State, PAN, Entity Type, Checksum + Live Status When Available): 🔒 Locked (Included in ₹${SINGLE_CHECK_PRICE_RUPEES} Report)`}
                 />
             )}
 
@@ -319,8 +319,8 @@ export default function CheckResultPreview({
                         <>
                             <li className="flex items-start gap-2">
                                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
-                                Check if Seller GSTIN{supplierGstin ? ` (${supplierGstin})` : ''} is Active or
-                                Cancelled on Govt record
+                                Seller GSTIN forensics{supplierGstin ? ` (${supplierGstin})` : ''}: state, PAN,
+                                business type &amp; checksum — plus live Active/Cancelled status when available
                             </li>
                             <li className="flex items-start gap-2">
                                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />

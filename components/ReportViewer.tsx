@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { buildTallyPurchaseXml, buildPurchaseRegisterCsv, downloadTextFile } from '@/lib/invoiceExport';
+import { readGstin, GST_PORTAL_SEARCH_URL } from '@/lib/gstin';
 
 interface ReportViewerProps {
     result: ValidationResult;
@@ -21,6 +22,7 @@ interface ReportViewerProps {
 }
 
 export default function ReportViewer({ result, invoiceNumber = 'Invoice', invoiceData }: ReportViewerProps) {
+    const gstinReading = invoiceData?.supplierGSTIN ? readGstin(invoiceData.supplierGSTIN) : null;
     const criticalIssues = result.issuesFound.filter(i => i.severity === 'critical');
     const warningIssues = result.issuesFound.filter(i => i.severity === 'warning');
     const infoIssues = result.issuesFound.filter(i => i.severity === 'info');
@@ -258,35 +260,84 @@ export default function ReportViewer({ result, invoiceNumber = 'Invoice', invoic
             {/* Health Score */}
             <HealthScore score={result.healthScore} riskLevel={result.riskLevel} />
 
-            {/* Live GSTIN status — only rendered once a provider is actually
-                configured and a lookup succeeded; silent otherwise rather than
-                showing a placeholder for a feature that is not live yet. */}
-            {result.supplierGstinStatus && result.supplierGstinStatus.source !== 'offline' && (
-                <Card className={`p-4 flex items-start gap-3 ${
-                    result.supplierGstinStatus.status === 'Active'
-                        ? 'border-emerald-200 bg-emerald-50/60'
-                        : result.supplierGstinStatus.status === 'Unknown'
-                            ? 'border-slate-200 bg-slate-50/60'
-                            : 'border-red-200 bg-red-50/60'
-                }`}>
-                    {result.supplierGstinStatus.status === 'Active' ? (
-                        <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-                    ) : result.supplierGstinStatus.status === 'Unknown' ? (
-                        <ShieldQuestion className="w-5 h-5 text-slate-500 shrink-0 mt-0.5" />
-                    ) : (
-                        <ShieldAlert className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-                    )}
-                    <div>
-                        <p className="font-semibold text-sm">
-                            Supplier GSTIN: {result.supplierGstinStatus.status ?? 'Unknown'}
-                            {result.supplierGstinStatus.taxpayerType && result.supplierGstinStatus.taxpayerType !== 'Unknown' && (
-                                <span className="text-muted-foreground font-normal"> · {result.supplierGstinStatus.taxpayerType}</span>
-                            )}
-                        </p>
-                        {result.supplierGstinStatus.legalName && (
-                            <p className="text-sm text-muted-foreground">{result.supplierGstinStatus.legalName}</p>
-                        )}
+            {/* Seller GSTIN Forensics — the offline structural read (state,
+                PAN, entity type, mod-36 checksum) always renders once a
+                supplier GSTIN is on hand, since that's true the moment the
+                invoice is parsed. The live Active/Cancelled/legal-name layer
+                only joins in once GSTIN_API_KEY + GSTIN_API_PROVIDER are set
+                and a lookup actually succeeded — until then this says so
+                plainly instead of silently showing nothing, which is what a
+                paying guest saw before this block existed. */}
+            {gstinReading && (
+                <Card className="p-4 space-y-3 border-slate-200 bg-slate-50/60">
+                    <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                        🔎 Seller GSTIN Forensics
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                            <p className="text-xs uppercase tracking-wide text-slate-400">Registered State</p>
+                            <p className="font-medium text-slate-800">
+                                {gstinReading.stateName ?? 'Unknown'}{gstinReading.stateCode ? ` (${gstinReading.stateCode})` : ''}
+                            </p>
+                        </div>
+                        <div>
+                            <p className="text-xs uppercase tracking-wide text-slate-400">Seller PAN</p>
+                            <p className="font-medium text-slate-800">{gstinReading.pan ?? '—'}</p>
+                        </div>
+                        <div>
+                            <p className="text-xs uppercase tracking-wide text-slate-400">Business Entity Type</p>
+                            <p className="font-medium text-slate-800">{gstinReading.holderType ?? 'Unknown'}</p>
+                        </div>
+                        <div>
+                            <p className="text-xs uppercase tracking-wide text-slate-400">Mod-36 Checksum</p>
+                            <p className={`font-medium flex items-center gap-1 ${gstinReading.valid ? 'text-emerald-700' : 'text-red-700'}`}>
+                                {gstinReading.valid ? (
+                                    <ShieldCheck className="w-3.5 h-3.5" />
+                                ) : (
+                                    <ShieldAlert className="w-3.5 h-3.5" />
+                                )}
+                                {gstinReading.valid ? 'Valid' : 'Invalid'}
+                            </p>
+                        </div>
                     </div>
+
+                    {result.supplierGstinStatus && result.supplierGstinStatus.source !== 'offline' ? (
+                        <div className="pt-3 border-t border-slate-200 flex items-start gap-2">
+                            {result.supplierGstinStatus.status === 'Active' ? (
+                                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                            ) : result.supplierGstinStatus.status === 'Unknown' ? (
+                                <ShieldQuestion className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
+                            ) : (
+                                <ShieldAlert className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                            )}
+                            <div>
+                                <p className="text-sm font-semibold text-slate-900">
+                                    Live status: {result.supplierGstinStatus.status ?? 'Unknown'}
+                                    {result.supplierGstinStatus.taxpayerType && result.supplierGstinStatus.taxpayerType !== 'Unknown' && (
+                                        <span className="text-muted-foreground font-normal"> · {result.supplierGstinStatus.taxpayerType}</span>
+                                    )}
+                                </p>
+                                {result.supplierGstinStatus.legalName && (
+                                    <p className="text-sm text-muted-foreground">{result.supplierGstinStatus.legalName}</p>
+                                )}
+                            </div>
+                        </div>
+                    ) : (
+                        <p className="pt-3 border-t border-slate-200 text-xs text-slate-500">
+                            {gstinReading.valid
+                                ? 'This GSTIN could have been issued — '
+                                : 'This GSTIN fails its own checksum — it was mistyped or made up. '}
+                            Live Active/Cancelled status and legal name from the government GST network aren&apos;t connected yet, so this is structural verification only.{' '}
+                            <a
+                                href={GST_PORTAL_SEARCH_URL}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="underline"
+                            >
+                                Check live status on the GST portal →
+                            </a>
+                        </p>
+                    )}
                 </Card>
             )}
 
