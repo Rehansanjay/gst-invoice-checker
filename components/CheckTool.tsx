@@ -532,7 +532,7 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
                         </div>
                     )}
                     <div data-clarity-mask="true">
-                        <ReportViewer result={validationResult} />
+                        <ReportViewer result={validationResult} invoiceData={lastInvoiceData ?? undefined} />
                     </div>
                     <div className="mx-auto mt-6 w-full max-w-3xl">
                         <FeedbackPrompt tool="check" />
@@ -555,6 +555,7 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
                             invoiceTotal={invoiceDataForPayment?.invoiceTotalAmount}
                             taxAmount={invoiceDataForPayment?.totalTaxAmount}
                             supplierGstin={invoiceDataForPayment?.supplierGSTIN}
+                            buyerGstin={invoiceDataForPayment?.buyerGSTIN || undefined}
                         />
                     </div>
                     <div className="mx-auto mt-6 w-full max-w-3xl">
@@ -575,8 +576,8 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
                                     ...previewResult.lockedIssues.map((i) => i.title),
                                 ],
                             }}
-                            heading="Email me this result"
-                            subheading="Send the findings to your inbox so you have them to hand."
+                            heading="Checking on your phone?"
+                            subheading="Email this check link to open on your office desktop (free)."
                         />
                         <div className="mt-4">
                             <FeedbackPrompt tool="check" />

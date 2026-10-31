@@ -1,21 +1,26 @@
 'use client';
 
 import { useState } from 'react';
-import { ValidationResult } from '@/types';
+import { ParsedInvoice, ValidationResult } from '@/types';
 import HealthScore from './HealthScore';
 import IssueCard from './IssueCard';
 import { Card } from '@/components/ui/card';
-import { CheckCircle2, Download, Share2, Mail, RefreshCw, Loader2, X, ShieldCheck, ShieldAlert, ShieldQuestion } from 'lucide-react';
+import { CheckCircle2, Download, FileSpreadsheet, FileCode2, Share2, Mail, RefreshCw, Loader2, X, ShieldCheck, ShieldAlert, ShieldQuestion } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { buildTallyPurchaseXml, buildPurchaseRegisterCsv, downloadTextFile } from '@/lib/invoiceExport';
 
 interface ReportViewerProps {
     result: ValidationResult;
     invoiceNumber?: string;
+    /** Supplier/buyer/line-item data for the Tally XML + Purchase Register CSV
+     * exports below. Optional because older saved reports may not have it on
+     * hand — the export buttons are simply hidden when it's missing. */
+    invoiceData?: ParsedInvoice;
 }
 
-export default function ReportViewer({ result, invoiceNumber = 'Invoice' }: ReportViewerProps) {
+export default function ReportViewer({ result, invoiceNumber = 'Invoice', invoiceData }: ReportViewerProps) {
     const criticalIssues = result.issuesFound.filter(i => i.severity === 'critical');
     const warningIssues = result.issuesFound.filter(i => i.severity === 'warning');
     const infoIssues = result.issuesFound.filter(i => i.severity === 'info');
@@ -204,6 +209,20 @@ export default function ReportViewer({ result, invoiceNumber = 'Invoice' }: Repo
         }
     };
 
+    const handleDownloadTallyXml = () => {
+        if (!invoiceData) return;
+        const xml = buildTallyPurchaseXml(invoiceData);
+        downloadTextFile(`tally-purchase-${invoiceNumber || result.checkId}.xml`, xml, 'application/xml');
+        toast.success('Tally Prime XML downloaded!');
+    };
+
+    const handleDownloadCsv = () => {
+        if (!invoiceData) return;
+        const csv = buildPurchaseRegisterCsv(invoiceData, result);
+        downloadTextFile(`purchase-register-${invoiceNumber || result.checkId}.csv`, csv, 'text/csv');
+        toast.success('Purchase Register CSV downloaded!');
+    };
+
     const handleShareWhatsApp = () => {
         const riskEmoji = result.riskLevel === 'low' ? '✅' : result.riskLevel === 'medium' ? '⚠️' : '🔴';
         const text = encodeURIComponent(
@@ -383,7 +402,7 @@ export default function ReportViewer({ result, invoiceNumber = 'Invoice' }: Repo
             )}
 
             {/* Footer Actions */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <Button className="w-full" variant="outline" onClick={handleDownloadPDF} disabled={isDownloading}>
                     {isDownloading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
                     Download PDF
@@ -394,6 +413,16 @@ export default function ReportViewer({ result, invoiceNumber = 'Invoice' }: Repo
                 <Button className="w-full" variant="outline" onClick={() => setShowEmailModal(true)}>
                     <Mail className="w-4 h-4 mr-2" /> Email Report
                 </Button>
+                {invoiceData && (
+                    <Button className="w-full" variant="outline" onClick={handleDownloadTallyXml}>
+                        <FileCode2 className="w-4 h-4 mr-2" /> Tally Prime XML
+                    </Button>
+                )}
+                {invoiceData && (
+                    <Button className="w-full" variant="outline" onClick={handleDownloadCsv}>
+                        <FileSpreadsheet className="w-4 h-4 mr-2" /> Purchase Register CSV
+                    </Button>
+                )}
                 <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => window.location.reload()}>
                     <RefreshCw className="w-4 h-4 mr-2" /> Check Another
                 </Button>

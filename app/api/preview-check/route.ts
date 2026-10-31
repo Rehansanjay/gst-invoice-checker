@@ -151,6 +151,18 @@ export async function POST(request: NextRequest) {
 
         const { invoiceData, isOwnerTest } = result.data as { invoiceData: ParsedInvoice; isOwnerTest?: boolean };
 
+        // The manual form already blocks this client-side, but this route is
+        // also reachable directly — without this, a ₹0/blank submission still
+        // passes the schema (every numeric field there is `min(0)`) and saves
+        // a meaningless `checks` row.
+        const hasRealLineItem = invoiceData.lineItems.some((item) => item.taxableAmount > 0);
+        if (!hasRealLineItem || invoiceData.invoiceTotalAmount <= 0) {
+            return NextResponse.json(
+                { error: 'Invoice needs at least one line item with an amount greater than ₹0.' },
+                { status: 400 }
+            );
+        }
+
         // Run validation logic
         const validationResult = await validateInvoice(invoiceData);
 

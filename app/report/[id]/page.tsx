@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import ReportViewer from '@/components/ReportViewer';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
-import { ValidationResult } from '@/types';
+import { ParsedInvoice, ValidationResult } from '@/types';
 
 export default function ReportPage() {
     const params = useParams();
@@ -20,6 +20,7 @@ export default function ReportPage() {
     const [report, setReport] = useState<{
         validationResult: ValidationResult;
         invoiceNumber: string;
+        invoiceData?: ParsedInvoice;
     } | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -44,7 +45,7 @@ export default function ReportPage() {
         try {
             const { data, error: dbError } = await supabase
                 .from('checks')
-                .select('id, invoice_number, validation_result, parsed_data, user_id')
+                .select('id, invoice_number, validation_result, parsed_data, supplier_gstin, buyer_gstin, line_items, invoice_date, invoice_total_amount, taxable_total_amount, total_tax_amount, user_id')
                 .eq('id', checkId)
                 .single();
 
@@ -68,9 +69,29 @@ export default function ReportPage() {
                 return;
             }
 
+            // `parsed_data` is the authoritative snapshot when present; older
+            // rows predate that column, so fall back to reconstructing from
+            // the individual columns rather than hiding the export buttons
+            // for every report saved before it existed.
+            const invoiceData: ParsedInvoice | undefined = data.parsed_data ?? (
+                data.supplier_gstin
+                    ? {
+                        invoiceNumber: data.invoice_number || '',
+                        invoiceDate: data.invoice_date || '',
+                        supplierGSTIN: data.supplier_gstin,
+                        buyerGSTIN: data.buyer_gstin || '',
+                        lineItems: data.line_items || [],
+                        taxableTotalAmount: data.taxable_total_amount || 0,
+                        totalTaxAmount: data.total_tax_amount || 0,
+                        invoiceTotalAmount: data.invoice_total_amount || 0,
+                    }
+                    : undefined
+            );
+
             setReport({
                 validationResult,
                 invoiceNumber: data.invoice_number || 'Invoice',
+                invoiceData,
             });
         } catch (err) {
             setError('Failed to load report. Please try again.');
@@ -156,6 +177,7 @@ export default function ReportPage() {
                 <ReportViewer
                     result={report.validationResult}
                     invoiceNumber={report.invoiceNumber}
+                    invoiceData={report.invoiceData}
                 />
             </main>
         </div>
