@@ -297,6 +297,13 @@ export default function InvoiceForm({
         if (!formData.invoiceDate) errors.push('Invoice Date is required');
         if (formData.supplierGSTIN.length !== 15) errors.push('Supplier GSTIN must be exactly 15 characters');
         if (formData.buyerGSTIN && formData.buyerGSTIN.length !== 15) errors.push('Buyer GSTIN must be exactly 15 characters (or leave empty)');
+        // Without this, a user can submit with every line item still at its
+        // ₹0 default (never having typed a description or rate) — the form
+        // had no field that caught that, so these reached /api/preview-check
+        // as valid-looking but blank ₹0 checks.
+        if (!lineItems.some(i => i.description && i.taxableAmount > 0)) {
+            errors.push('At least one line item needs a description and an amount greater than ₹0');
+        }
         if (errors.length > 0) {
             alert(errors.join('\n'));
             return false;

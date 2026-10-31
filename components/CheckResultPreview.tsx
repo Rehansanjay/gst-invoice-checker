@@ -15,6 +15,10 @@ interface CheckResultPreviewProps {
     taxAmount?: number;
     /** Extracted supplier GSTIN — shown with legal name/live status locked. */
     supplierGstin?: string;
+    /** Buyer GSTIN, when present — null/empty means a B2C guest who doesn't
+     * care about ITC/GSTR-2B language, so the paywall copy is framed
+     * differently. */
+    buyerGstin?: string;
 }
 
 const SEVERITY_STYLES = {
@@ -72,6 +76,7 @@ export default function CheckResultPreview({
     invoiceTotal,
     taxAmount,
     supplierGstin,
+    buyerGstin,
 }: CheckResultPreviewProps) {
     const {
         healthScore,
@@ -83,25 +88,29 @@ export default function CheckResultPreview({
     } = result;
 
     const totalIssues = scoreBreakdown?.totalIssues ?? 0;
-    const criticalCount = scoreBreakdown?.criticalCount ?? 0;
     const lockedCount = lockedIssues?.length ?? 0;
+    const isB2B = !!buyerGstin;
 
     // A clean invoice is a real outcome, not a failed upsell — say so plainly
     // rather than manufacturing alarm.
     const isClean = totalIssues === 0;
 
+    // Any real issue means the invoice is not verified, even if every issue
+    // is low-severity — a reassuring "Low Risk" headline here is what let
+    // people leave without paying OR leaving an email, since the free score
+    // already told them "you're basically fine."
     const headline = isClean
         ? 'No compliance issues found'
-        : criticalCount > 0
-            ? `${criticalCount} critical ${criticalCount === 1 ? 'problem' : 'problems'} on this invoice`
-            : `${totalIssues} ${totalIssues === 1 ? 'issue' : 'issues'} on this invoice`;
+        : `⚠️ Audit Incomplete: ${totalIssues} ${totalIssues === 1 ? 'Issue' : 'Issues'} Flagged + Seller Live GSTIN Status Unverified`;
 
     const severity = revealedIssue ? SEVERITY_STYLES[revealedIssue.severity] : null;
     const SeverityIcon = severity?.icon;
 
     const unlockLabel = isClean
         ? `Download Audit-Ready Verification PDF — ₹${SINGLE_CHECK_PRICE_RUPEES} →`
-        : `Unlock Full Error Report & Fix — ₹${SINGLE_CHECK_PRICE_RUPEES} →`;
+        : isB2B
+            ? `Protect ${taxAmount !== undefined && taxAmount > 0 ? formatINR(taxAmount) : 'Your'} Input Tax Credit — ₹${SINGLE_CHECK_PRICE_RUPEES} →`
+            : `Verify Seller Authenticity & Full Bill Report — ₹${SINGLE_CHECK_PRICE_RUPEES} →`;
 
     return (
         <div className="mx-auto mt-8 w-full max-w-3xl space-y-6">
@@ -117,7 +126,7 @@ export default function CheckResultPreview({
                     <div className="text-right">
                         <div
                             className={`text-4xl font-bold tabular-nums ${
-                                healthScore >= 80
+                                isClean
                                     ? 'text-emerald-600'
                                     : healthScore >= 50
                                         ? 'text-amber-600'
@@ -135,7 +144,7 @@ export default function CheckResultPreview({
             {supplierGstin && (
                 <LockedField
                     label={`Supplier GSTIN: ${supplierGstin}`}
-                    hint={`Legal Name & Live Govt Active Status: 🔒 Locked (Included in ₹${SINGLE_CHECK_PRICE_RUPEES} Report)`}
+                    hint={`Full GSTIN Forensics (State, PAN, Entity Type, Checksum + Live Status When Available): 🔒 Locked (Included in ₹${SINGLE_CHECK_PRICE_RUPEES} Report)`}
                 />
             )}
 
@@ -252,7 +261,7 @@ export default function CheckResultPreview({
 
             {/* ── Unlock ──────────────────────────────────────────────── */}
             <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm sm:p-8">
-                {!isClean && invoiceTotal !== undefined && invoiceTotal > 0 && (
+                {!isClean && isB2B && invoiceTotal !== undefined && invoiceTotal > 0 && (
                     <p className="mb-4 text-sm text-slate-600">
                         This invoice is worth{' '}
                         <span className="font-bold text-slate-900">{formatINR(invoiceTotal)}</span>.
@@ -276,21 +285,54 @@ export default function CheckResultPreview({
                     )}
                 </Button>
 
+                {/* B2C guests (no buyer GSTIN) don't care about ITC/GSTR-2B —
+                    all our real post-#74 checks so far were someone checking
+                    a personal gadget bill, not a firm's purchase register. */}
                 <ul className="mx-auto mt-5 max-w-sm space-y-2 text-left text-sm text-slate-600">
-                    {!isClean && (
-                        <li className="flex items-start gap-2">
-                            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
-                            Every issue explained, with the corrected value
-                        </li>
+                    {isClean ? (
+                        <>
+                            <li className="flex items-start gap-2">
+                                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                                Step-by-step fixes you can apply in Tally or Zoho
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                                Downloadable PDF report for your buyer or CA
+                            </li>
+                        </>
+                    ) : isB2B ? (
+                        <>
+                            <li className="flex items-start gap-2">
+                                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                                Every issue explained, with the corrected value
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                                Export validated invoice to Tally Prime XML &amp; Purchase Register CSV
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                                Downloadable PDF report for your buyer or CA
+                            </li>
+                        </>
+                    ) : (
+                        <>
+                            <li className="flex items-start gap-2">
+                                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                                Seller GSTIN forensics{supplierGstin ? ` (${supplierGstin})` : ''}: state, PAN,
+                                business type &amp; checksum — plus live Active/Cancelled status when available
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                                Reveal the exact error{revealedIssue ? ` in ${revealedIssue.category}` : ''} that
+                                can invalidate a warranty or tax claim
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                                Downloadable bill verification PDF
+                            </li>
+                        </>
                     )}
-                    <li className="flex items-start gap-2">
-                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
-                        Step-by-step fixes you can apply in Tally or Zoho
-                    </li>
-                    <li className="flex items-start gap-2">
-                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
-                        Downloadable PDF report for your buyer or CA
-                    </li>
                 </ul>
 
                 <p className="mt-5 text-xs text-slate-400">
