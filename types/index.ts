@@ -145,6 +145,10 @@ export interface LockedIssueSummary {
   severity: 'critical' | 'warning' | 'info';
   category: string;
   title: string;
+  /** Present when this came from the batch flow's full-fidelity internal
+   * result — used to bucket the category/root-cause title before unlock.
+   * Absent (and never sent) on the single-check free preview. */
+  ruleId?: string;
 }
 
 /**
@@ -194,6 +198,14 @@ export interface BulkInvoiceResult {
   criticalCount: number;
   warningCount: number;
   issues: LockedIssueSummary[];
+  /**
+   * The original parsed invoice (line items, GSTINs, tax split) — present
+   * only once a batch is unlocked, so a Tally Prime voucher XML can be
+   * built client-side. Absent from the free response: the guest's own
+   * upload data isn't sensitive, but handing it back pre-unlock would let
+   * anyone build the paid Tally export for free.
+   */
+  invoiceData?: ParsedInvoice;
 }
 
 /**
@@ -208,6 +220,10 @@ export interface BulkInvoiceResult {
  */
 export interface BulkRootCause {
   id: string;
+  /** The rule that produced this defect — used to bucket `issueTitle` into
+   * a broad compliance-risk category in the free response, the same way
+   * single-issue previews are bucketed. Never shown directly pre-unlock. */
+  ruleId: string;
   /**
    * counterparty — every affected invoice is to the same buyer GSTIN.
    * systemic    — spread across several buyers, so it looks like a template

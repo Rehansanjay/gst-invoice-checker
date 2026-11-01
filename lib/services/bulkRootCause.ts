@@ -42,6 +42,7 @@ type Occurrence = {
     buyerGSTIN: string;
     amount: number;
     category: string;
+    ruleId: string;
     severity: BulkRootCause['severity'];
 };
 
@@ -63,6 +64,7 @@ export function detectRootCauses(results: BulkInvoiceResult[]): BulkRootCause[] 
                 buyerGSTIN: (inv.buyerGSTIN || '').toUpperCase(),
                 amount: inv.invoiceTotalAmount,
                 category: issue.category,
+                ruleId: issue.ruleId ?? '',
                 severity: issue.severity,
             });
             byTitle.set(title, list);
@@ -72,7 +74,7 @@ export function detectRootCauses(results: BulkInvoiceResult[]): BulkRootCause[] 
     const causes: BulkRootCause[] = [];
 
     for (const [title, occurrences] of byTitle) {
-        const { category, severity } = occurrences[0];
+        const { category, ruleId, severity } = occurrences[0];
 
         // ── Counterparty: same defect, same buyer ──────────────────────
         const byBuyer = new Map<string, Occurrence[]>();
@@ -91,6 +93,7 @@ export function detectRootCauses(results: BulkInvoiceResult[]): BulkRootCause[] 
                 key: gstin,
                 issueTitle: title,
                 category,
+                ruleId,
                 severity,
                 invoiceCount: group.length,
                 invoiceNumbers: group.map((o) => o.invoiceNumber),
@@ -111,6 +114,7 @@ export function detectRootCauses(results: BulkInvoiceResult[]): BulkRootCause[] 
                 key: '',
                 issueTitle: title,
                 category,
+                ruleId,
                 severity,
                 invoiceCount: occurrences.length,
                 invoiceNumbers: occurrences.map((o) => o.invoiceNumber),

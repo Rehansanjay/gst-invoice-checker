@@ -25,13 +25,11 @@ function tallyDate(isoDate: string): string {
 }
 
 /**
- * Best-effort Tally Prime "Purchase" voucher, one ledger entry per line item
- * plus one per tax type actually used on the invoice. Field names follow
- * Tally's documented XML import structure, but every Tally install has its
- * own ledger/stock-item names — this is a starting point to import and
- * remap, not a guaranteed drop-in.
+ * One <TALLYMESSAGE> voucher block — the part that's specific to a single
+ * invoice. Shared by the single-invoice export and the batch export below,
+ * so both wrap the identical voucher structure in their own envelope.
  */
-export function buildTallyPurchaseXml(invoice: ParsedInvoice): string {
+function buildTallyVoucherBlock(invoice: ParsedInvoice): string {
     const supplier = invoice.supplierName || invoice.supplierGSTIN;
     const totalCgst = invoice.lineItems.reduce((sum, i) => sum + i.cgst, 0);
     const totalSgst = invoice.lineItems.reduce((sum, i) => sum + i.sgst, 0);
@@ -63,17 +61,7 @@ export function buildTallyPurchaseXml(invoice: ParsedInvoice): string {
           <AMOUNT>-${invoice.invoiceTotalAmount.toFixed(2)}</AMOUNT>
         </ALLLEDGERENTRIES.LIST>`;
 
-    return `<?xml version="1.0" encoding="UTF-8"?>
-<ENVELOPE>
-  <HEADER>
-    <TALLYREQUEST>Import Data</TALLYREQUEST>
-  </HEADER>
-  <BODY>
-    <IMPORTDATA>
-      <REQUESTDESC>
-        <REPORTNAME>Vouchers</REPORTNAME>
-      </REQUESTDESC>
-      <REQUESTDATA>
+    return `
         <TALLYMESSAGE xmlns:UDF="TallyUDF">
           <VOUCHER VCHTYPE="Purchase" ACTION="Create">
             <DATE>${tallyDate(invoice.invoiceDate)}</DATE>
@@ -85,11 +73,46 @@ export function buildTallyPurchaseXml(invoice: ParsedInvoice): string {
             <NARRATION>Imported from InvoiceCheck.in — GSTIN ${xmlEscape(invoice.supplierGSTIN)}</NARRATION>
             ${partyEntry}${itemEntries}${taxEntries}
           </VOUCHER>
-        </TALLYMESSAGE>
+        </TALLYMESSAGE>`;
+}
+
+function wrapTallyEnvelope(voucherBlocks: string): string {
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<ENVELOPE>
+  <HEADER>
+    <TALLYREQUEST>Import Data</TALLYREQUEST>
+  </HEADER>
+  <BODY>
+    <IMPORTDATA>
+      <REQUESTDESC>
+        <REPORTNAME>Vouchers</REPORTNAME>
+      </REQUESTDESC>
+      <REQUESTDATA>${voucherBlocks}
       </REQUESTDATA>
     </IMPORTDATA>
   </BODY>
 </ENVELOPE>`;
+}
+
+/**
+ * Best-effort Tally Prime "Purchase" voucher, one ledger entry per line item
+ * plus one per tax type actually used on the invoice. Field names follow
+ * Tally's documented XML import structure, but every Tally install has its
+ * own ledger/stock-item names — this is a starting point to import and
+ * remap, not a guaranteed drop-in.
+ */
+export function buildTallyPurchaseXml(invoice: ParsedInvoice): string {
+    return wrapTallyEnvelope(buildTallyVoucherBlock(invoice));
+}
+
+/**
+ * The same Tally Prime "Purchase" voucher, one per invoice, batched into a
+ * single <ENVELOPE> — Tally's import accepts any number of <TALLYMESSAGE>
+ * blocks in one file, so an unlocked `/bulk` batch imports in one pass
+ * instead of one XML per invoice.
+ */
+export function buildBulkTallyXml(invoices: ParsedInvoice[]): string {
+    return wrapTallyEnvelope(invoices.map(buildTallyVoucherBlock).join(''));
 }
 
 function csvCell(value: string | number): string {

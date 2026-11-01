@@ -10,7 +10,7 @@ import FeedbackPrompt from '@/components/FeedbackPrompt';
 import { toast } from 'sonner';
 import { track, trackPurchase } from '@/lib/analytics';
 import { BULK_UNLOCK_PRICE_RUPEES } from '@/lib/pricing';
-import { buildBulkExceptionCsv, downloadTextFile } from '@/lib/invoiceExport';
+import { buildBulkExceptionCsv, buildBulkTallyXml, downloadTextFile } from '@/lib/invoiceExport';
 import type { RazorpaySuccessResponse, RazorpayFailureResponse } from '@/types/razorpay';
 
 const loadRazorpayScript = (): Promise<boolean> => {
@@ -193,6 +193,24 @@ export default function BulkCheckClient() {
         );
     };
 
+    const handleDownloadTallyXml = () => {
+        if (!result) return;
+        // `invoiceData` is only present once unlocked — the free response
+        // never carries it (see /api/bulk-check).
+        const invoices = result.results
+            .map((r) => r.invoiceData)
+            .filter((inv): inv is NonNullable<typeof inv> => !!inv);
+        if (invoices.length === 0) {
+            toast.error('No invoice data available to export.');
+            return;
+        }
+        downloadTextFile(
+            `bulk-tally-vouchers-${Date.now()}.xml`,
+            buildBulkTallyXml(invoices),
+            'application/xml'
+        );
+    };
+
     const handleFile = (file: File) => {
         if (file.size > 2_000_000) {
             toast.error('File is larger than 2MB.');
@@ -325,6 +343,7 @@ export default function BulkCheckClient() {
                                                 />
                                                 <span className="font-semibold text-slate-900">
                                                     {rc.issueTitle}
+                                                    {!isUnlocked && ' — unlock to view root cause & fix'}
                                                 </span>
                                                 <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
                                                     {rc.scope === 'counterparty' ? 'Customer record' : 'Template or setting'}
@@ -461,8 +480,8 @@ export default function BulkCheckClient() {
                                             {formatINR(result.amountAtRisk)} of invoice value sitting in dispute.{' '}</>
                                         : null}
                                     Unlock the exact defect and the fix for every invoice above, plus a CSV
-                                    export of the full exception report — without losing this batch to a
-                                    login screen.
+                                    export of the full exception report and a Tally Prime voucher XML for
+                                    the whole batch — without losing this batch to a login screen.
                                 </p>
                                 <div className="flex flex-wrap items-center justify-center gap-3">
                                     <Button size="lg" onClick={handleUnlock} disabled={isUnlocking}>
@@ -471,7 +490,7 @@ export default function BulkCheckClient() {
                                         ) : (
                                             <>
                                                 <Zap className="mr-2 h-4 w-4" />
-                                                Unlock Full Batch Error Report, Fixes &amp; Corrected CSV Export — ₹{BULK_UNLOCK_PRICE_RUPEES}
+                                                Unlock Full Batch Error Report, Fixes, Corrected CSV &amp; Tally Prime XML — ₹{BULK_UNLOCK_PRICE_RUPEES}
                                             </>
                                         )}
                                     </Button>
@@ -489,10 +508,16 @@ export default function BulkCheckClient() {
                                 <p className="font-semibold text-emerald-900">
                                     Unlocked — every title above is the exact defect, with the fix included.
                                 </p>
-                                <Button size="lg" variant="outline" className="mt-4 gap-2" onClick={handleDownloadCsv}>
-                                    <Download className="h-4 w-4" />
-                                    Download exception report (CSV)
-                                </Button>
+                                <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+                                    <Button size="lg" variant="outline" className="gap-2" onClick={handleDownloadCsv}>
+                                        <Download className="h-4 w-4" />
+                                        Download exception report (CSV)
+                                    </Button>
+                                    <Button size="lg" variant="outline" className="gap-2" onClick={handleDownloadTallyXml}>
+                                        <Download className="h-4 w-4" />
+                                        Download Batch Tally Prime XML
+                                    </Button>
+                                </div>
                             </div>
                         )}
                     </div>

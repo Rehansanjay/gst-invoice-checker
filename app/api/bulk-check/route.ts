@@ -168,6 +168,9 @@ export async function POST(request: NextRequest) {
                 // what gets saved to `checks` and what the paid unlock later
                 // reads back. Only the free JSON response redacts it.
                 issues: validation.issuesFound,
+                // Kept for the paid Tally Prime XML export — stripped from
+                // the free response below, same as `issues`.
+                invoiceData: invoice,
             });
         }
 
@@ -212,7 +215,8 @@ export async function POST(request: NextRequest) {
         // the exact defect, not just that one exists. Redacted here, not
         // merely hidden in the UI: the real titles never leave this
         // function in the free response. The paid unlock reads them back
-        // from the row just saved above.
+        // from the row just saved above. `invoiceData` is dropped the same
+        // way — it's what the Tally XML export is built from.
         const freeResult: BulkCheckResult = {
             ...payload,
             results: results.map((r) => ({
@@ -226,6 +230,16 @@ export async function POST(request: NextRequest) {
                         title: bucket,
                     };
                 }),
+                invoiceData: undefined,
+            })),
+            // The root-cause panel is the same leak one level up: it named
+            // the exact repeating defect ("HSN Code Missing", not just that
+            // one exists) above the exception table, for free — before a
+            // reader even got to the per-row redaction. Bucketed the same
+            // way, by the rule that produced it.
+            rootCauses: payload.rootCauses.map((rc) => ({
+                ...rc,
+                issueTitle: bucketCategory(rc.ruleId, rc.category),
             })),
         };
 
