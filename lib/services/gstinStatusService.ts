@@ -88,6 +88,21 @@ async function callProvider(gstin: string): Promise<Omit<GstinStatusResult, 'gst
                     lastFiledAt: data?.lastFiledAt ?? null,
                 };
             }
+            case 'appyflow': {
+                const res = await fetch(
+                    `https://appyflow.in/api/verifyGST?gstNo=${gstin}&key_secret=${apiKey}`
+                );
+                if (!res.ok) return null;
+                const data = await res.json();
+                const info = data?.taxpayerInfo;
+                if (!info) return null;
+                return {
+                    status: normaliseStatus(info?.sts),
+                    legalName: info?.lgnm ?? undefined,
+                    taxpayerType: normaliseTaxpayerType(info?.dty),
+                    lastFiledAt: null,
+                };
+            }
             default:
                 console.warn(`[gstinStatusService] Unknown GSTIN_API_PROVIDER: ${provider}`);
                 return null;

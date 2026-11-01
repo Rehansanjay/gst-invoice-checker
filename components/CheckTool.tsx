@@ -554,6 +554,7 @@ export default function CheckTool({ variant = 'page', showSampleButton = false }
                             isProcessing={isProcessing}
                             invoiceTotal={invoiceDataForPayment?.invoiceTotalAmount}
                             taxAmount={invoiceDataForPayment?.totalTaxAmount}
+                            taxableAmount={invoiceDataForPayment?.taxableTotalAmount}
                             supplierGstin={invoiceDataForPayment?.supplierGSTIN}
                             buyerGstin={invoiceDataForPayment?.buyerGSTIN || undefined}
                         />
