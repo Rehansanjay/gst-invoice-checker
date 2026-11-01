@@ -8,6 +8,7 @@ import { invoiceDataSchema } from '@/lib/schemas';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import type { PostgrestError } from '@supabase/supabase-js';
 import { SAMPLE_INVOICE } from '@/lib/sample-invoice';
+import { bucketCategory } from '@/lib/services/categoryBuckets';
 
 const validateSchema = z.object({
     invoiceData: invoiceDataSchema,
@@ -23,40 +24,6 @@ const SEVERITY_ORDER: Record<ValidationIssue['severity'], number> = {
     info: 2,
 };
 
-/**
- * Maps a rule to one of 3 broad compliance buckets for the free preview.
- * The narrow per-field category (e.g. "Invoice Number") gives away the exact
- * defect on any invoice with only one error of that kind — an accountant
- * reading "Critical Issue in Category: Invoice Number" instantly knows to
- * check the 16-character rule, for free. These buckets name the risk
- * without naming the field.
- */
-const CATEGORY_BUCKET_BY_RULE: Record<string, string> = {
-    RULE_INVOICE_NUMBER: 'GSTR-1 Portal Rejection Risk',
-    RULE_HSN_CODE: 'GSTR-1 Portal Rejection Risk',
-    RULE_INVOICE_DATE: 'GSTR-1 Portal Rejection Risk',
-    RULE_GSTIN_FORMAT: 'GSTR-1 Portal Rejection Risk',
-    RULE_STATE_CODE: 'GSTR-1 Portal Rejection Risk',
-    RULE_TAX_TYPE: 'ITC Disallowance & Tax Logic Mismatch',
-    RULE_PLACE_OF_SUPPLY: 'ITC Disallowance & Tax Logic Mismatch',
-    RULE_DUPLICATE_GSTIN: 'ITC Disallowance & Tax Logic Mismatch',
-    RULE_REVERSE_CHARGE: 'ITC Disallowance & Tax Logic Mismatch',
-    RULE_INVOICE_TYPE: 'ITC Disallowance & Tax Logic Mismatch',
-    RULE_TAX_RATE: 'Tax Calculation & Slab Discrepancy',
-    RULE_GST_CALCULATION: 'Tax Calculation & Slab Discrepancy',
-    RULE_CGST_SGST_SPLIT: 'Tax Calculation & Slab Discrepancy',
-    RULE_TAXABLE_SUM: 'Tax Calculation & Slab Discrepancy',
-    RULE_INVOICE_TOTAL: 'Tax Calculation & Slab Discrepancy',
-    RULE_INVOICE_LEVEL_TAX: 'Tax Calculation & Slab Discrepancy',
-};
-
-/** Falls back to the rule's own category on an unmapped ruleId rather than
- * showing nothing — safer than crashing or leaking `undefined`, and a new
- * rule added later degrades to the old (still-free-safe for most names)
- * behavior instead of breaking the preview. */
-function bucketCategory(ruleId: string, fallback: string): string {
-    return CATEGORY_BUCKET_BY_RULE[ruleId] ?? fallback;
-}
 
 /**
  * Picks the single issue revealed for free: the most severe one, and within the

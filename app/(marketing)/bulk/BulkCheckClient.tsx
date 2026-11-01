@@ -1,14 +1,29 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Upload, Download, AlertCircle, AlertTriangle, CheckCircle2, Lock, Loader2, FileSpreadsheet } from 'lucide-react';
+import { Upload, Download, AlertCircle, AlertTriangle, CheckCircle2, Lock, Loader2, FileSpreadsheet, Zap } from 'lucide-react';
 import { BulkCheckResult } from '@/types';
 import EmailReportCapture from '@/components/EmailReportCapture';
 import FeedbackPrompt from '@/components/FeedbackPrompt';
 import { toast } from 'sonner';
-import { track } from '@/lib/analytics';
+import { track, trackPurchase } from '@/lib/analytics';
+import { BULK_UNLOCK_PRICE_RUPEES } from '@/lib/pricing';
+import { buildBulkExceptionCsv, buildBulkTallyXml, downloadTextFile } from '@/lib/invoiceExport';
+import type { RazorpaySuccessResponse, RazorpayFailureResponse } from '@/types/razorpay';
+
+const loadRazorpayScript = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+        if (window.Razorpay) return resolve(true);
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.async = true;
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.body.appendChild(script);
+    });
+};
 
 const SEVERITY_DOT = {
     critical: 'bg-red-500',
@@ -28,11 +43,20 @@ export default function BulkCheckClient() {
     const [result, setResult] = useState<BulkCheckResult | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [fileName, setFileName] = useState<string>('');
+    const [checkId, setCheckId] = useState<string | null>(null);
+    const [isUnlocked, setIsUnlocked] = useState(false);
+    const [isUnlocking, setIsUnlocking] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        loadRazorpayScript();
+    }, []);
 
     const runCheck = async (csv: string) => {
         setIsProcessing(true);
         setResult(null);
+        setCheckId(null);
+        setIsUnlocked(false);
         try {
             const res = await fetch('/api/bulk-check', {
                 method: 'POST',
@@ -46,6 +70,7 @@ export default function BulkCheckClient() {
                 return;
             }
             setResult(data.result);
+            setCheckId(data.checkId ?? null);
             track('bulk_check_completed', { invoices: data.result.totalInvoices });
             toast.success(`${data.result.totalInvoices} invoices checked.`);
         } catch {
@@ -53,6 +78,137 @@ export default function BulkCheckClient() {
         } finally {
             setIsProcessing(false);
         }
+    };
+
+    const handleUnlock = async () => {
+        if (!checkId) {
+            toast.error('Session expired. Please re-upload your file.');
+            return;
+        }
+
+        track('unlock_clicked', { item: 'bulk_check' });
+        setIsUnlocking(true);
+
+        try {
+            const orderResponse = await fetch('/api/bulk-quick-check', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ checkId }),
+            });
+            const orderData = await orderResponse.json();
+
+            if (!orderResponse.ok || !orderData.orderId) {
+                throw new Error(orderData.error || 'Failed to create payment order');
+            }
+
+            if (!window.Razorpay) {
+                await loadRazorpayScript();
+            }
+            if (!window.Razorpay) {
+                throw new Error('Payment gateway failed to load.');
+            }
+
+            const options = {
+                key: orderData.razorpayKeyId,
+                amount: orderData.amount,
+                currency: 'INR',
+                name: 'InvoiceCheck.in',
+                description: `Bulk Batch Unlock — ₹${BULK_UNLOCK_PRICE_RUPEES}`,
+                image: 'https://invoicecheck.in/invoicecheck-logo.svg',
+                order_id: orderData.orderId,
+                // Same UPI-first guest flow as the single-check unlock —
+                // most guests are on mobile and already pay this way.
+                config: {
+                    display: {
+                        blocks: {
+                            upi_block: { name: 'Pay via UPI', instruments: [{ method: 'upi' }] },
+                        },
+                        sequence: ['block.upi_block'],
+                        preferences: { show_default_blocks: true },
+                    },
+                },
+                handler: async function (response: RazorpaySuccessResponse) {
+                    try {
+                        const resultResponse = await fetch('/api/bulk-process-check', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                checkId: orderData.checkId,
+                                paymentId: orderData.paymentId,
+                                razorpayPaymentId: response.razorpay_payment_id,
+                                razorpayOrderId: response.razorpay_order_id,
+                                razorpaySignature: response.razorpay_signature,
+                            }),
+                        });
+                        const data = await resultResponse.json();
+
+                        if (!resultResponse.ok || !data.success) {
+                            throw new Error(data.error || 'Processing failed');
+                        }
+
+                        trackPurchase('bulk_check', response.razorpay_payment_id, orderData.amount / 100);
+                        toast.success('Payment verified! Full report unlocked.');
+                        setResult(data.result);
+                        setIsUnlocked(true);
+                    } catch (err) {
+                        console.error('Bulk process-check error:', err);
+                        toast.error('Payment processing failed. Contact support.');
+                    } finally {
+                        setIsUnlocking(false);
+                    }
+                },
+                modal: {
+                    ondismiss: () => {
+                        track('checkout_dismissed', { item: 'bulk_check' });
+                        setIsUnlocking(false);
+                        toast('Payment cancelled');
+                    },
+                },
+                theme: { color: '#6d28d9' },
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.on('payment.failed', (response: RazorpayFailureResponse) => {
+                track('payment_failed', { item: 'bulk_check' });
+                toast.error(`Payment failed: ${response.error.description}`);
+                setIsUnlocking(false);
+            });
+
+            rzp.open();
+            track('checkout_opened', { item: 'bulk_check' });
+
+        } catch (error) {
+            console.error('Bulk unlock error:', error);
+            toast.error((error instanceof Error && error.message) || 'Payment initiation failed.');
+            setIsUnlocking(false);
+        }
+    };
+
+    const handleDownloadCsv = () => {
+        if (!result) return;
+        downloadTextFile(
+            `bulk-exception-report-${Date.now()}.csv`,
+            buildBulkExceptionCsv(result.results),
+            'text/csv'
+        );
+    };
+
+    const handleDownloadTallyXml = () => {
+        if (!result) return;
+        // `invoiceData` is only present once unlocked — the free response
+        // never carries it (see /api/bulk-check).
+        const invoices = result.results
+            .map((r) => r.invoiceData)
+            .filter((inv): inv is NonNullable<typeof inv> => !!inv);
+        if (invoices.length === 0) {
+            toast.error('No invoice data available to export.');
+            return;
+        }
+        downloadTextFile(
+            `bulk-tally-vouchers-${Date.now()}.xml`,
+            buildBulkTallyXml(invoices),
+            'application/xml'
+        );
     };
 
     const handleFile = (file: File) => {
@@ -187,6 +343,7 @@ export default function BulkCheckClient() {
                                                 />
                                                 <span className="font-semibold text-slate-900">
                                                     {rc.issueTitle}
+                                                    {!isUnlocked && ' — unlock to view root cause & fix'}
                                                 </span>
                                                 <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
                                                     {rc.scope === 'counterparty' ? 'Customer record' : 'Template or setting'}
@@ -262,13 +419,27 @@ export default function BulkCheckClient() {
                                                         </span>
                                                     ) : (
                                                         <ul className="space-y-1">
-                                                            {r.issues.map((issue) => (
-                                                                <li key={issue.id} className="flex items-center gap-2">
-                                                                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${SEVERITY_DOT[issue.severity]}`} />
-                                                                    <span className="text-slate-700">{issue.title}</span>
-                                                                    <Lock className="h-3 w-3 shrink-0 text-slate-300" />
-                                                                </li>
-                                                            ))}
+                                                            {r.issues.map((issue) => {
+                                                                // Present only once unlocked — bulk-process-check
+                                                                // returns the full stored ValidationIssue, which
+                                                                // carries this field; the free redacted payload
+                                                                // never does.
+                                                                const howToFix = (issue as { howToFix?: string }).howToFix;
+                                                                return (
+                                                                    <li key={issue.id} className="flex items-start gap-2">
+                                                                        <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${SEVERITY_DOT[issue.severity]}`} />
+                                                                        <span className="min-w-0">
+                                                                            <span className="flex items-center gap-2 text-slate-700">
+                                                                                {issue.title}
+                                                                                {!isUnlocked && <Lock className="h-3 w-3 shrink-0 text-slate-300" />}
+                                                                            </span>
+                                                                            {isUnlocked && howToFix && (
+                                                                                <span className="block text-xs text-slate-500">{howToFix}</span>
+                                                                            )}
+                                                                        </span>
+                                                                    </li>
+                                                                );
+                                                            })}
                                                         </ul>
                                                     )}
                                                 </td>
@@ -292,29 +463,60 @@ export default function BulkCheckClient() {
 
                         <FeedbackPrompt tool="bulk" />
 
-                        {result.invoicesWithCritical > 0 && (
+                        {result.totalIssues > 0 && !isUnlocked && (
                             <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center">
-                                <div className="mb-3 flex items-center justify-center gap-2 text-red-600">
-                                    <AlertCircle className="h-5 w-5" />
-                                    <p className="font-semibold">
-                                        {result.invoicesWithCritical} of {result.totalInvoices} invoices will be
-                                        rejected as filed
-                                    </p>
-                                </div>
+                                {result.invoicesWithCritical > 0 && (
+                                    <div className="mb-3 flex items-center justify-center gap-2 text-red-600">
+                                        <AlertCircle className="h-5 w-5" />
+                                        <p className="font-semibold">
+                                            {result.invoicesWithCritical} of {result.totalInvoices} invoices will be
+                                            rejected as filed
+                                        </p>
+                                    </div>
+                                )}
                                 <p className="mx-auto mb-6 max-w-lg text-sm text-slate-600">
-                                    Filing these means amendments next month and{' '}
-                                    {formatINR(result.amountAtRisk)} of invoice value sitting in dispute.
-                                    Unlock the corrected values and step-by-step fixes for every invoice above.
+                                    {result.invoicesWithCritical > 0
+                                        ? <>Filing these means amendments next month and{' '}
+                                            {formatINR(result.amountAtRisk)} of invoice value sitting in dispute.{' '}</>
+                                        : null}
+                                    Unlock the exact defect and the fix for every invoice above, plus a CSV
+                                    export of the full exception report and a Tally Prime voucher XML for
+                                    the whole batch — without losing this batch to a login screen.
                                 </p>
                                 <div className="flex flex-wrap items-center justify-center gap-3">
-                                    <Link href="/pricing">
-                                        <Button size="lg">See pricing</Button>
-                                    </Link>
+                                    <Button size="lg" onClick={handleUnlock} disabled={isUnlocking}>
+                                        {isUnlocking ? (
+                                            'Processing Payment...'
+                                        ) : (
+                                            <>
+                                                <Zap className="mr-2 h-4 w-4" />
+                                                Unlock Full Batch Error Report, Fixes, Corrected CSV &amp; Tally Prime XML — ₹{BULK_UNLOCK_PRICE_RUPEES}
+                                            </>
+                                        )}
+                                    </Button>
                                     <Link href="/contact">
                                         <Button size="lg" variant="outline">
                                             Talk to us about a practice plan
                                         </Button>
                                     </Link>
+                                </div>
+                            </div>
+                        )}
+
+                        {isUnlocked && (
+                            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center sm:p-8">
+                                <p className="font-semibold text-emerald-900">
+                                    Unlocked — every title above is the exact defect, with the fix included.
+                                </p>
+                                <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+                                    <Button size="lg" variant="outline" className="gap-2" onClick={handleDownloadCsv}>
+                                        <Download className="h-4 w-4" />
+                                        Download exception report (CSV)
+                                    </Button>
+                                    <Button size="lg" variant="outline" className="gap-2" onClick={handleDownloadTallyXml}>
+                                        <Download className="h-4 w-4" />
+                                        Download Batch Tally Prime XML
+                                    </Button>
                                 </div>
                             </div>
                         )}
