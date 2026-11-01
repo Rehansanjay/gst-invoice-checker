@@ -19,6 +19,9 @@ interface CheckResultPreviewProps {
      * care about ITC/GSTR-2B language, so the paywall copy is framed
      * differently. */
     buyerGstin?: string;
+    /** Taxable value (invoice total minus tax) — shown in the clean-B2B
+     * Tally voucher preview table alongside taxAmount. */
+    taxableAmount?: number;
 }
 
 const SEVERITY_STYLES = {
@@ -77,6 +80,7 @@ export default function CheckResultPreview({
     taxAmount,
     supplierGstin,
     buyerGstin,
+    taxableAmount,
 }: CheckResultPreviewProps) {
     const {
         healthScore,
@@ -107,7 +111,9 @@ export default function CheckResultPreview({
     const SeverityIcon = severity?.icon;
 
     const unlockLabel = isClean
-        ? `Download Audit-Ready Verification PDF — ₹${SINGLE_CHECK_PRICE_RUPEES} →`
+        ? isB2B
+            ? `Download Tally Prime XML, Purchase CSV & Signed Audit PDF — ₹${SINGLE_CHECK_PRICE_RUPEES} →`
+            : `Download Audit-Ready Verification PDF — ₹${SINGLE_CHECK_PRICE_RUPEES} →`
         : isB2B
             ? `Protect ${taxAmount !== undefined && taxAmount > 0 ? formatINR(taxAmount) : 'Your'} Input Tax Credit — ₹${SINGLE_CHECK_PRICE_RUPEES} →`
             : `Verify Seller Authenticity & Full Bill Report — ₹${SINGLE_CHECK_PRICE_RUPEES} →`;
@@ -166,17 +172,68 @@ export default function CheckResultPreview({
                         </div>
                     </div>
 
-                    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-                        <h3 className="mb-1 font-semibold text-slate-900">Put it on record</h3>
-                        <p className="mb-4 text-sm text-slate-500">
-                            A signed PDF certificate showing every check this invoice passed — to send
-                            to your buyer or keep for an audit.
-                        </p>
-                        <LockedField
-                            label="Audit-ready verification certificate (PDF)"
-                            hint="Every rule checked, every result, signed and dated"
-                        />
-                    </div>
+                    {isB2B ? (
+                        /* A green pass banner alone gives a B2B buyer full
+                           reassurance with no reason to unlock — so a clean
+                           invoice gets the same Tally-voucher hook a flawed
+                           one gets, not just a dead end. */
+                        <div className="overflow-hidden rounded-2xl border-2 border-slate-900 bg-slate-900 p-6 text-white sm:p-8">
+                            <h3 className="text-lg font-bold">Tally Prime XML + Audit Certificate Ready</h3>
+                            <p className="mt-1 text-sm text-slate-300">
+                                This invoice is clean and ready to post — the voucher below is generated
+                                and waiting.
+                            </p>
+
+                            <div className="relative mt-4 overflow-hidden rounded-xl border border-white/20 bg-white/5">
+                                <table className="w-full text-sm">
+                                    <tbody>
+                                        {supplierGstin && (
+                                            <tr className="border-b border-white/10">
+                                                <td className="px-4 py-2.5 text-slate-400">Supplier GSTIN</td>
+                                                <td className="px-4 py-2.5 text-right font-mono">{supplierGstin}</td>
+                                            </tr>
+                                        )}
+                                        {buyerGstin && (
+                                            <tr className="border-b border-white/10">
+                                                <td className="px-4 py-2.5 text-slate-400">Buyer GSTIN</td>
+                                                <td className="px-4 py-2.5 text-right font-mono">{buyerGstin}</td>
+                                            </tr>
+                                        )}
+                                        {taxableAmount !== undefined && taxableAmount > 0 && (
+                                            <tr className="border-b border-white/10">
+                                                <td className="px-4 py-2.5 text-slate-400">Taxable Value</td>
+                                                <td className="px-4 py-2.5 text-right font-mono">{formatINR(taxableAmount)}</td>
+                                            </tr>
+                                        )}
+                                        {taxAmount !== undefined && taxAmount > 0 && (
+                                            <tr>
+                                                <td className="px-4 py-2.5 text-slate-400">Tax</td>
+                                                <td className="px-4 py-2.5 text-right font-mono">{formatINR(taxAmount)}</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                                <div className="absolute inset-0 flex items-center justify-center bg-slate-900/60 backdrop-blur-[2px]">
+                                    <span className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-slate-900">
+                                        <Lock className="h-3 w-3" />
+                                        Tally voucher — locked
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+                            <h3 className="mb-1 font-semibold text-slate-900">Put it on record</h3>
+                            <p className="mb-4 text-sm text-slate-500">
+                                A signed PDF certificate showing every check this invoice passed — to send
+                                to your buyer or keep for an audit.
+                            </p>
+                            <LockedField
+                                label="Audit-ready verification certificate (PDF)"
+                                hint="Every rule checked, every result, signed and dated"
+                            />
+                        </div>
+                    )}
                 </div>
             ) : (
                 <>
