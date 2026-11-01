@@ -7,7 +7,7 @@
  * flat Purchase Register CSV. Both are generated from data already on
  * screen — no server round-trip, no new API route.
  */
-import { ParsedInvoice, ValidationResult } from '@/types';
+import { BulkCheckResult, ParsedInvoice, ValidationResult } from '@/types';
 
 function xmlEscape(value: string): string {
     return value
@@ -130,6 +130,34 @@ export function buildPurchaseRegisterCsv(invoice: ParsedInvoice, result: Validat
         result.healthScore,
         result.riskLevel,
         result.issuesFound.length,
+    ]);
+
+    const lines = [headers, ...rows].map((row) => row.map(csvCell).join(','));
+    return lines.join('\n');
+}
+
+/**
+ * One row per invoice, worst first (the batch is already sorted that way) —
+ * the unlocked `/bulk` exception report as a CSV, for a practitioner who
+ * wants the list in Excel rather than read on screen. Only called after
+ * unlock, when `issues` carries real titles rather than redacted buckets.
+ */
+export function buildBulkExceptionCsv(results: BulkCheckResult['results']): string {
+    const headers = [
+        'Invoice Number', 'Invoice Date', 'Buyer GSTIN', 'Invoice Total',
+        'Health Score', 'Risk Level', 'Critical Issues', 'Warning Issues', 'Issues Found',
+    ];
+
+    const rows = results.map((r) => [
+        r.invoiceNumber,
+        r.invoiceDate,
+        r.buyerGSTIN || '',
+        r.invoiceTotalAmount,
+        r.healthScore,
+        r.riskLevel,
+        r.criticalCount,
+        r.warningCount,
+        r.issues.map((i) => i.title).join('; '),
     ]);
 
     const lines = [headers, ...rows].map((row) => row.map(csvCell).join(','));

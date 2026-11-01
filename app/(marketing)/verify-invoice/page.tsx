@@ -18,15 +18,15 @@ import InvoiceVerifier from '@/components/InvoiceVerifier';
  */
 
 export const metadata: Metadata = {
-    title: 'Verify a GST Invoice — Check if an Invoice is Genuine',
+    title: 'Is This GST Bill Real or Fake? Seller GSTIN & PAN Check',
     description:
-        'Not sure about an invoice you were given? Check its GSTIN, tax, HSN and format in seconds. A fake GST invoice usually fails one of them.',
+        'Check if a GST invoice or shop bill is real or fake — seller GSTIN structure, PAN and entity-type forensics, tax arithmetic, HSN and format, in seconds.',
     alternates: { canonical: '/verify-invoice' },
     openGraph: {
         type: 'website',
-        title: 'Verify a GST Invoice — Check if an Invoice is Genuine',
+        title: 'Is This GST Bill Real or Fake? Seller GSTIN & PAN Check',
         description:
-            'Check the GSTIN, tax arithmetic, HSN and invoice format before you pay. A fabricated invoice usually fails at least one.',
+            'Decode the seller\'s GSTIN into state, PAN and entity type, then check tax arithmetic, HSN and invoice format — before you pay a bill you\'re unsure about.',
         url: `${SITE_URL}/verify-invoice`,
         images: [OG_IMAGE],
     },
@@ -35,8 +35,8 @@ export const metadata: Metadata = {
 const CHECKS = [
     {
         icon: Search,
-        title: 'GSTIN structure and state code',
-        body: 'A GSTIN is 15 characters with a checksum derived from the preceding fourteen. An invented number almost never satisfies it.',
+        title: 'Seller GSTIN, PAN & entity type forensics',
+        body: 'A GSTIN is 15 characters with a checksum derived from the preceding fourteen, and it encodes the seller\'s state, their PAN, and whether they are a company, proprietorship or other entity type. An invented number almost never satisfies the checksum, and a mismatched PAN or entity type is a second, independent tell.',
         automated: true,
     },
     {
@@ -99,6 +99,14 @@ export default function VerifyInvoicePage() {
                             },
                             {
                                 '@type': 'Question',
+                                name: 'What can a seller\'s GSTIN tell me without calling them?',
+                                acceptedAnswer: {
+                                    '@type': 'Answer',
+                                    text: 'A GSTIN is structured, not arbitrary: the first two digits are the seller\'s state code, the next ten are their PAN, and one digit encodes their entity type (company, proprietorship, partnership and so on). Decoding it tells you whether the seller\'s state, PAN and entity type are internally consistent and whether the checksum is valid — all without contacting the seller or the GST portal.',
+                                },
+                            },
+                            {
+                                '@type': 'Question',
                                 name: 'Can I lose input tax credit because of a supplier\'s invoice error?',
                                 acceptedAnswer: {
                                     '@type': 'Answer',
@@ -123,12 +131,13 @@ export default function VerifyInvoicePage() {
                         className="mt-4 text-4xl font-bold leading-tight font-heading sm:text-5xl"
                         style={{ color: 'var(--warm-charcoal)' }}
                     >
-                        Is this invoice genuine?
+                        Is this GST bill real or fake?
                     </h1>
                     <p className="mx-auto mt-4 max-w-2xl text-lg" style={{ color: 'var(--warm-charcoal-soft)' }}>
-                        Received an invoice you are not sure about? Check the GSTIN, the tax
-                        arithmetic, the HSN code and the invoice format in seconds. A fabricated GST
-                        invoice usually fails at least one of these.
+                        Received a shop bill or invoice you are not sure about? Decode the seller&apos;s
+                        GSTIN into state, PAN and entity type, then check the tax arithmetic, HSN
+                        code and invoice format. A fabricated GST invoice usually fails at least one
+                        of these.
                     </p>
 
                     {/* The one-field answer first; the full check is the next step. */}

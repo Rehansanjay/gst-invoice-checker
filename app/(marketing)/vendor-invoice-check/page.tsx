@@ -14,15 +14,15 @@ import { SITE_URL, OG_IMAGE } from '@/lib/site';
  */
 
 export const metadata: Metadata = {
-    title: 'Check Vendor Invoices Before You Claim ITC — InvoiceCheck.in',
+    title: 'GST Invoice to Tally Prime XML — Verify 16 ITC Rules First',
     description:
-        'Check supplier invoices before you claim input tax credit. Catch the GSTIN, tax head and HSN defects that cost you ITC under Section 16.',
+        'Convert a vendor\'s GST invoice PDF into a Tally Prime purchase voucher XML, after it passes all 16 ITC-protecting checks. Catch the GSTIN, tax head and HSN defects that cost you credit under Section 16.',
     alternates: { canonical: '/vendor-invoice-check' },
     openGraph: {
         type: 'website',
-        title: 'Check Vendor Invoices Before You Claim ITC',
+        title: 'GST Invoice to Tally Prime XML — Verify 16 ITC Rules First',
         description:
-            'A supplier’s mistake costs you the credit. Validate incoming invoices before they reach your books.',
+            'A supplier’s mistake costs you the credit. Validate incoming invoices against all 16 ITC rules, then export straight to Tally Prime.',
         url: `${SITE_URL}/vendor-invoice-check`,
         images: [OG_IMAGE],
     },
@@ -58,10 +58,10 @@ export default function VendorInvoiceCheckPage() {
                     __html: JSON.stringify({
                         '@context': 'https://schema.org',
                         '@type': 'WebPage',
-                        name: 'Check Vendor Invoices Before You Claim ITC',
+                        name: 'GST Invoice to Tally Prime XML — Verify 16 ITC Rules First',
                         url: `${SITE_URL}/vendor-invoice-check`,
                         description:
-                            'Validate supplier invoices before claiming input tax credit under Section 16 of the CGST Act.',
+                            'Validate supplier invoices against 16 ITC-protecting rules under Section 16 of the CGST Act, then export a Tally Prime purchase voucher XML.',
                     }),
                 }}
             />
@@ -79,12 +79,13 @@ export default function VendorInvoiceCheckPage() {
                         className="mt-4 text-4xl font-bold leading-tight font-heading sm:text-5xl"
                         style={{ color: 'var(--warm-charcoal)' }}
                     >
-                        Your supplier&apos;s mistake costs you the credit
+                        Verify 16 ITC rules, then export straight to Tally
                     </h1>
                     <p className="mx-auto mt-4 max-w-2xl text-lg" style={{ color: 'var(--warm-charcoal-soft)' }}>
                         Input tax credit depends on the invoice your vendor issued being valid. Check
-                        incoming invoices before they reach your books — not during reconciliation,
-                        when the money has already gone out.
+                        a vendor&apos;s GST invoice PDF against all 16 ITC-protecting rules, then pull
+                        a Tally Prime purchase voucher XML and a Purchase Register CSV straight from
+                        the result — no re-typing it into your books.
                     </p>
                 </div>
 
@@ -138,6 +139,13 @@ export default function VendorInvoiceCheckPage() {
                             </li>
                         ))}
                     </ul>
+                    <p className="mt-4" style={{ color: 'var(--warm-charcoal-soft)' }}>
+                        Check one vendor invoice in full and the unlocked report includes a{' '}
+                        <Link href="/check?utm_source=vendor-invoice-check" className="font-semibold underline underline-offset-2" style={{ color: 'var(--warm-accent)' }}>
+                            Tally Prime purchase voucher XML and a Purchase Register CSV
+                        </Link>{' '}
+                        — generated from the same validated data, ready to import.
+                    </p>
                 </div>
 
                 <div
